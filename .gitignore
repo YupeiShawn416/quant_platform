@@ -9,3 +9,7 @@ data/research_data/
 data/rqalpha_bundle/
 *.parquet
 *.db
+*.egg-info/
+src/*.egg-info/
+build/
+dist/
