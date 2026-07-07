@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import json
+import os
 from urllib.error import URLError
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 
 
-BASE_URL = "http://127.0.0.1:8000"
 URLS = [
     "/health",
     "/status",
@@ -15,14 +15,23 @@ URLS = [
 
 
 def main() -> None:
+    base_url = os.environ.get("QUANT_PLATFORM_API_URL", "http://127.0.0.1:8000").rstrip("/")
+    token = os.environ.get("QUANT_PLATFORM_API_TOKEN")
     for path in URLS:
         try:
-            with urlopen(f"{BASE_URL}{path}", timeout=10) as response:
+            request = Request(f"{base_url}{path}", headers=_headers(token))
+            with urlopen(request, timeout=10) as response:
                 payload = json.loads(response.read().decode("utf-8"))
                 print(f"{path} status={response.status} {_summary(payload)}")
         except URLError:
-            print("请先运行：PYTHONPATH=src python scripts/07_run_api_local.py")
+            print("请先运行：make api")
             raise SystemExit(1)
+
+
+def _headers(token: str | None) -> dict[str, str]:
+    if token:
+        return {"X-API-Token": token}
+    return {}
 
 
 def _summary(payload: dict) -> str:

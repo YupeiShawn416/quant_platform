@@ -10,3 +10,4 @@ rqdatac
 rqalpha
 pytest
 httpx2
+requests

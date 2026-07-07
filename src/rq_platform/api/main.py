@@ -6,7 +6,7 @@ from typing import Any
 
 import pandas as pd
 import pyarrow.parquet as pq
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, Header, HTTPException, Query
 
 from rq_platform.data.data_loader import ResearchDataLoader
 from rq_platform.etl.quality_check import check_all_price_datasets
@@ -21,8 +21,20 @@ def health() -> dict[str, str]:
     return {"status": "ok", "service": "quant_platform_data_api"}
 
 
+def require_api_token(
+    x_api_token: str | None = Header(default=None, alias="X-API-Token"),
+    api_token: str | None = Query(default=None),
+) -> None:
+    expected_token = settings.api_token
+    if not expected_token or expected_token == "change_me":
+        return
+    supplied_token = x_api_token or api_token
+    if supplied_token != expected_token:
+        raise HTTPException(status_code=401, detail="invalid or missing api token")
+
+
 @app.get("/status")
-def status() -> dict[str, Any]:
+def status(_: None = Depends(require_api_token)) -> dict[str, Any]:
     data_root = settings.data_root_path
     datasets = {
         "instruments": data_root / "instruments" / "instruments.parquet",
@@ -41,7 +53,10 @@ def status() -> dict[str, Any]:
 
 
 @app.get("/instruments")
-def instruments(limit: int = Query(default=20, ge=1, le=500)) -> dict[str, Any]:
+def instruments(
+    limit: int = Query(default=20, ge=1, le=500),
+    _: None = Depends(require_api_token),
+) -> dict[str, Any]:
     path = settings.data_root_path / "instruments" / "instruments.parquet"
     frame = _read_required_parquet(path, "本地 instruments.parquet 不存在")
     frame = frame.head(limit)
@@ -49,7 +64,11 @@ def instruments(limit: int = Query(default=20, ge=1, le=500)) -> dict[str, Any]:
 
 
 @app.get("/calendar")
-def calendar(start: str | None = None, end: str | None = None) -> dict[str, Any]:
+def calendar(
+    start: str | None = None,
+    end: str | None = None,
+    _: None = Depends(require_api_token),
+) -> dict[str, Any]:
     path = settings.data_root_path / "trading_calendar" / "trading_calendar.parquet"
     frame = _read_required_parquet(path, "本地 trading_calendar.parquet 不存在")
     if "trade_date" not in frame.columns:
@@ -71,6 +90,7 @@ def prices(
     end: str,
     adjust_type: str = "pre",
     fields: str | None = None,
+    _: None = Depends(require_api_token),
 ) -> dict[str, Any]:
     if adjust_type not in {"pre", "none"}:
         raise HTTPException(status_code=400, detail="adjust_type 只允许 pre 或 none")
@@ -114,7 +134,9 @@ def prices(
 
 
 @app.get("/data-quality")
-def data_quality(year: int = 2025) -> dict[str, Any]:
+def data_quality(
+    year: int = 2025, _: None = Depends(require_api_token)
+) -> dict[str, Any]:
     return {"year": year, "results": check_all_price_datasets(year=year)}
 
 

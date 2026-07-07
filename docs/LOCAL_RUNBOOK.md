@@ -39,6 +39,14 @@ make api
 make api-smoke
 ```
 
+## Client smoke test
+
+另开终端：
+
+```bash
+make client-smoke
+```
+
 ## 常见问题
 
 1. API 连接失败：先确认 `make api` 是否正在运行
@@ -46,3 +54,4 @@ make api-smoke
 3. RQData license 不要写入代码
 4. `data/` 不进 Git
 5. `egg-info` 是安装生成物，不进 Git
+6. 部署环境需要设置强 `API_TOKEN`，并通过 `X-API-Token` 调用

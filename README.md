@@ -50,18 +50,43 @@ GET /data-quality
 curl "http://127.0.0.1:8000/prices?symbols=000001.XSHE,600519.XSHG&start=2025-01-02&end=2025-01-10&adjust_type=pre&fields=open,close,volume"
 ```
 
+## Python Client 使用方式
+
+```python
+from rq_platform.client import QuantPlatformClient
+
+client = QuantPlatformClient(
+    base_url="http://127.0.0.1:8000",
+    token=None,
+)
+
+df = client.get_prices(
+    symbols=["000001.XSHE", "600519.XSHG"],
+    start="2025-01-02",
+    end="2025-01-10",
+    adjust_type="pre",
+    fields=["open", "close", "volume"],
+)
+
+print(df.head())
+```
+
+本地开发默认 `API_TOKEN=change_me`，可不传 token。部署到服务器时必须设置强
+token，并通过 `X-API-Token` 调用。
+
 ## 数据安全
 
 1. `.env` 不提交
 2. `data/` 不提交
 3. RQData license 不打印
-4. Parquet 本地数据不进 Git
+4. API token 不打印
+5. Parquet 本地数据不进 Git
 
 ## 下一步计划
 
 1. 回补 2024 / 2023 日频数据
 2. 实现每日增量更新
-3. 增加 API token 鉴权
+3. 增强 API 权限、审计和限流
 4. 增加 RQAlpha bundle 和回测 runner
 5. 增加每日模拟盘
 6. 部署到阿里云服务器

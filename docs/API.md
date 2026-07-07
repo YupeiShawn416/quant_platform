@@ -12,6 +12,21 @@ make api
 curl "http://127.0.0.1:8000/health"
 ```
 
+## 鉴权
+
+`/health` 不需要鉴权。除 `/health` 外，部署环境下所有接口都需要 Header：
+
+```text
+X-API-Token: <token>
+```
+
+本地开发默认 `API_TOKEN=change_me`，可以不传 token。部署到服务器时应设置强
+token，并用 Header 调用：
+
+```bash
+curl -H "X-API-Token: your_token" "http://127.0.0.1:8000/status"
+```
+
 ## 查看本地数据状态
 
 ```bash

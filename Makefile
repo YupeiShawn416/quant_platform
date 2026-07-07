@@ -1,4 +1,4 @@
-.PHONY: install test api api-smoke check-data query-sample status clean
+.PHONY: install test api api-smoke client-smoke check-data query-sample status clean
 
 install:
 	python -m pip install -e .
@@ -11,6 +11,9 @@ api:
 
 api-smoke:
 	PYTHONPATH=src python scripts/08_api_smoke_test.py
+
+client-smoke:
+	PYTHONPATH=src python scripts/09_client_smoke_test.py
 
 check-data:
 	PYTHONPATH=src python scripts/05_check_local_data.py
