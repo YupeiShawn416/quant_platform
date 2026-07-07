@@ -34,4 +34,6 @@ src/rq_platform/evaluation/report_builder.py
 src/rq_platform/simulation/__init__.py
 src/rq_platform/simulation/daily_simulator.py
 src/rq_platform/simulation/simulation_report.py
+tests/test_data_loader_empty.py
 tests/test_imports.py
+tests/test_parquet_lake.py
