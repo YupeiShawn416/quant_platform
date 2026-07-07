@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     rqalpha_bundle_path: str = "./data/rqalpha_bundle"
 
     api_token: str = "change_me"
+    host: str = "127.0.0.1"
+    port: int = 8000
+    workers: int = 2
 
     @property
     def data_root_path(self) -> Path:

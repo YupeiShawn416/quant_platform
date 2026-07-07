@@ -47,6 +47,16 @@ make api-smoke
 make client-smoke
 ```
 
+## 生产模式本地演练
+
+```bash
+make deploy-check
+make api-prod
+```
+
+`api-prod` 使用 `reload=False`，用于模拟服务器启动方式。本地开发仍使用
+`make api`。
+
 ## 常见问题
 
 1. API 连接失败：先确认 `make api` 是否正在运行

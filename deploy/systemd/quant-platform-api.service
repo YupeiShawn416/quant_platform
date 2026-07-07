@@ -1,0 +1,16 @@
+[Unit]
+Description=Quant Platform FastAPI Data Service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/quant_platform
+Environment="PYTHONPATH=/opt/quant_platform/src"
+ExecStart=/opt/quant_platform/.venv/bin/python scripts/10_run_api_prod.py
+Restart=always
+RestartSec=5
+User=quant
+Group=quant
+
+[Install]
+WantedBy=multi-user.target

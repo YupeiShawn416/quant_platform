@@ -74,6 +74,17 @@ print(df.head())
 本地开发默认 `API_TOKEN=change_me`，可不传 token。部署到服务器时必须设置强
 token，并通过 `X-API-Token` 调用。
 
+## Deployment Preparation
+
+部署预备说明见 [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)。
+
+本地可先运行：
+
+```bash
+make deploy-check
+make api-prod
+```
+
 ## 数据安全
 
 1. `.env` 不提交
