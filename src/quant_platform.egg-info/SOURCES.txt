@@ -21,10 +21,12 @@ src/rq_platform/data_sources/__init__.py
 src/rq_platform/data_sources/rqdata_source.py
 src/rq_platform/etl/__init__.py
 src/rq_platform/etl/quality_check.py
+src/rq_platform/etl/update_all_daily_prices.py
 src/rq_platform/etl/update_calendar.py
 src/rq_platform/etl/update_daily_prices.py
 src/rq_platform/etl/update_instruments.py
 src/rq_platform/etl/update_rqalpha_bundle.py
+src/rq_platform/etl/update_status.py
 src/rq_platform/evaluation/__init__.py
 src/rq_platform/evaluation/factor_evaluator.py
 src/rq_platform/evaluation/pathway_evaluator.py
@@ -37,3 +39,5 @@ src/rq_platform/simulation/simulation_report.py
 tests/test_data_loader_empty.py
 tests/test_imports.py
 tests/test_parquet_lake.py
+tests/test_quality_check.py
+tests/test_update_status.py
