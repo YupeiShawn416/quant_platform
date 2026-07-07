@@ -1,0 +1,11 @@
+.env
+.venv/
+.venv-*/
+__pycache__/
+*.pyc
+.DS_Store
+logs/
+data/research_data/
+data/rqalpha_bundle/
+*.parquet
+*.db

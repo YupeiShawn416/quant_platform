@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "quant-platform"
+version = "0.1.0"
+description = "Internal quant research platform based on RQData, Parquet, DuckDB, FastAPI and RQAlpha"
+requires-python = ">=3.11"
+
+[tool.setuptools.packages.find]
+where = ["src"]

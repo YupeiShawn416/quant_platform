@@ -1,0 +1,5 @@
+Metadata-Version: 2.4
+Name: quant-platform
+Version: 0.1.0
+Summary: Internal quant research platform based on RQData, Parquet, DuckDB, FastAPI and RQAlpha
+Requires-Python: >=3.11

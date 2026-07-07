@@ -1,0 +1,11 @@
+pandas
+numpy
+pyarrow
+duckdb
+fastapi
+uvicorn[standard]
+pydantic-settings
+python-dotenv
+rqdatac
+rqalpha
+pytest
