@@ -9,3 +9,4 @@ python-dotenv
 rqdatac
 rqalpha
 pytest
+httpx2
