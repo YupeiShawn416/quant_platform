@@ -6,9 +6,11 @@ from typing import Any
 
 import pandas as pd
 import pyarrow.parquet as pq
-from fastapi import Depends, FastAPI, Header, HTTPException, Query
+from fastapi import Body, Depends, FastAPI, Header, HTTPException, Query
 from fastapi.responses import FileResponse, PlainTextResponse
 
+from rq_platform.backtest.current_store import CurrentBacktestNotFound, CurrentBacktestStore
+from rq_platform.backtest.job_manager import BacktestJobError, BacktestJobManager
 from rq_platform.backtest.result_store import BacktestResultStore
 from rq_platform.data.data_loader import ResearchDataLoader
 from rq_platform.etl.quality_check import check_all_price_datasets
@@ -148,6 +150,85 @@ def backtests(_: None = Depends(require_api_token)) -> dict[str, Any]:
     return {"count": len(runs), "data": runs}
 
 
+@app.post("/backtests/run")
+def run_backtest(
+    payload: dict[str, Any] = Body(...),
+    _: None = Depends(require_api_token),
+) -> dict[str, Any]:
+    strategy_code = payload.get("strategy_code")
+    config = payload.get("config")
+    try:
+        return BacktestJobManager().run_backtest(
+            strategy_code=strategy_code,
+            config=config,
+        )
+    except BacktestJobError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.get("/backtests/current")
+def current_backtest(_: None = Depends(require_api_token)) -> dict[str, Any]:
+    store = CurrentBacktestStore()
+    if not store.current_exists():
+        return {"exists": False}
+    try:
+        summary = store.read_current_json("summary.json")
+    except CurrentBacktestNotFound:
+        summary = {}
+    return {
+        "exists": True,
+        "run_id": summary.get("run_id"),
+        "summary": summary,
+    }
+
+
+@app.get("/backtests/current/summary")
+def current_backtest_summary(_: None = Depends(require_api_token)) -> dict[str, Any]:
+    return _read_current_json("summary.json")
+
+
+@app.get("/backtests/current/nav")
+def current_backtest_nav(_: None = Depends(require_api_token)) -> dict[str, Any]:
+    return _read_current_csv("nav.csv")
+
+
+@app.get("/backtests/current/trades")
+def current_backtest_trades(_: None = Depends(require_api_token)) -> dict[str, Any]:
+    return _read_current_csv("trades.csv")
+
+
+@app.get("/backtests/current/positions")
+def current_backtest_positions(_: None = Depends(require_api_token)) -> dict[str, Any]:
+    return _read_current_csv("positions.csv")
+
+
+@app.get("/backtests/current/logs")
+def current_backtest_logs(_: None = Depends(require_api_token)) -> dict[str, str]:
+    try:
+        return {"logs": CurrentBacktestStore().read_current_text("logs.txt")}
+    except (CurrentBacktestNotFound, ValueError) as exc:
+        raise HTTPException(status_code=404, detail="current backtest logs not found") from exc
+
+
+@app.get("/backtests/current/download")
+def current_backtest_download(_: None = Depends(require_api_token)) -> FileResponse:
+    try:
+        zip_path = CurrentBacktestStore().package_current_zip()
+    except (CurrentBacktestNotFound, ValueError) as exc:
+        raise HTTPException(status_code=404, detail="current backtest result not found") from exc
+    return FileResponse(
+        zip_path,
+        media_type="application/zip",
+        filename=zip_path.name,
+    )
+
+
+@app.delete("/backtests/current")
+def delete_current_backtest(_: None = Depends(require_api_token)) -> dict[str, bool]:
+    CurrentBacktestStore().delete_current()
+    return {"deleted": True}
+
+
 @app.get("/backtests/{run_id}/summary")
 def backtest_summary(run_id: str, _: None = Depends(require_api_token)) -> dict[str, Any]:
     return _read_result_json(run_id, "summary.json")
@@ -202,6 +283,21 @@ def _read_result_csv(run_id: str, filename: str) -> dict[str, Any]:
         frame = BacktestResultStore().read_csv(run_id, filename)
     except (FileNotFoundError, ValueError) as exc:
         raise HTTPException(status_code=404, detail="backtest result not found") from exc
+    return {"count": int(len(frame)), "data": _records(frame)}
+
+
+def _read_current_json(filename: str) -> dict[str, Any]:
+    try:
+        return CurrentBacktestStore().read_current_json(filename)
+    except (CurrentBacktestNotFound, ValueError) as exc:
+        raise HTTPException(status_code=404, detail="current backtest result not found") from exc
+
+
+def _read_current_csv(filename: str) -> dict[str, Any]:
+    try:
+        frame = CurrentBacktestStore().read_current_csv(filename)
+    except (CurrentBacktestNotFound, ValueError) as exc:
+        raise HTTPException(status_code=404, detail="current backtest result not found") from exc
     return {"count": int(len(frame)), "data": _records(frame)}
 
 

@@ -50,6 +50,13 @@ GET /backtests/{run_id}/nav
 GET /backtests/{run_id}/trades
 GET /backtests/{run_id}/positions
 GET /backtests/{run_id}/download
+POST /backtests/run
+GET /backtests/current
+GET /backtests/current/summary
+GET /backtests/current/nav
+GET /backtests/current/trades
+GET /backtests/current/positions
+GET /backtests/current/download
 ```
 
 行情查询示例：
@@ -98,9 +105,11 @@ make api-prod
 ```bash
 make demo-daily-backtest
 make view-demo-daily-backtest
+make backtest-api-smoke
 ```
 
 结果写入 `runs/backtests/demo_daily_backtest/`，该目录不会提交到 Git。
+通过 API 提交的最新结果写入 `runs/backtests/current/`，新回测会覆盖旧 current。
 
 ## 数据安全
 

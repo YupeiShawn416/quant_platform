@@ -40,6 +40,7 @@ Parquet 行情、策略权重和标准 Backtest Result Bundle 串成闭环。
 ```bash
 make demo-daily-backtest
 make view-demo-daily-backtest
+make backtest-api-smoke
 ```
 
 demo 策略位于：
@@ -58,3 +59,8 @@ runs/backtests/demo_daily_backtest/
 
 V0 先保持自研、可解释、可测试。后续可以把同一套标准结果包与 RQAlpha runner
 对接，但本阶段不调用 RQData、不更新 bundle、不接真实 RQAlpha。
+
+## Job API
+
+现在可以通过 `POST /backtests/run` 提交策略代码和配置。平台会清理旧 current，
+运行 V0 日频回测，并把最新标准结果包复制到 `runs/backtests/current/`。

@@ -40,6 +40,8 @@ V0 已提供 `run_backtest_in_docker(...)`，通过 `subprocess.run` 执行 Dock
 和返回结构。
 
 本地开发可以直接运行 Worker CLI；真实生产应通过 Docker 沙箱运行用户策略。
+API job 默认使用 `BACKTEST_EXECUTION_MODE=local` 方便开发，生产环境必须改为
+`BACKTEST_EXECUTION_MODE=docker`。
 
 ## 后续接入
 
