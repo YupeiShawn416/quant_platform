@@ -7,7 +7,9 @@ from typing import Any
 import pandas as pd
 import pyarrow.parquet as pq
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
+from fastapi.responses import FileResponse, PlainTextResponse
 
+from rq_platform.backtest.result_store import BacktestResultStore
 from rq_platform.data.data_loader import ResearchDataLoader
 from rq_platform.etl.quality_check import check_all_price_datasets
 from rq_platform.settings import settings
@@ -138,6 +140,69 @@ def data_quality(
     year: int = 2025, _: None = Depends(require_api_token)
 ) -> dict[str, Any]:
     return {"year": year, "results": check_all_price_datasets(year=year)}
+
+
+@app.get("/backtests")
+def backtests(_: None = Depends(require_api_token)) -> dict[str, Any]:
+    runs = BacktestResultStore().list_runs()
+    return {"count": len(runs), "data": runs}
+
+
+@app.get("/backtests/{run_id}/summary")
+def backtest_summary(run_id: str, _: None = Depends(require_api_token)) -> dict[str, Any]:
+    return _read_result_json(run_id, "summary.json")
+
+
+@app.get("/backtests/{run_id}/nav")
+def backtest_nav(run_id: str, _: None = Depends(require_api_token)) -> dict[str, Any]:
+    return _read_result_csv(run_id, "nav.csv")
+
+
+@app.get("/backtests/{run_id}/trades")
+def backtest_trades(run_id: str, _: None = Depends(require_api_token)) -> dict[str, Any]:
+    return _read_result_csv(run_id, "trades.csv")
+
+
+@app.get("/backtests/{run_id}/positions")
+def backtest_positions(run_id: str, _: None = Depends(require_api_token)) -> dict[str, Any]:
+    return _read_result_csv(run_id, "positions.csv")
+
+
+@app.get("/backtests/{run_id}/logs")
+def backtest_logs(run_id: str, _: None = Depends(require_api_token)) -> PlainTextResponse:
+    try:
+        return PlainTextResponse(BacktestResultStore().read_text(run_id, "logs.txt"))
+    except (FileNotFoundError, ValueError) as exc:
+        raise HTTPException(status_code=404, detail="backtest logs not found") from exc
+
+
+@app.get("/backtests/{run_id}/download")
+def backtest_download(run_id: str, _: None = Depends(require_api_token)) -> FileResponse:
+    store = BacktestResultStore()
+    try:
+        zip_path = store.package_zip(run_id)
+    except (FileNotFoundError, ValueError) as exc:
+        raise HTTPException(status_code=404, detail="backtest result not found") from exc
+    return FileResponse(
+        zip_path,
+        media_type="application/zip",
+        filename=zip_path.name,
+    )
+
+
+def _read_result_json(run_id: str, filename: str) -> dict[str, Any]:
+    try:
+        return BacktestResultStore().read_json(run_id, filename)
+    except (FileNotFoundError, ValueError) as exc:
+        raise HTTPException(status_code=404, detail="backtest result not found") from exc
+
+
+def _read_result_csv(run_id: str, filename: str) -> dict[str, Any]:
+    try:
+        frame = BacktestResultStore().read_csv(run_id, filename)
+    except (FileNotFoundError, ValueError) as exc:
+        raise HTTPException(status_code=404, detail="backtest result not found") from exc
+    return {"count": int(len(frame)), "data": _records(frame)}
 
 
 def _dataset_status(path: Path) -> dict[str, Any]:

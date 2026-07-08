@@ -1,5 +1,6 @@
 from fastapi.testclient import TestClient
 
+import rq_platform.api.main as api_main
 from rq_platform.api.main import app
 from rq_platform.settings import settings
 
@@ -101,3 +102,34 @@ def test_data_endpoint_accepts_query_token(tmp_path, monkeypatch):
     response = client.get("/status", params={"api_token": "secret"})
 
     assert response.status_code == 200
+
+
+def test_backtest_summary_endpoint_uses_result_store(monkeypatch):
+    monkeypatch.setattr(settings, "api_token", "change_me")
+
+    class FakeStore:
+        def read_json(self, run_id, filename):
+            assert run_id == "demo_run"
+            assert filename == "summary.json"
+            return {"run_id": run_id, "total_return": 0.1}
+
+    monkeypatch.setattr(api_main, "BacktestResultStore", lambda: FakeStore())
+
+    response = client.get("/backtests/demo_run/summary")
+
+    assert response.status_code == 200
+    assert response.json()["total_return"] == 0.1
+
+
+def test_missing_backtest_result_returns_404(monkeypatch):
+    monkeypatch.setattr(settings, "api_token", "change_me")
+
+    class FakeStore:
+        def read_csv(self, run_id, filename):
+            raise FileNotFoundError(filename)
+
+    monkeypatch.setattr(api_main, "BacktestResultStore", lambda: FakeStore())
+
+    response = client.get("/backtests/missing/nav")
+
+    assert response.status_code == 404

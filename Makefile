@@ -1,4 +1,4 @@
-.PHONY: install test api api-prod api-smoke client-smoke check-data deploy-check query-sample status clean
+.PHONY: install test api api-prod api-smoke client-smoke check-data deploy-check query-sample demo-backtest view-demo-backtest status clean
 
 install:
 	python -m pip install -e .
@@ -26,6 +26,12 @@ deploy-check:
 
 query-sample:
 	PYTHONPATH=src python scripts/06_query_2025_sample.py
+
+demo-backtest:
+	PYTHONPATH=src python scripts/12_create_demo_backtest_result.py
+
+view-demo-backtest:
+	PYTHONPATH=src python scripts/13_view_demo_backtest_result.py
 
 status:
 	git status --short

@@ -1,0 +1,40 @@
+from __future__ import annotations
+
+
+def build_docker_command(
+    image: str,
+    run_id: str,
+    data_dir: str,
+    run_dir: str,
+    cpu_limit: str = "1.0",
+    memory_limit: str = "2g",
+    timeout_seconds: int = 600,
+) -> list[str]:
+    return [
+        "docker",
+        "run",
+        "--rm",
+        "--network",
+        "none",
+        "--cpus",
+        cpu_limit,
+        "--memory",
+        memory_limit,
+        "--pids-limit",
+        "256",
+        "--read-only",
+        "--tmpfs",
+        "/tmp:rw,size=256m",
+        "-v",
+        f"{data_dir}:/app/data/rqdata:ro",
+        "-v",
+        f"{run_dir}:/app/runs/backtests/{run_id}:rw",
+        image,
+        "python",
+        "-m",
+        "rq_platform.backtest.worker",
+        "--run-id",
+        run_id,
+        "--timeout-seconds",
+        str(timeout_seconds),
+    ]

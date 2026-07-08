@@ -13,3 +13,6 @@ data/rqalpha_bundle/
 src/*.egg-info/
 build/
 dist/
+runs/
+reports/generated/
+*.zip
