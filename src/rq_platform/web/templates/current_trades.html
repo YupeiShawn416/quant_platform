@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}交易日志 - Backtest Dashboard{% endblock %}
+{% block page_title %}交易日志{% endblock %}
+
+{% block content %}
+<section class="panel">
+  <div class="panel-header">
+    <h2>成交明细</h2>
+    <span>最近 200 笔</span>
+  </div>
+  {% set rows = data.trades %}
+  {% include "partials/table.html" %}
+</section>
+{% endblock %}

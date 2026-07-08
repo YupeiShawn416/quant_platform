@@ -111,6 +111,20 @@ make backtest-api-smoke
 结果写入 `runs/backtests/demo_daily_backtest/`，该目录不会提交到 Git。
 通过 API 提交的最新结果写入 `runs/backtests/current/`，新回测会覆盖旧 current。
 
+## Backtest Dashboard
+
+```bash
+make api
+make backtest-api-smoke
+make dashboard-smoke
+```
+
+打开：
+
+```text
+http://127.0.0.1:8000/ui/backtests/current
+```
+
 ## 数据安全
 
 1. `.env` 不提交

@@ -1,0 +1,26 @@
+{% set table_rows = rows if rows is defined else data.nav %}
+{% if table_rows %}
+  {% set columns = table_columns(table_rows) %}
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          {% for column in columns %}
+            <th>{{ column }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in table_rows %}
+          <tr>
+            {% for column in columns %}
+              <td>{{ row.get(column) if row.get(column) is not none else "-" }}</td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="empty-table">暂无数据</div>
+{% endif %}

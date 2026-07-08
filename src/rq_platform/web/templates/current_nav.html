@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}净值曲线 - Backtest Dashboard{% endblock %}
+{% block page_title %}净值曲线{% endblock %}
+
+{% block content %}
+<section class="panel">
+  <div class="panel-header">
+    <h2>策略净值 / 基准净值 / 超额净值 / 回撤</h2>
+  </div>
+  <div class="chart-box large" data-chart='{{ data.nav|tojson }}'></div>
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>净值数据</h2>
+  </div>
+  {% include "partials/table.html" with context %}
+</section>
+{% endblock %}

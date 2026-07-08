@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}日志 - Backtest Dashboard{% endblock %}
+{% block page_title %}日志{% endblock %}
+
+{% block content %}
+<section class="panel">
+  <div class="panel-header">
+    <h2>运行日志</h2>
+    <span>最后 500 行</span>
+  </div>
+  <pre class="log-view">{{ data.logs or "暂无日志" }}</pre>
+</section>
+{% endblock %}

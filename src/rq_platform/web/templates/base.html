@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Backtest Dashboard{% endblock %}</title>
+    <link rel="stylesheet" href="/ui/static/css/dashboard.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-title">Quant Platform</div>
+          <div class="brand-subtitle">Backtest Dashboard</div>
+        </div>
+        <nav class="nav-list">
+          {% for key, label, href in nav_items %}
+            <a class="nav-link {% if active == key %}active{% endif %}" href="{{ href }}">{{ label }}</a>
+          {% endfor %}
+        </nav>
+        <div class="sidebar-footer">
+          {% if data.exists %}
+            <a class="download-link" href="{{ data.download_url }}">下载结果包</a>
+          {% else %}
+            <span class="download-link disabled">下载结果包</span>
+          {% endif %}
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <div>
+            <div class="eyebrow">Current Backtest</div>
+            <h1>{% block page_title %}当前回测{% endblock %}</h1>
+          </div>
+          <div class="status-pill {% if data.exists %}ok{% else %}empty{% endif %}">
+            {% if data.exists %}current ready{% else %}no current{% endif %}
+          </div>
+        </header>
+
+        {% if not data.exists %}
+          <section class="empty-state">
+            <h2>当前没有回测结果。</h2>
+            <p>请先运行 /backtests/run 或 make backtest-api-smoke。</p>
+          </section>
+        {% else %}
+          {% block content %}{% endblock %}
+        {% endif %}
+      </main>
+    </div>
+    <script src="/ui/static/js/dashboard.js"></script>
+  </body>
+</html>

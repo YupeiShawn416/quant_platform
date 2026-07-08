@@ -7,6 +7,17 @@ name = "quant-platform"
 version = "0.1.0"
 description = "Internal quant research platform based on RQData, Parquet, DuckDB, FastAPI and RQAlpha"
 requires-python = ">=3.11"
+dependencies = [
+    "jinja2",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+"rq_platform.web" = [
+    "templates/*.html",
+    "templates/partials/*.html",
+    "static/css/*.css",
+    "static/js/*.js",
+]

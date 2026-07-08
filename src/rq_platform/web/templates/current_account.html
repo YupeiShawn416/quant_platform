@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}账户 - Backtest Dashboard{% endblock %}
+{% block page_title %}账户{% endblock %}
+
+{% block content %}
+<section class="panel">
+  <div class="panel-header">
+    <h2>每日账户</h2>
+    <span>最近 100 行</span>
+  </div>
+  {% set rows = data.account %}
+  {% include "partials/table.html" %}
+</section>
+{% endblock %}

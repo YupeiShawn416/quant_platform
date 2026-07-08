@@ -4,6 +4,7 @@ pyarrow
 duckdb
 fastapi
 uvicorn[standard]
+jinja2
 pydantic-settings
 python-dotenv
 rqdatac

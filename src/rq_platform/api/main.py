@@ -8,16 +8,24 @@ import pandas as pd
 import pyarrow.parquet as pq
 from fastapi import Body, Depends, FastAPI, Header, HTTPException, Query
 from fastapi.responses import FileResponse, PlainTextResponse
+from fastapi.staticfiles import StaticFiles
 
 from rq_platform.backtest.current_store import CurrentBacktestNotFound, CurrentBacktestStore
 from rq_platform.backtest.job_manager import BacktestJobError, BacktestJobManager
 from rq_platform.backtest.result_store import BacktestResultStore
+from rq_platform.api.web_routes import router as web_router
 from rq_platform.data.data_loader import ResearchDataLoader
 from rq_platform.etl.quality_check import check_all_price_datasets
 from rq_platform.settings import settings
 
 
 app = FastAPI(title="quant_platform data api", version="0.1.0")
+app.mount(
+    "/ui/static",
+    StaticFiles(directory=Path(__file__).resolve().parents[1] / "web" / "static"),
+    name="ui_static",
+)
+app.include_router(web_router)
 
 
 @app.get("/health")

@@ -1,4 +1,4 @@
-.PHONY: install test api api-prod api-smoke client-smoke backtest-api-smoke check-data deploy-check query-sample demo-backtest view-demo-backtest demo-daily-backtest view-demo-daily-backtest status clean
+.PHONY: install test api api-prod api-smoke client-smoke backtest-api-smoke dashboard-smoke check-data deploy-check query-sample demo-backtest view-demo-backtest demo-daily-backtest view-demo-daily-backtest status clean
 
 install:
 	python -m pip install -e .
@@ -20,6 +20,9 @@ client-smoke:
 
 backtest-api-smoke:
 	PYTHONPATH=src python scripts/16_run_backtest_api_smoke.py
+
+dashboard-smoke:
+	PYTHONPATH=src python scripts/17_dashboard_smoke_test.py
 
 check-data:
 	PYTHONPATH=src python scripts/05_check_local_data.py

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}持仓 - Backtest Dashboard{% endblock %}
+{% block page_title %}持仓{% endblock %}
+
+{% block content %}
+<section class="panel">
+  <div class="panel-header">
+    <h2>最新持仓</h2>
+    <span>latest date: {{ data.latest_position_date or "-" }}</span>
+  </div>
+  {% set rows = data.positions %}
+  {% include "partials/table.html" %}
+</section>
+{% endblock %}

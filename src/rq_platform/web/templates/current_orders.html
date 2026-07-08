@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}订单 - Backtest Dashboard{% endblock %}
+{% block page_title %}订单{% endblock %}
+
+{% block content %}
+<section class="panel">
+  <div class="panel-header">
+    <h2>订单明细</h2>
+    <span>最近 200 笔</span>
+  </div>
+  {% set rows = data.orders %}
+  {% include "partials/table.html" %}
+</section>
+{% endblock %}
