@@ -61,6 +61,11 @@ http://127.0.0.1:8000/ui/backtests/current
 
 Dashboard smoke passed for current overview, nav, trades, and logs.
 
+Benchmark note: this pilot run did not have local `000300.XSHG` benchmark price
+data available in quant_platform. The engine therefore used
+`benchmark_nav=1.0` fallback. Benchmark return, excess return and information
+ratio from that run are not reliable benchmark conclusions.
+
 ## Reconciliation Notes
 
 This pilot migrates only the Q5 target-weight generation logic from the legacy

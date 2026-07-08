@@ -48,6 +48,11 @@ Q5LongOnly target-weight logic for all checked 2025 dates.
 No obvious platform result integrity issue was found from NAV, trades, or
 positions diagnostics.
 
+Benchmark caveat: local `000300.XSHG` benchmark price data was missing for this
+run, so `benchmark_nav` was a `1.0` fallback line. Benchmark return, excess
+return, tracking error and information ratio should not be used as real
+benchmark-relative conclusions for this pilot result.
+
 ## Timing And Lookahead Risk
 
 The current attractive performance should not be treated as a final strategy

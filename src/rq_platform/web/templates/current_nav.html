@@ -4,9 +4,19 @@
 {% block page_title %}净值曲线{% endblock %}
 
 {% block content %}
+{% if data.summary.benchmark_fallback_used %}
+  <section class="warning-box">
+    <strong>基准曲线为 fallback</strong>
+    <p>当前基准曲线为 1.0 fallback 直线，不代表真实 {{ data.summary.benchmark or "benchmark" }} 表现。请只把它视为结果结构占位。</p>
+  </section>
+{% endif %}
+
 <section class="panel">
   <div class="panel-header">
     <h2>策略净值 / 基准净值 / 超额净值 / 回撤</h2>
+    {% if data.summary.benchmark_fallback_used %}
+      <span>benchmark fallback, not real benchmark</span>
+    {% endif %}
   </div>
   <div class="chart-box large" data-chart='{{ data.nav|tojson }}'></div>
 </section>

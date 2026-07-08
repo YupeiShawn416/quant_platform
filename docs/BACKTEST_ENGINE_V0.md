@@ -12,6 +12,22 @@ Parquet 行情、策略权重和标准 Backtest Result Bundle 串成闭环。
 5. 生成 `summary/nav/daily_account/positions/trades/orders/logs/charts` 等标准结果。
 6. 失败由 Worker 写 `error.json` 和 `logs.txt`。
 
+## Benchmark Fallback
+
+如果配置了 `benchmark` 但本地没有对应价格数据，V0 不会让策略回测失败，而是将
+`benchmark_nav` fallback 为 `1.0` 直线，仅用于保持结果包结构完整。
+
+此时 `summary.json` / `summary.csv` 会写入：
+
+```text
+benchmark_missing=true
+benchmark_fallback_used=true
+benchmark_metrics_reliable=false
+benchmark_warning=...
+```
+
+基准收益、超额收益、跟踪误差和信息比率不应作为真实结论使用。
+
 ## 撮合规则
 
 ```text

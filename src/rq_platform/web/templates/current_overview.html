@@ -4,11 +4,21 @@
 {% block page_title %}概览{% endblock %}
 
 {% block content %}
+{% if data.summary.benchmark_missing or data.summary.benchmark_fallback_used %}
+  <section class="warning-box">
+    <strong>基准行情缺失</strong>
+    <p>{{ data.summary.benchmark_warning or "当前 benchmark_nav 使用 1.0 fallback 直线，仅用于保持回测结果结构完整。基准收益、超额收益、信息比率等指标不应作为真实结论使用。" }}</p>
+  </section>
+{% endif %}
+
 <section class="metric-grid">
   {% for item in data.summary_metrics %}
-    <article class="metric-card">
+    <article class="metric-card {% if item.unreliable %}metric-unreliable{% endif %}">
       <div class="metric-label">{{ item.label }}</div>
       <div class="metric-value">{{ item.value }}</div>
+      {% if item.unreliable %}
+        <div class="metric-note">benchmark unreliable</div>
+      {% endif %}
     </article>
   {% endfor %}
 </section>

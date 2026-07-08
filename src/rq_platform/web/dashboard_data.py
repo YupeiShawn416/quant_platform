@@ -29,11 +29,21 @@ SUMMARY_METRICS = [
     ("sharpe", "夏普比率", "ratio"),
     ("max_drawdown", "最大回撤", "percent"),
     ("benchmark_return", "基准收益", "percent"),
+    ("benchmark_annual_return", "基准年化", "percent"),
     ("excess_return", "超额收益", "percent"),
+    ("tracking_error", "跟踪误差", "percent"),
     ("information_ratio", "信息比率", "ratio"),
     ("win_rate", "胜率", "percent"),
     ("trade_count", "交易次数", "integer"),
 ]
+
+BENCHMARK_RELATED_METRICS = {
+    "benchmark_return",
+    "benchmark_annual_return",
+    "excess_return",
+    "tracking_error",
+    "information_ratio",
+}
 
 
 def load_current_dashboard_data() -> dict[str, Any]:
@@ -41,7 +51,7 @@ def load_current_dashboard_data() -> dict[str, Any]:
     if not store.current_exists():
         return _empty_dashboard()
 
-    summary = _read_json(store, "summary.json")
+    summary = _with_benchmark_defaults(_read_json(store, "summary.json"))
     nav = _read_csv_records(store, "nav.csv")
     account = _read_csv_records(store, "daily_account.csv", tail=TABLE_LIMITS["account"])
     positions_df = _read_csv(store, "positions.csv")
@@ -101,6 +111,17 @@ def _empty_dashboard() -> dict[str, Any]:
     }
 
 
+def _with_benchmark_defaults(summary: dict[str, Any]) -> dict[str, Any]:
+    clean = dict(summary)
+    fallback_used = bool(clean.get("benchmark_fallback_used", False))
+    clean.setdefault("benchmark_missing", bool(clean.get("benchmark_missing", False)))
+    clean.setdefault("benchmark_fallback_used", fallback_used)
+    clean.setdefault("benchmark_warning", None)
+    clean.setdefault("benchmark_metrics_reliable", not bool(clean["benchmark_fallback_used"]))
+    clean.setdefault("benchmark", clean.get("benchmark"))
+    return clean
+
+
 def _read_json(store: CurrentBacktestStore, filename: str) -> dict:
     try:
         return store.read_current_json(filename)
@@ -145,12 +166,17 @@ def _read_logs(store: CurrentBacktestStore) -> str:
     return "\n".join(lines[-TABLE_LIMITS["logs"]:])
 
 
-def _summary_metrics(summary: dict[str, Any]) -> list[dict[str, str]]:
-    return [
-        {
+def _summary_metrics(summary: dict[str, Any]) -> list[dict[str, Any]]:
+    benchmark_reliable = bool(summary.get("benchmark_metrics_reliable", True))
+    items = []
+    for key, label, kind in SUMMARY_METRICS:
+        unreliable = (not benchmark_reliable) and key in BENCHMARK_RELATED_METRICS
+        items.append(
+            {
             "key": key,
             "label": label,
-            "value": format_value(summary.get(key), kind),
-        }
-        for key, label, kind in SUMMARY_METRICS
-    ]
+                "value": "N/A / unreliable" if unreliable else format_value(summary.get(key), kind),
+                "unreliable": unreliable,
+            }
+        )
+    return items

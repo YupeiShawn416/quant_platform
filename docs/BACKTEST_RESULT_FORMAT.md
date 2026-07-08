@@ -36,6 +36,23 @@ runs/backtests/<run_id>/backtest_result_<run_id>.zip
 `monthly_returns.csv` 和 `rolling_metrics.csv` 保存扩展分析数据。
 `charts.json` 为后续页面图表预留结构化数据。
 
+## Benchmark Metadata
+
+`summary.json` / `summary.csv` 包含 benchmark 可用性字段：
+
+```text
+benchmark
+benchmark_missing
+benchmark_fallback_used
+benchmark_warning
+benchmark_metrics_reliable
+```
+
+当 `benchmark_missing=true` 或 `benchmark_fallback_used=true` 时，`benchmark_nav`
+是 `1.0` fallback 直线，不是真实基准曲线。基准收益、基准年化、超额收益、
+跟踪误差和信息比率等基准相关指标不可靠。`manifest.json` 也包含同样的
+benchmark metadata，下载结果包后可以离线检查。
+
 ## CSV 关键字段
 
 `nav.csv`:

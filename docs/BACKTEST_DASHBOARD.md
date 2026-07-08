@@ -36,6 +36,10 @@ http://127.0.0.1:8000/ui/backtests/current
 概览页展示核心绩效指标。净值页使用本地静态 JS 画 SVG 折线图，不依赖 CDN。
 账户默认显示最近 100 行，交易和订单默认显示最近 200 行，日志显示最后 500 行。
 
+如果当前结果包的 `benchmark_fallback_used=true`，概览页和净值页会显示醒目的
+benchmark warning。概览页会把基准收益、超额收益、跟踪误差和信息比率等指标
+标记为 `N/A / unreliable`，避免把 fallback 直线误读成真实基准。
+
 ## 下载
 
 页面左侧提供“下载结果包”按钮，链接到：

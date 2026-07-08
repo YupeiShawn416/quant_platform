@@ -47,6 +47,11 @@ DEFAULTS = {
     "output_root": "runs/backtests",
 }
 
+BENCHMARK_FALLBACK_WARNING = (
+    "Benchmark price data not found; benchmark_nav fallback to 1.0. "
+    "Benchmark return and excess return metrics are not reliable."
+)
+
 
 @dataclass
 class BacktestData:
@@ -88,6 +93,11 @@ class DailyBacktestEngine:
         self.data_loader = data_loader or ResearchDataLoader()
         self.strategy = strategy
         self.logs: list[str] = []
+        self.benchmark_metadata = self._benchmark_metadata(
+            missing=False,
+            fallback_used=False,
+            warning=None,
+        )
 
     def run(self) -> dict[str, Any]:
         self._validate_config()
@@ -169,6 +179,14 @@ class DailyBacktestEngine:
         benchmark = self.config.get("benchmark")
         if not benchmark:
             self.logs.append("未配置 benchmark，benchmark_nav 使用 1.0")
+            self.benchmark_metadata = self._benchmark_metadata(
+                missing=False,
+                fallback_used=True,
+                warning=(
+                    "No benchmark configured; benchmark_nav fallback to 1.0. "
+                    "Benchmark return and excess return metrics are not reliable."
+                ),
+            )
             return {date: 1.0 for date in trading_dates}
         frame = self.data_loader.load_prices(
             symbols=[str(benchmark)],
@@ -180,6 +198,11 @@ class DailyBacktestEngine:
         price_field = str(self.config["price_field"])
         if frame.empty or price_field not in frame.columns:
             self.logs.append(f"benchmark {benchmark} 无本地价格，benchmark_nav 使用 1.0")
+            self.benchmark_metadata = self._benchmark_metadata(
+                missing=True,
+                fallback_used=True,
+                warning=BENCHMARK_FALLBACK_WARNING,
+            )
             return {date: 1.0 for date in trading_dates}
         frame = frame.copy()
         frame["trade_date"] = pd.to_datetime(frame["trade_date"]).dt.strftime("%Y-%m-%d")
@@ -187,13 +210,51 @@ class DailyBacktestEngine:
         frame = frame.dropna(subset=[price_field]).sort_values("trade_date")
         if frame.empty:
             self.logs.append(f"benchmark {benchmark} 价格为空，benchmark_nav 使用 1.0")
+            self.benchmark_metadata = self._benchmark_metadata(
+                missing=True,
+                fallback_used=True,
+                warning=BENCHMARK_FALLBACK_WARNING,
+            )
             return {date: 1.0 for date in trading_dates}
         base = float(frame[price_field].iloc[0])
         nav = {
             row.trade_date: float(row._asdict()[price_field]) / base
             for row in frame.itertuples(index=False)
         }
+        missing_dates = [date for date in trading_dates if date not in nav]
+        if missing_dates:
+            self.logs.append(
+                f"benchmark {benchmark} 部分日期无本地价格 count={len(missing_dates)}，缺失日期 benchmark_nav 使用 1.0"
+            )
+            self.benchmark_metadata = self._benchmark_metadata(
+                missing=True,
+                fallback_used=True,
+                warning=(
+                    f"Benchmark price data missing for {len(missing_dates)} trading dates; "
+                    "missing benchmark_nav values fallback to 1.0. Benchmark return and excess return metrics are not reliable."
+                ),
+            )
+        else:
+            self.benchmark_metadata = self._benchmark_metadata(
+                missing=False,
+                fallback_used=False,
+                warning=None,
+            )
         return {date: nav.get(date, 1.0) for date in trading_dates}
+
+    def _benchmark_metadata(
+        self,
+        missing: bool,
+        fallback_used: bool,
+        warning: str | None,
+    ) -> dict[str, Any]:
+        return {
+            "benchmark": self.config.get("benchmark"),
+            "benchmark_missing": bool(missing),
+            "benchmark_fallback_used": bool(fallback_used),
+            "benchmark_warning": warning,
+            "benchmark_metrics_reliable": not bool(fallback_used),
+        }
 
     def _simulate(self, strategy, prices: pd.DataFrame, benchmark_nav: dict[str, float]):
         run_id = str(self.config["run_id"])
@@ -486,6 +547,7 @@ class DailyBacktestEngine:
             "trade_count": int(len(frames["trades"])),
             "created_at": created_at,
             **metrics,
+            **self.benchmark_metadata,
         }
         summary = {field: _safe_json_value(summary.get(field)) for field in SUMMARY_FIELDS}
         files = [
@@ -509,6 +571,7 @@ class DailyBacktestEngine:
             "engine": "daily_engine_v0",
             "created_at": created_at,
             "files": files,
+            "benchmark": self.benchmark_metadata,
         }
         charts = {
             "nav": frames["nav"][["trade_date", "strategy_nav", "benchmark_nav", "excess_nav"]].to_dict("records"),

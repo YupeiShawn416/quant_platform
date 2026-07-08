@@ -157,6 +157,26 @@ h2 {
   border-radius: var(--radius);
 }
 
+.warning-box {
+  background: #fffaeb;
+  border: 1px solid #fedf89;
+  border-left: 5px solid var(--warning);
+  border-radius: var(--radius);
+  color: #7a2e0e;
+  margin-bottom: 18px;
+  padding: 14px 16px;
+}
+
+.warning-box strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.warning-box p {
+  margin: 0;
+}
+
 .empty-state {
   padding: 34px;
 }
@@ -183,6 +203,11 @@ h2 {
   padding: 15px;
 }
 
+.metric-card.metric-unreliable {
+  background: #fff8ed;
+  border-color: #fedf89;
+}
+
 .metric-label {
   color: var(--muted);
   font-size: 12px;
@@ -193,6 +218,13 @@ h2 {
   font-size: 20px;
   font-weight: 700;
   overflow-wrap: anywhere;
+}
+
+.metric-note {
+  color: var(--warning);
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 6px;
 }
 
 .panel {
