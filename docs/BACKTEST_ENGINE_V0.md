@@ -9,8 +9,9 @@ Parquet 行情、策略权重和标准 Backtest Result Bundle 串成闭环。
 2. 每日调用 `generate_weights(context, data)`。
 3. 使用 `ResearchDataLoader` 只读本地 Parquet 行情。
 4. 按目标权重调仓。
-5. 生成 `summary/nav/daily_account/positions/trades/orders/logs/charts` 等标准结果。
-6. 失败由 Worker 写 `error.json` 和 `logs.txt`。
+5. 如果本地存在 `tradability_1d`，下单前检查可买/可卖状态。
+6. 生成 `summary/nav/daily_account/positions/trades/orders/logs/charts` 等标准结果。
+7. 失败由 Worker 写 `error.json` 和 `logs.txt`。
 
 ## Benchmark Fallback
 
@@ -38,6 +39,22 @@ benchmark_missing=false
 benchmark_fallback_used=false
 benchmark_metrics_reliable=true
 ```
+
+## Tradability Constraints
+
+如果本地存在 `tradability_1d`，V0 会在执行订单前读取：
+
+```text
+trade_date
+order_book_id
+can_buy
+can_sell
+reason
+```
+
+当买入标的 `can_buy=false` 或卖出标的 `can_sell=false` 时，引擎不会成交，
+会在 `orders.csv` 写入 `REJECTED`，并在 `logs.txt` 记录跳过原因。没有
+`tradability_1d` 时，V0 保持兼容，不启用可交易性约束。
 
 ## 撮合规则
 

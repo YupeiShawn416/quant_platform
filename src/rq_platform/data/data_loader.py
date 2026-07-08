@@ -33,6 +33,17 @@ DEFAULT_INDEX_PRICE_FIELDS = [
     "num_trades",
 ]
 
+DEFAULT_TRADABILITY_FIELDS = [
+    "trade_date",
+    "order_book_id",
+    "is_listed",
+    "is_suspended",
+    "is_st",
+    "can_buy",
+    "can_sell",
+    "reason",
+]
+
 
 class ResearchDataLoader:
     def load_prices(
@@ -114,6 +125,43 @@ class ResearchDataLoader:
 
     def _index_price_paths(self, start: str, end: str) -> list[Path]:
         root = dataset_dir("index_prices_1d")
+        return [root / f"year={year}.parquet" for year in _years_between(start, end)]
+
+    def load_tradability(
+        self,
+        symbols: list[str] | None = None,
+        start_date: str | None = None,
+        end_date: str | None = None,
+    ) -> pd.DataFrame:
+        start = start_date or "1900-01-01"
+        end = end_date or "2999-12-31"
+        paths = self._tradability_paths(start, end)
+        existing_paths = [path for path in paths if path.exists()]
+        if not existing_paths:
+            return pd.DataFrame(columns=DEFAULT_TRADABILITY_FIELDS)
+
+        files_sql = ", ".join(_quote_string(str(path)) for path in existing_paths)
+        where_clauses = [
+            f"trade_date BETWEEN {_quote_string(start)} AND {_quote_string(end)}"
+        ]
+        if symbols:
+            symbols_sql = ", ".join(_quote_string(symbol) for symbol in symbols)
+            where_clauses.append(f"order_book_id IN ({symbols_sql})")
+        where_sql = " AND ".join(where_clauses)
+        select_sql = ", ".join(_quote_identifier(column) for column in DEFAULT_TRADABILITY_FIELDS)
+        sql = f"""
+            SELECT {select_sql}
+            FROM read_parquet([{files_sql}], union_by_name=true)
+            WHERE {where_sql}
+            ORDER BY trade_date, order_book_id
+        """
+        try:
+            return query(sql)
+        except duckdb.BinderException:
+            return pd.DataFrame(columns=DEFAULT_TRADABILITY_FIELDS)
+
+    def _tradability_paths(self, start: str, end: str) -> list[Path]:
+        root = dataset_dir("tradability_1d")
         return [root / f"year={year}.parquet" for year in _years_between(start, end)]
 
 

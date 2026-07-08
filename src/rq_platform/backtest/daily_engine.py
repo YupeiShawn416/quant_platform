@@ -113,7 +113,8 @@ class DailyBacktestEngine:
             raise ValueError("no local price data found for strategy symbols")
 
         benchmark_nav = self._load_benchmark_nav(prices["trade_date"].tolist())
-        frames = self._simulate(strategy, prices, benchmark_nav)
+        tradability = self._load_tradability(symbols)
+        frames = self._simulate(strategy, prices, benchmark_nav, tradability)
         self.logs.append(f"回测完成 run_id={run_id}")
         result = self._write_result_bundle(frames)
         return result
@@ -269,7 +270,37 @@ class DailyBacktestEngine:
             "benchmark_metrics_reliable": not bool(fallback_used),
         }
 
-    def _simulate(self, strategy, prices: pd.DataFrame, benchmark_nav: dict[str, float]):
+    def _load_tradability(self, symbols: list[str]) -> dict[tuple[str, str], dict[str, Any]]:
+        if not hasattr(self.data_loader, "load_tradability"):
+            return {}
+        frame = self.data_loader.load_tradability(
+            symbols=symbols,
+            start_date=str(self.config["start_date"]),
+            end_date=str(self.config["end_date"]),
+        )
+        if frame.empty:
+            self.logs.append("未找到本地 tradability_1d，跳过可交易性约束")
+            return {}
+        frame = frame.copy()
+        frame["trade_date"] = pd.to_datetime(frame["trade_date"]).dt.strftime("%Y-%m-%d")
+        frame["order_book_id"] = frame["order_book_id"].astype(str)
+        self.logs.append(f"读取本地 tradability_1d rows={len(frame)}")
+        return {
+            (row.trade_date, row.order_book_id): {
+                "can_buy": bool(row.can_buy),
+                "can_sell": bool(row.can_sell),
+                "reason": "" if pd.isna(row.reason) else str(row.reason),
+            }
+            for row in frame.itertuples(index=False)
+        }
+
+    def _simulate(
+        self,
+        strategy,
+        prices: pd.DataFrame,
+        benchmark_nav: dict[str, float],
+        tradability: dict[tuple[str, str], dict[str, Any]],
+    ):
         run_id = str(self.config["run_id"])
         self.logs.append(f"回测开始 run_id={run_id} strategy={self.config['strategy_name']}")
         self.logs.append(f"配置 {self._public_config()}")
@@ -323,6 +354,7 @@ class DailyBacktestEngine:
                     positions=positions,
                     weights=weights,
                     prices=current_prices,
+                    tradability=tradability,
                     trade_rows=trade_rows,
                     order_rows=order_rows,
                 )
@@ -395,6 +427,7 @@ class DailyBacktestEngine:
         positions: dict[str, int],
         weights: dict[str, float],
         prices: dict[str, float],
+        tradability: dict[tuple[str, str], dict[str, Any]],
         trade_rows: list[dict[str, Any]],
         order_rows: list[dict[str, Any]],
     ) -> tuple[float, dict[str, int]]:
@@ -423,12 +456,12 @@ class DailyBacktestEngine:
         for symbol in sell_symbols:
             quantity = positions.get(symbol, 0) - target_quantities.get(symbol, 0)
             cash = self._execute_order(
-                trade_date, symbol, "SELL", quantity, prices, cash, positions, trade_rows, order_rows
+                trade_date, symbol, "SELL", quantity, prices, tradability, cash, positions, trade_rows, order_rows
             )
         for symbol in buy_symbols:
             quantity = target_quantities.get(symbol, 0) - positions.get(symbol, 0)
             cash = self._execute_order(
-                trade_date, symbol, "BUY", quantity, prices, cash, positions, trade_rows, order_rows
+                trade_date, symbol, "BUY", quantity, prices, tradability, cash, positions, trade_rows, order_rows
             )
         return cash, {symbol: qty for symbol, qty in positions.items() if qty > 0}
 
@@ -439,6 +472,7 @@ class DailyBacktestEngine:
         side: str,
         quantity: int,
         prices: dict[str, float],
+        tradability: dict[tuple[str, str], dict[str, Any]],
         cash: float,
         positions: dict[str, int],
         trade_rows: list[dict[str, Any]],
@@ -450,6 +484,14 @@ class DailyBacktestEngine:
             return cash
         quantity = _floor_to_lot(quantity, lot_size)
         if quantity <= 0:
+            return cash
+        block_reason = self._tradability_block_reason(trade_date, symbol, side, tradability)
+        if block_reason:
+            message = f"not tradable: {block_reason}"
+            self.logs.append(
+                f"跳过不可交易订单 trade_date={trade_date} symbol={symbol} side={side} reason={block_reason}"
+            )
+            self._record_order(order_rows, trade_date, symbol, side, quantity, float(price), "REJECTED", message)
             return cash
 
         slippage_rate = float(self.config["slippage_rate"])
@@ -514,6 +556,21 @@ class DailyBacktestEngine:
             f"quantity={quantity} price={execution_price:.4f}"
         )
         return cash
+
+    def _tradability_block_reason(
+        self,
+        trade_date: str,
+        symbol: str,
+        side: str,
+        tradability: dict[tuple[str, str], dict[str, Any]],
+    ) -> str | None:
+        row = tradability.get((trade_date, symbol))
+        if row is None:
+            return None
+        allowed = row["can_buy"] if side == "BUY" else row["can_sell"]
+        if allowed:
+            return None
+        return row.get("reason") or ("cannot_buy" if side == "BUY" else "cannot_sell")
 
     def _record_order(
         self,

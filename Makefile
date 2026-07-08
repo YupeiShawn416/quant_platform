@@ -1,4 +1,4 @@
-.PHONY: install test api api-prod api-smoke client-smoke backtest-api-smoke dashboard-smoke create-demo-weights-package submit-demo-weights-package template-smoke check-data update-index-2025 check-index-data daily-data-update deploy-check query-sample demo-backtest view-demo-backtest demo-daily-backtest view-demo-daily-backtest status clean
+.PHONY: install test api api-prod api-smoke client-smoke backtest-api-smoke dashboard-smoke create-demo-weights-package submit-demo-weights-package template-smoke check-data update-index-2025 check-index-data update-tradability-2025 check-tradability-data daily-data-update deploy-check query-sample demo-backtest view-demo-backtest demo-daily-backtest view-demo-daily-backtest status clean
 
 install:
 	python -m pip install -e .
@@ -41,6 +41,12 @@ update-index-2025:
 
 check-index-data:
 	PYTHONPATH=src python scripts/23_check_index_data.py
+
+update-tradability-2025:
+	PYTHONPATH=src python scripts/25_update_2025_tradability.py
+
+check-tradability-data:
+	PYTHONPATH=src python scripts/26_check_tradability_data.py
 
 daily-data-update:
 	PYTHONPATH=src python scripts/24_daily_data_update.py --year 2025 --skip-stocks

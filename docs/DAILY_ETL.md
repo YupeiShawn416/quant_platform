@@ -7,6 +7,8 @@ V0 当前支持：
 ```bash
 make update-index-2025
 make check-index-data
+make update-tradability-2025
+make check-tradability-data
 make daily-data-update
 ```
 
@@ -30,7 +32,16 @@ data/research_data/rqdata/index_prices_1d/year=2025.parquet
 `make check-index-data` 检查指数数量、日期范围、每个指数行数、`close` 缺失和
 `trade_date + order_book_id` 重复键。
 
-`make daily-data-update` 目前实际执行指数更新和质量检查：
+`make update-tradability-2025` 基于本地交易日历、`instruments` 和
+`prices_1d_pre/year=2025.parquet` 生成：
+
+```text
+data/research_data/rqdata/tradability_1d/year=2025.parquet
+```
+
+`make check-tradability-data` 检查可交易性行数、重复键、可买/可卖缺失和不可交易原因。
+
+`make daily-data-update` 目前实际执行指数更新、可交易性生成和质量检查：
 
 ```bash
 PYTHONPATH=src python scripts/24_daily_data_update.py --year 2025 --skip-stocks
@@ -43,6 +54,7 @@ PYTHONPATH=src python scripts/24_daily_data_update.py --year 2025 --skip-stocks
 --year 2025
 --skip-stocks
 --skip-index
+--skip-tradability
 --check-only
 ```
 

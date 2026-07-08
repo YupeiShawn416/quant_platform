@@ -15,10 +15,12 @@ trading_calendar/trading_calendar.parquet
 prices_1d_pre/year=2025.parquet
 prices_1d_none/year=2025.parquet
 index_prices_1d/year=2025.parquet
+tradability_1d/year=2025.parquet
 ```
 
 股票行情和指数行情分开存储。`prices_1d_pre` / `prices_1d_none` 只放股票日频行情，
 `index_prices_1d` 是 benchmark 的本地来源。
+`tradability_1d` 是回测引擎的可交易性约束来源。
 
 ## Standard panel
 
@@ -49,6 +51,23 @@ volume
 total_turnover
 num_trades
 ```
+
+可交易性日频字段：
+
+```text
+trade_date
+order_book_id
+is_listed
+is_suspended
+is_st
+can_buy
+can_sell
+reason
+```
+
+V0 的 `tradability_1d` 由本地交易日历、`instruments` 和股票日频行情派生：
+缺少当日价格视为停牌，`special_type` 含 ST 视为不可买，`close >= limit_up`
+视为不可买，`close <= limit_down` 视为不可卖。
 
 ## Derived feature panel
 

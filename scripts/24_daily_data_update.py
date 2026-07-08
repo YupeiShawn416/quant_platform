@@ -6,7 +6,12 @@ from rq_platform.etl.index_quality_check import (
     check_index_price_dataset,
     print_index_price_check,
 )
+from rq_platform.etl.tradability_quality_check import (
+    check_tradability_dataset,
+    print_tradability_check,
+)
 from rq_platform.etl.update_index_prices import update_index_prices
+from rq_platform.etl.update_tradability import update_tradability_dataset
 from rq_platform.etl.quality_check import check_all_price_datasets, print_price_check
 
 
@@ -16,6 +21,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--year", type=int, default=2025)
     parser.add_argument("--skip-stocks", action="store_true")
     parser.add_argument("--skip-index", action="store_true")
+    parser.add_argument("--skip-tradability", action="store_true")
     parser.add_argument("--check-only", action="store_true")
     return parser.parse_args()
 
@@ -34,10 +40,16 @@ def main() -> None:
     elif args.skip_stocks:
         print("skip stock update")
 
+    if not args.skip_tradability and not args.check_only:
+        update_tradability_dataset(year=args.year)
+    elif args.skip_tradability:
+        print("skip tradability update")
+
     if not args.skip_stocks:
         for result in check_all_price_datasets(year=args.year):
             print_price_check(result)
     print_index_price_check(check_index_price_dataset(year=args.year))
+    print_tradability_check(check_tradability_dataset(year=args.year))
 
 
 if __name__ == "__main__":
