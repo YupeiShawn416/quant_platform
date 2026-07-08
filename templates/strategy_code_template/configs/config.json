@@ -1,0 +1,16 @@
+{
+  "run_id": "demo_code_template_2025",
+  "strategy_name": "Demo Code Template Strategy",
+  "start_date": "2025-01-02",
+  "end_date": "2025-02-28",
+  "initial_cash": 1000000,
+  "benchmark": "000300.XSHG",
+  "adjust_type": "pre",
+  "frequency": "daily",
+  "commission_rate": 0.0003,
+  "tax_rate": 0.001,
+  "slippage_rate": 0.0001,
+  "lot_size": 100,
+  "price_field": "close",
+  "mode": "code"
+}

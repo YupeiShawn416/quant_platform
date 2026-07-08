@@ -6,6 +6,7 @@ fastapi
 uvicorn[standard]
 jinja2
 python-multipart
+PyYAML
 pydantic-settings
 python-dotenv
 rqdatac

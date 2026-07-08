@@ -1,0 +1,9 @@
+{
+  "package_version": "1.0",
+  "strategy_id": "demo_code_template",
+  "strategy_name": "Demo Code Template Strategy",
+  "author": "researcher_name",
+  "mode": "code",
+  "created_at": "2026-07-08T00:00:00",
+  "description": "Advanced code-mode strategy template. Production must use Docker sandbox."
+}

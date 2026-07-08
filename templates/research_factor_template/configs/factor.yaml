@@ -1,0 +1,5 @@
+factor_id: demo_factor
+factor_version: v1
+start_date: "2025-01-02"
+end_date: "2025-01-10"
+output_dir: data/output

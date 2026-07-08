@@ -1,0 +1,1 @@
+"""Factor research starter template."""

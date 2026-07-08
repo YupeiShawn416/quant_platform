@@ -149,6 +149,28 @@ make dashboard-smoke
 
 上传成功后打开 dashboard 查看 current 回测，并通过页面下载 result zip。
 
+## Research Templates
+
+统一研究模板位于 `templates/`：
+
+```text
+templates/research_weights_template
+templates/research_factor_template
+templates/strategy_code_template
+```
+
+推荐默认使用 `research_weights_template`，研究员只需要实现因子、信号和组合权重，
+最终生成符合 Strategy Package V1 的 `strategy_package.zip`。
+
+创建新项目并跑模板 smoke：
+
+```bash
+PYTHONPATH=src python scripts/20_create_research_project_from_template.py --template weights --name my_first_factor_strategy --output-dir /tmp --force
+make template-smoke
+```
+
+说明见 [docs/RESEARCH_TEMPLATES.md](docs/RESEARCH_TEMPLATES.md)。
+
 ## 数据安全
 
 1. `.env` 不提交

@@ -1,0 +1,30 @@
+strategy_id: demo_weights_template
+strategy_name: Demo Weights Template Strategy
+author: researcher_name
+description: Demo strategy generated from research_weights_template.
+package_version: "1.0"
+mode: weights
+
+run:
+  run_id: demo_weights_template_2025
+  start_date: "2025-01-02"
+  end_date: "2025-02-28"
+  initial_cash: 1000000
+  benchmark: "000300.XSHG"
+  adjust_type: pre
+  frequency: daily
+  commission_rate: 0.0003
+  tax_rate: 0.001
+  slippage_rate: 0.0001
+  lot_size: 100
+  price_field: close
+  weight_mode: daily_target
+  allow_weight_normalization: false
+
+portfolio:
+  top_n: 4
+  rebalance_frequency: daily
+
+output:
+  root_dir: data/output
+  package_path: /tmp/demo_weights_template_package.zip

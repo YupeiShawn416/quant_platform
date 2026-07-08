@@ -1,0 +1,14 @@
+data/raw/*
+data/interim/*
+data/processed/*
+data/output/*
+!data/raw/.gitkeep
+!data/interim/.gitkeep
+!data/processed/.gitkeep
+!data/output/.gitkeep
+reports/*.csv
+reports/*.parquet
+reports/*.zip
+reports/*.png
+__pycache__/
+.env

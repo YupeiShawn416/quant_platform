@@ -1,0 +1,9 @@
+{
+  "package_version": "1.0",
+  "strategy_id": "demo_weights_template",
+  "strategy_name": "Demo Weights Template Strategy",
+  "author": "researcher_name",
+  "mode": "weights",
+  "created_at": "2026-07-08T00:00:00",
+  "description": "Demo strategy generated from research_weights_template."
+}

@@ -1,0 +1,1 @@
+"""Research weights template package."""
