@@ -53,6 +53,11 @@ run, so `benchmark_nav` was a `1.0` fallback line. Benchmark return, excess
 return, tracking error and information ratio should not be used as real
 benchmark-relative conclusions for this pilot result.
 
+After `index_prices_1d` is populated, the platform can read `000300.XSHG` from
+the local index dataset and generate a real `benchmark_nav`. Re-run the VIX
+pilot package after `make update-index-2025` and `make check-index-data` to
+refresh benchmark-relative metrics.
+
 ## Timing And Lookahead Risk
 
 The current attractive performance should not be treated as a final strategy

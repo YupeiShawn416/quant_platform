@@ -22,6 +22,23 @@ PREFERRED_PRICE_FIELDS = [
 ]
 
 CORE_PRICE_FIELDS = ["open", "high", "low", "close", "volume"]
+INDEX_PRICE_FIELDS = [
+    "open",
+    "high",
+    "low",
+    "close",
+    "volume",
+    "total_turnover",
+    "num_trades",
+]
+RQDATA_INDEX_PRICE_FIELDS = [
+    "open",
+    "high",
+    "low",
+    "close",
+    "volume",
+    "total_turnover",
+]
 _RQDATA_INITIALIZED = False
 
 
@@ -136,6 +153,38 @@ class RQDataSource:
         frame = frame.drop_duplicates(key_cols, keep="last")
         return frame.sort_values(["order_book_id", "trade_date"]).reset_index(drop=True)
 
+    def get_index_prices(
+        self,
+        index_ids: list[str],
+        start_date: str,
+        end_date: str,
+    ) -> pd.DataFrame:
+        self.init()
+        raw = rqdatac.get_price(
+            list(index_ids),
+            start_date=start_date,
+            end_date=end_date,
+            frequency="1d",
+            fields=RQDATA_INDEX_PRICE_FIELDS,
+            expect_df=True,
+        )
+        frame = self._normalize_index_price_frame(raw)
+        if frame.empty:
+            print(
+                "warning: RQData returned empty index prices "
+                f"indices={len(index_ids)} start={start_date} end={end_date}"
+            )
+            return frame
+
+        columns = ["trade_date", "order_book_id"]
+        price_columns = [column for column in INDEX_PRICE_FIELDS if column in frame.columns]
+        other_columns = [
+            column for column in frame.columns if column not in columns + price_columns
+        ]
+        frame = frame[columns + price_columns + other_columns]
+        frame = frame.drop_duplicates(["trade_date", "order_book_id"], keep="last")
+        return frame.sort_values(["order_book_id", "trade_date"]).reset_index(drop=True)
+
     def _get_price(
         self,
         order_book_ids: Iterable[str],
@@ -191,4 +240,43 @@ class RQDataSource:
         frame["trade_date"] = pd.to_datetime(frame["trade_date"]).dt.strftime("%Y-%m-%d")
         frame["order_book_id"] = frame["order_book_id"].astype(str)
         frame["adjust_type"] = adjust_type
+        return frame
+
+    def _normalize_index_price_frame(self, raw: pd.DataFrame) -> pd.DataFrame:
+        frame = pd.DataFrame(raw).copy()
+        if frame.empty:
+            return pd.DataFrame(columns=["trade_date", "order_book_id", *INDEX_PRICE_FIELDS])
+
+        frame = frame.reset_index()
+        rename_map = {
+            "date": "trade_date",
+            "datetime": "trade_date",
+            "trading_date": "trade_date",
+            "order_book_ids": "order_book_id",
+        }
+        frame = frame.rename(columns={k: v for k, v in rename_map.items() if k in frame.columns})
+
+        if "order_book_id" not in frame.columns:
+            object_cols = [column for column in frame.columns if "order_book" in column]
+            if object_cols:
+                frame = frame.rename(columns={object_cols[0]: "order_book_id"})
+        if "trade_date" not in frame.columns:
+            date_cols = [
+                column
+                for column in frame.columns
+                if "date" in column.lower() or "time" in column.lower()
+            ]
+            if date_cols:
+                frame = frame.rename(columns={date_cols[0]: "trade_date"})
+
+        if "trade_date" not in frame.columns or "order_book_id" not in frame.columns:
+            raise RuntimeError(
+                "无法标准化 RQData 指数行情结果，缺少 trade_date 或 order_book_id"
+            )
+
+        frame["trade_date"] = pd.to_datetime(frame["trade_date"]).dt.strftime("%Y-%m-%d")
+        frame["order_book_id"] = frame["order_book_id"].astype(str)
+        for column in INDEX_PRICE_FIELDS:
+            if column in frame.columns:
+                frame[column] = pd.to_numeric(frame[column], errors="coerce")
         return frame

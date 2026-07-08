@@ -21,6 +21,18 @@ DEFAULT_PRICE_FIELDS = [
     "volume",
 ]
 
+DEFAULT_INDEX_PRICE_FIELDS = [
+    "trade_date",
+    "order_book_id",
+    "open",
+    "high",
+    "low",
+    "close",
+    "volume",
+    "total_turnover",
+    "num_trades",
+]
+
 
 class ResearchDataLoader:
     def load_prices(
@@ -65,6 +77,43 @@ class ResearchDataLoader:
 
     def _price_paths(self, adjust_type: str, start: str, end: str) -> list[Path]:
         root = dataset_dir(f"prices_1d_{adjust_type}")
+        return [root / f"year={year}.parquet" for year in _years_between(start, end)]
+
+    def load_index_prices(
+        self,
+        index_ids: list[str] | None = None,
+        start_date: str | None = None,
+        end_date: str | None = None,
+    ) -> pd.DataFrame:
+        start = start_date or "1900-01-01"
+        end = end_date or "2999-12-31"
+        paths = self._index_price_paths(start, end)
+        existing_paths = [path for path in paths if path.exists()]
+        if not existing_paths:
+            return pd.DataFrame(columns=DEFAULT_INDEX_PRICE_FIELDS)
+
+        files_sql = ", ".join(_quote_string(str(path)) for path in existing_paths)
+        where_clauses = [
+            f"trade_date BETWEEN {_quote_string(start)} AND {_quote_string(end)}"
+        ]
+        if index_ids:
+            ids_sql = ", ".join(_quote_string(index_id) for index_id in index_ids)
+            where_clauses.append(f"order_book_id IN ({ids_sql})")
+        where_sql = " AND ".join(where_clauses)
+        select_sql = ", ".join(_quote_identifier(column) for column in DEFAULT_INDEX_PRICE_FIELDS)
+        sql = f"""
+            SELECT {select_sql}
+            FROM read_parquet([{files_sql}], union_by_name=true)
+            WHERE {where_sql}
+            ORDER BY order_book_id, trade_date
+        """
+        try:
+            return query(sql)
+        except duckdb.BinderException:
+            return pd.DataFrame(columns=DEFAULT_INDEX_PRICE_FIELDS)
+
+    def _index_price_paths(self, start: str, end: str) -> list[Path]:
+        root = dataset_dir("index_prices_1d")
         return [root / f"year={year}.parquet" for year in _years_between(start, end)]
 
 

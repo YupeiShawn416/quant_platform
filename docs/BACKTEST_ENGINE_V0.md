@@ -14,6 +14,9 @@ Parquet 行情、策略权重和标准 Backtest Result Bundle 串成闭环。
 
 ## Benchmark Fallback
 
+如果配置了 `benchmark`，V0 会优先从本地 `index_prices_1d` 读取指数 `close`，
+并归一化生成真实 `benchmark_nav`。该查询只读本地 Parquet，不调用 RQData。
+
 如果配置了 `benchmark` 但本地没有对应价格数据，V0 不会让策略回测失败，而是将
 `benchmark_nav` fallback 为 `1.0` 直线，仅用于保持结果包结构完整。
 
@@ -27,6 +30,14 @@ benchmark_warning=...
 ```
 
 基准收益、超额收益、跟踪误差和信息比率不应作为真实结论使用。
+
+指数行情入库后：
+
+```text
+benchmark_missing=false
+benchmark_fallback_used=false
+benchmark_metrics_reliable=true
+```
 
 ## 撮合规则
 

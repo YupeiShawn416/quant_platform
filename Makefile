@@ -1,4 +1,4 @@
-.PHONY: install test api api-prod api-smoke client-smoke backtest-api-smoke dashboard-smoke create-demo-weights-package submit-demo-weights-package template-smoke check-data deploy-check query-sample demo-backtest view-demo-backtest demo-daily-backtest view-demo-daily-backtest status clean
+.PHONY: install test api api-prod api-smoke client-smoke backtest-api-smoke dashboard-smoke create-demo-weights-package submit-demo-weights-package template-smoke check-data update-index-2025 check-index-data daily-data-update deploy-check query-sample demo-backtest view-demo-backtest demo-daily-backtest view-demo-daily-backtest status clean
 
 install:
 	python -m pip install -e .
@@ -35,6 +35,15 @@ template-smoke:
 
 check-data:
 	PYTHONPATH=src python scripts/05_check_local_data.py
+
+update-index-2025:
+	PYTHONPATH=src python scripts/22_update_2025_index_prices.py
+
+check-index-data:
+	PYTHONPATH=src python scripts/23_check_index_data.py
+
+daily-data-update:
+	PYTHONPATH=src python scripts/24_daily_data_update.py --year 2025 --skip-stocks
 
 deploy-check:
 	PYTHONPATH=src python scripts/11_deploy_check.py

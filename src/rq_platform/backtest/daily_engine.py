@@ -188,14 +188,8 @@ class DailyBacktestEngine:
                 ),
             )
             return {date: 1.0 for date in trading_dates}
-        frame = self.data_loader.load_prices(
-            symbols=[str(benchmark)],
-            start=str(self.config["start_date"]),
-            end=str(self.config["end_date"]),
-            adjust_type=str(self.config["adjust_type"]),
-            fields=[str(self.config["price_field"])],
-        )
-        price_field = str(self.config["price_field"])
+        frame = self._load_benchmark_prices(str(benchmark))
+        price_field = "close"
         if frame.empty or price_field not in frame.columns:
             self.logs.append(f"benchmark {benchmark} 无本地价格，benchmark_nav 使用 1.0")
             self.benchmark_metadata = self._benchmark_metadata(
@@ -241,6 +235,25 @@ class DailyBacktestEngine:
                 warning=None,
             )
         return {date: nav.get(date, 1.0) for date in trading_dates}
+
+    def _load_benchmark_prices(self, benchmark: str) -> pd.DataFrame:
+        if hasattr(self.data_loader, "load_index_prices"):
+            frame = self.data_loader.load_index_prices(
+                index_ids=[benchmark],
+                start_date=str(self.config["start_date"]),
+                end_date=str(self.config["end_date"]),
+            )
+            if not frame.empty:
+                self.logs.append(f"读取本地指数 benchmark 行情 benchmark={benchmark}")
+                return frame
+
+        return self.data_loader.load_prices(
+            symbols=[benchmark],
+            start=str(self.config["start_date"]),
+            end=str(self.config["end_date"]),
+            adjust_type=str(self.config["adjust_type"]),
+            fields=["close"],
+        )
 
     def _benchmark_metadata(
         self,

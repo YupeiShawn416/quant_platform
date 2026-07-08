@@ -4,6 +4,22 @@
 
 存储 RQData 原始行情、基础信息、指数、行业、市值、估值、财务、一致预期等。
 
+当前本地数据湖是 Parquet 文件 + DuckDB 临时查询层，不是持久 DuckDB 数据库。
+DuckDB 只在查询时读取 Parquet。
+
+已落库的数据集：
+
+```text
+instruments/instruments.parquet
+trading_calendar/trading_calendar.parquet
+prices_1d_pre/year=2025.parquet
+prices_1d_none/year=2025.parquet
+index_prices_1d/year=2025.parquet
+```
+
+股票行情和指数行情分开存储。`prices_1d_pre` / `prices_1d_none` 只放股票日频行情，
+`index_prices_1d` 是 benchmark 的本地来源。
+
 ## Standard panel
 
 标准化行情面板：
@@ -18,6 +34,20 @@ close
 volume
 amount
 adjust_type
+```
+
+指数日频行情字段：
+
+```text
+trade_date
+order_book_id
+open
+high
+low
+close
+volume
+total_turnover
+num_trades
 ```
 
 ## Derived feature panel

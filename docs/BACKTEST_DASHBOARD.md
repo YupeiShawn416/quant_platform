@@ -40,6 +40,10 @@ http://127.0.0.1:8000/ui/backtests/current
 benchmark warning。概览页会把基准收益、超额收益、跟踪误差和信息比率等指标
 标记为 `N/A / unreliable`，避免把 fallback 直线误读成真实基准。
 
+当 `index_prices_1d` 已包含配置的 benchmark，例如 `000300.XSHG`，回测结果会使用
+真实指数 `close` 生成 `benchmark_nav`。此时 Dashboard 不显示 fallback warning，
+基准曲线不再是固定 `1.0` 直线。
+
 ## 下载
 
 页面左侧提供“下载结果包”按钮，链接到：
