@@ -1,4 +1,4 @@
-.PHONY: install test api api-prod api-smoke client-smoke backtest-api-smoke dashboard-smoke create-demo-weights-package submit-demo-weights-package template-smoke check-data update-index-2025 check-index-data update-tradability-2025 check-tradability-data update-valuation-2025 check-valuation-data update-industry-2025 check-industry-data update-index-membership-2025 check-index-membership-data daily-data-update deploy-check query-sample demo-backtest view-demo-backtest demo-daily-backtest view-demo-daily-backtest status clean
+.PHONY: install test api api-prod api-smoke client-smoke backtest-api-smoke dashboard-smoke create-demo-weights-package submit-demo-weights-package template-smoke check-data update-index-2025 check-index-data update-tradability-2025 check-tradability-data update-valuation-2025 check-valuation-data update-industry-2025 check-industry-data update-index-membership-2025 check-index-membership-data vix-q5-exposure-audit vix-q5-build-lagged-package vix-q5-compare-lagged daily-data-update deploy-check query-sample demo-backtest view-demo-backtest demo-daily-backtest view-demo-daily-backtest status clean
 
 install:
 	python -m pip install -e .
@@ -65,6 +65,15 @@ update-index-membership-2025:
 
 check-index-membership-data:
 	PYTHONPATH=src python scripts/32_check_index_membership_data.py
+
+vix-q5-exposure-audit:
+	PYTHONPATH=src python scripts/33_audit_vix_q5_exposure.py
+
+vix-q5-build-lagged-package:
+	PYTHONPATH=src python scripts/34_build_vix_q5_lagged_package.py
+
+vix-q5-compare-lagged:
+	PYTHONPATH=src python scripts/35_compare_vix_q5_same_day_vs_lagged.py
 
 daily-data-update:
 	PYTHONPATH=src python scripts/24_daily_data_update.py --year 2025 --skip-stocks
