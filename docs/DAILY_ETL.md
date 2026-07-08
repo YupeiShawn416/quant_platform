@@ -9,6 +9,8 @@ make update-index-2025
 make check-index-data
 make update-tradability-2025
 make check-tradability-data
+make update-valuation-2025
+make check-valuation-data
 make daily-data-update
 ```
 
@@ -41,7 +43,28 @@ data/research_data/rqdata/tradability_1d/year=2025.parquet
 
 `make check-tradability-data` 检查可交易性行数、重复键、可买/可卖缺失和不可交易原因。
 
-`make daily-data-update` 目前实际执行指数更新、可交易性生成和质量检查：
+`make update-valuation-2025` 通过 RQData 只读抓取 2025 全 A 市值、估值和换手率，
+并覆盖写入：
+
+```text
+data/research_data/rqdata/valuation_1d/year=2025.parquet
+```
+
+字段包括：
+
+```text
+market_cap
+float_market_cap
+pe_ratio
+pb_ratio
+ps_ratio
+pcf_ratio
+turnover_rate
+```
+
+`make check-valuation-data` 检查估值数据日期范围、重复键、每日覆盖数量和字段缺失。
+
+`make daily-data-update` 目前实际执行指数更新、可交易性生成、估值更新和质量检查：
 
 ```bash
 PYTHONPATH=src python scripts/24_daily_data_update.py --year 2025 --skip-stocks
@@ -55,6 +78,7 @@ PYTHONPATH=src python scripts/24_daily_data_update.py --year 2025 --skip-stocks
 --skip-stocks
 --skip-index
 --skip-tradability
+--skip-valuation
 --check-only
 ```
 

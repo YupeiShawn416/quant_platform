@@ -39,6 +39,14 @@ RQDATA_INDEX_PRICE_FIELDS = [
     "volume",
     "total_turnover",
 ]
+VALUATION_FACTOR_MAP = {
+    "market_cap": "market_cap",
+    "float_market_cap": "market_cap_2",
+    "pe_ratio": "pe_ratio",
+    "pb_ratio": "pb_ratio",
+    "ps_ratio": "ps_ratio",
+    "pcf_ratio": "pcf_ratio",
+}
 _RQDATA_INITIALIZED = False
 
 
@@ -185,6 +193,45 @@ class RQDataSource:
         frame = frame.drop_duplicates(["trade_date", "order_book_id"], keep="last")
         return frame.sort_values(["order_book_id", "trade_date"]).reset_index(drop=True)
 
+    def get_valuation_factors(
+        self,
+        order_book_ids: list[str],
+        start_date: str,
+        end_date: str,
+    ) -> pd.DataFrame:
+        self.init()
+        factor_names = list(VALUATION_FACTOR_MAP.values())
+        factor_frame = rqdatac.get_factor(
+            list(order_book_ids),
+            factor_names,
+            start_date=start_date,
+            end_date=end_date,
+            expect_df=True,
+        )
+        valuation = self._normalize_valuation_factor_frame(factor_frame)
+
+        turnover_raw = rqdatac.get_turnover_rate(
+            list(order_book_ids),
+            start_date=start_date,
+            end_date=end_date,
+            fields="today",
+            expect_df=True,
+        )
+        turnover = self._normalize_turnover_frame(turnover_raw)
+        if valuation.empty:
+            frame = turnover
+        elif turnover.empty:
+            frame = valuation
+        else:
+            frame = valuation.merge(turnover, on=["trade_date", "order_book_id"], how="outer")
+
+        for column in VALUATION_COLUMNS:
+            if column not in frame.columns:
+                frame[column] = pd.NA
+        frame = frame[VALUATION_COLUMNS]
+        frame = frame.drop_duplicates(["trade_date", "order_book_id"], keep="last")
+        return frame.sort_values(["order_book_id", "trade_date"]).reset_index(drop=True)
+
     def _get_price(
         self,
         order_book_ids: Iterable[str],
@@ -280,3 +327,73 @@ class RQDataSource:
             if column in frame.columns:
                 frame[column] = pd.to_numeric(frame[column], errors="coerce")
         return frame
+
+    def _normalize_valuation_factor_frame(self, raw: pd.DataFrame | None) -> pd.DataFrame:
+        frame = pd.DataFrame() if raw is None else pd.DataFrame(raw).copy()
+        if frame.empty:
+            return pd.DataFrame(columns=["trade_date", "order_book_id", *VALUATION_FACTOR_MAP])
+        frame = frame.reset_index()
+        frame = _rename_security_date_columns(frame)
+        reverse_map = {source: target for target, source in VALUATION_FACTOR_MAP.items()}
+        frame = frame.rename(columns=reverse_map)
+        if "trade_date" not in frame.columns or "order_book_id" not in frame.columns:
+            raise RuntimeError("无法标准化 RQData 估值因子结果，缺少 trade_date 或 order_book_id")
+        frame["trade_date"] = pd.to_datetime(frame["trade_date"]).dt.strftime("%Y-%m-%d")
+        frame["order_book_id"] = frame["order_book_id"].astype(str)
+        for column in VALUATION_FACTOR_MAP:
+            if column in frame.columns:
+                frame[column] = pd.to_numeric(frame[column], errors="coerce")
+        return frame[["trade_date", "order_book_id", *[c for c in VALUATION_FACTOR_MAP if c in frame.columns]]]
+
+    def _normalize_turnover_frame(self, raw: pd.DataFrame | None) -> pd.DataFrame:
+        frame = pd.DataFrame() if raw is None else pd.DataFrame(raw).copy()
+        if frame.empty:
+            return pd.DataFrame(columns=["trade_date", "order_book_id", "turnover_rate"])
+        frame = frame.reset_index()
+        frame = _rename_security_date_columns(frame)
+        if "today" in frame.columns:
+            frame = frame.rename(columns={"today": "turnover_rate"})
+        if "trade_date" not in frame.columns or "order_book_id" not in frame.columns:
+            raise RuntimeError("无法标准化 RQData 换手率结果，缺少 trade_date 或 order_book_id")
+        frame["trade_date"] = pd.to_datetime(frame["trade_date"]).dt.strftime("%Y-%m-%d")
+        frame["order_book_id"] = frame["order_book_id"].astype(str)
+        if "turnover_rate" in frame.columns:
+            frame["turnover_rate"] = pd.to_numeric(frame["turnover_rate"], errors="coerce")
+        return frame[["trade_date", "order_book_id", "turnover_rate"]]
+
+
+VALUATION_COLUMNS = [
+    "trade_date",
+    "order_book_id",
+    "market_cap",
+    "float_market_cap",
+    "pe_ratio",
+    "pb_ratio",
+    "ps_ratio",
+    "pcf_ratio",
+    "turnover_rate",
+]
+
+
+def _rename_security_date_columns(frame: pd.DataFrame) -> pd.DataFrame:
+    rename_map = {
+        "date": "trade_date",
+        "datetime": "trade_date",
+        "tradedate": "trade_date",
+        "trading_date": "trade_date",
+        "order_book_ids": "order_book_id",
+    }
+    frame = frame.rename(columns={key: value for key, value in rename_map.items() if key in frame.columns})
+    if "order_book_id" not in frame.columns:
+        object_cols = [column for column in frame.columns if "order_book" in column]
+        if object_cols:
+            frame = frame.rename(columns={object_cols[0]: "order_book_id"})
+    if "trade_date" not in frame.columns:
+        date_cols = [
+            column
+            for column in frame.columns
+            if "date" in column.lower() or "time" in column.lower()
+        ]
+        if date_cols:
+            frame = frame.rename(columns={date_cols[0]: "trade_date"})
+    return frame

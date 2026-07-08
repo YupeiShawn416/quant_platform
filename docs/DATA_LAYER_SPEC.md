@@ -16,11 +16,13 @@ prices_1d_pre/year=2025.parquet
 prices_1d_none/year=2025.parquet
 index_prices_1d/year=2025.parquet
 tradability_1d/year=2025.parquet
+valuation_1d/year=2025.parquet
 ```
 
 股票行情和指数行情分开存储。`prices_1d_pre` / `prices_1d_none` 只放股票日频行情，
 `index_prices_1d` 是 benchmark 的本地来源。
 `tradability_1d` 是回测引擎的可交易性约束来源。
+`valuation_1d` 是因子研究和组合诊断的市值/估值来源，暂不直接接入回测撮合。
 
 ## Standard panel
 
@@ -68,6 +70,32 @@ reason
 V0 的 `tradability_1d` 由本地交易日历、`instruments` 和股票日频行情派生：
 缺少当日价格视为停牌，`special_type` 含 ST 视为不可买，`close >= limit_up`
 视为不可买，`close <= limit_down` 视为不可卖。
+
+市值估值日频字段：
+
+```text
+trade_date
+order_book_id
+market_cap
+float_market_cap
+pe_ratio
+pb_ratio
+ps_ratio
+pcf_ratio
+turnover_rate
+```
+
+V0 的 `valuation_1d` 来源：
+
+```text
+market_cap        <- RQData factor market_cap
+float_market_cap  <- RQData factor market_cap_2
+pe_ratio          <- RQData factor pe_ratio
+pb_ratio          <- RQData factor pb_ratio
+ps_ratio          <- RQData factor ps_ratio
+pcf_ratio         <- RQData factor pcf_ratio
+turnover_rate     <- RQData get_turnover_rate(today)
+```
 
 ## Derived feature panel
 
