@@ -11,6 +11,10 @@ make update-tradability-2025
 make check-tradability-data
 make update-valuation-2025
 make check-valuation-data
+make update-industry-2025
+make check-industry-data
+make update-index-membership-2025
+make check-index-membership-data
 make daily-data-update
 ```
 
@@ -64,7 +68,25 @@ turnover_rate
 
 `make check-valuation-data` 检查估值数据日期范围、重复键、每日覆盖数量和字段缺失。
 
-`make daily-data-update` 目前实际执行指数更新、可交易性生成、估值更新和质量检查：
+`make update-industry-2025` 通过 RQData 只读抓取 2025 全 A `citics_2019`
+一级行业分类，并覆盖写入：
+
+```text
+data/research_data/rqdata/industry_classification/year=2025.parquet
+```
+
+`make update-index-membership-2025` 抓取沪深300、中证500、中证1000 的成分和权重，
+并覆盖写入：
+
+```text
+data/research_data/rqdata/index_components/year=2025.parquet
+data/research_data/rqdata/index_weights/year=2025.parquet
+```
+
+对应 check 命令会检查重复键、日期范围、每日覆盖数量和权重和。
+
+`make daily-data-update` 目前实际执行指数更新、可交易性生成、估值更新、行业分类、
+指数成分权重更新和质量检查：
 
 ```bash
 PYTHONPATH=src python scripts/24_daily_data_update.py --year 2025 --skip-stocks
@@ -79,6 +101,8 @@ PYTHONPATH=src python scripts/24_daily_data_update.py --year 2025 --skip-stocks
 --skip-index
 --skip-tradability
 --skip-valuation
+--skip-industry
+--skip-index-membership
 --check-only
 ```
 

@@ -47,6 +47,7 @@ VALUATION_FACTOR_MAP = {
     "ps_ratio": "ps_ratio",
     "pcf_ratio": "pcf_ratio",
 }
+DEFAULT_INDUSTRY_SOURCE = "citics_2019"
 _RQDATA_INITIALIZED = False
 
 
@@ -232,6 +233,48 @@ class RQDataSource:
         frame = frame.drop_duplicates(["trade_date", "order_book_id"], keep="last")
         return frame.sort_values(["order_book_id", "trade_date"]).reset_index(drop=True)
 
+    def get_industry_classification(
+        self,
+        order_book_ids: list[str],
+        trade_date: str,
+        source: str = DEFAULT_INDUSTRY_SOURCE,
+        level: int = 1,
+    ) -> pd.DataFrame:
+        self.init()
+        raw = rqdatac.get_instrument_industry(
+            list(order_book_ids),
+            source=source,
+            level=level,
+            date=trade_date,
+        )
+        frame = self._normalize_industry_frame(raw, trade_date, source, level)
+        return frame.sort_values(["trade_date", "order_book_id"]).reset_index(drop=True)
+
+    def get_index_components(self, index_id: str, trade_date: str) -> pd.DataFrame:
+        self.init()
+        raw = rqdatac.index_components(index_id, date=trade_date)
+        frame = pd.DataFrame(
+            {
+                "trade_date": trade_date,
+                "index_id": str(index_id),
+                "order_book_id": [str(value) for value in (raw or [])],
+            }
+        )
+        return frame[["trade_date", "index_id", "order_book_id"]]
+
+    def get_index_weights(self, index_id: str, trade_date: str) -> pd.DataFrame:
+        self.init()
+        raw = rqdatac.index_weights(index_id, date=trade_date)
+        if raw is None:
+            return pd.DataFrame(columns=["trade_date", "index_id", "order_book_id", "weight"])
+        frame = pd.Series(raw, name="weight").reset_index()
+        frame = frame.rename(columns={frame.columns[0]: "order_book_id"})
+        frame["trade_date"] = trade_date
+        frame["index_id"] = str(index_id)
+        frame["order_book_id"] = frame["order_book_id"].astype(str)
+        frame["weight"] = pd.to_numeric(frame["weight"], errors="coerce")
+        return frame[["trade_date", "index_id", "order_book_id", "weight"]]
+
     def _get_price(
         self,
         order_book_ids: Iterable[str],
@@ -360,6 +403,57 @@ class RQDataSource:
         if "turnover_rate" in frame.columns:
             frame["turnover_rate"] = pd.to_numeric(frame["turnover_rate"], errors="coerce")
         return frame[["trade_date", "order_book_id", "turnover_rate"]]
+
+    def _normalize_industry_frame(
+        self,
+        raw: pd.DataFrame | None,
+        trade_date: str,
+        source: str,
+        level: int,
+    ) -> pd.DataFrame:
+        frame = pd.DataFrame() if raw is None else pd.DataFrame(raw).copy()
+        if frame.empty:
+            return pd.DataFrame(
+                columns=[
+                    "trade_date",
+                    "order_book_id",
+                    "industry_system",
+                    "industry_level",
+                    "industry_code",
+                    "industry_name",
+                ]
+            )
+        frame = frame.reset_index()
+        frame = _rename_security_date_columns(frame)
+        if "order_book_id" not in frame.columns:
+            raise RuntimeError("无法标准化 RQData 行业结果，缺少 order_book_id")
+        code_candidates = [
+            "first_industry_code",
+            "second_industry_code",
+            "third_industry_code",
+            "index_code",
+            "industry_code",
+        ]
+        name_candidates = [
+            "first_industry_name",
+            "second_industry_name",
+            "third_industry_name",
+            "index_name",
+            "industry_name",
+        ]
+        code_col = next((column for column in code_candidates if column in frame.columns), None)
+        name_col = next((column for column in name_candidates if column in frame.columns), None)
+        output = pd.DataFrame(
+            {
+                "trade_date": pd.Timestamp(trade_date).strftime("%Y-%m-%d"),
+                "order_book_id": frame["order_book_id"].astype(str),
+                "industry_system": source,
+                "industry_level": int(level),
+                "industry_code": frame[code_col].astype(str) if code_col else pd.NA,
+                "industry_name": frame[name_col].astype(str) if name_col else pd.NA,
+            }
+        )
+        return output
 
 
 VALUATION_COLUMNS = [

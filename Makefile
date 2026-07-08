@@ -1,4 +1,4 @@
-.PHONY: install test api api-prod api-smoke client-smoke backtest-api-smoke dashboard-smoke create-demo-weights-package submit-demo-weights-package template-smoke check-data update-index-2025 check-index-data update-tradability-2025 check-tradability-data update-valuation-2025 check-valuation-data daily-data-update deploy-check query-sample demo-backtest view-demo-backtest demo-daily-backtest view-demo-daily-backtest status clean
+.PHONY: install test api api-prod api-smoke client-smoke backtest-api-smoke dashboard-smoke create-demo-weights-package submit-demo-weights-package template-smoke check-data update-index-2025 check-index-data update-tradability-2025 check-tradability-data update-valuation-2025 check-valuation-data update-industry-2025 check-industry-data update-index-membership-2025 check-index-membership-data daily-data-update deploy-check query-sample demo-backtest view-demo-backtest demo-daily-backtest view-demo-daily-backtest status clean
 
 install:
 	python -m pip install -e .
@@ -53,6 +53,18 @@ update-valuation-2025:
 
 check-valuation-data:
 	PYTHONPATH=src python scripts/28_check_valuation_data.py
+
+update-industry-2025:
+	PYTHONPATH=src python scripts/29_update_2025_industry.py
+
+check-industry-data:
+	PYTHONPATH=src python scripts/30_check_industry_data.py
+
+update-index-membership-2025:
+	PYTHONPATH=src python scripts/31_update_2025_index_membership.py
+
+check-index-membership-data:
+	PYTHONPATH=src python scripts/32_check_index_membership_data.py
 
 daily-data-update:
 	PYTHONPATH=src python scripts/24_daily_data_update.py --year 2025 --skip-stocks

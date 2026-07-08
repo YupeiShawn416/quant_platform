@@ -17,12 +17,17 @@ prices_1d_none/year=2025.parquet
 index_prices_1d/year=2025.parquet
 tradability_1d/year=2025.parquet
 valuation_1d/year=2025.parquet
+industry_classification/year=2025.parquet
+index_components/year=2025.parquet
+index_weights/year=2025.parquet
 ```
 
 股票行情和指数行情分开存储。`prices_1d_pre` / `prices_1d_none` 只放股票日频行情，
 `index_prices_1d` 是 benchmark 的本地来源。
 `tradability_1d` 是回测引擎的可交易性约束来源。
 `valuation_1d` 是因子研究和组合诊断的市值/估值来源，暂不直接接入回测撮合。
+`industry_classification`、`index_components`、`index_weights` 用于行业暴露、指数成分
+重合度和相对 benchmark 诊断。
 
 ## Standard panel
 
@@ -95,6 +100,44 @@ pb_ratio          <- RQData factor pb_ratio
 ps_ratio          <- RQData factor ps_ratio
 pcf_ratio         <- RQData factor pcf_ratio
 turnover_rate     <- RQData get_turnover_rate(today)
+```
+
+行业分类字段：
+
+```text
+trade_date
+order_book_id
+industry_system
+industry_level
+industry_code
+industry_name
+```
+
+V0 默认使用 `citics_2019` 一级行业。
+
+指数成分字段：
+
+```text
+trade_date
+index_id
+order_book_id
+```
+
+指数权重字段：
+
+```text
+trade_date
+index_id
+order_book_id
+weight
+```
+
+V0 默认覆盖：
+
+```text
+000300.XSHG
+000905.XSHG
+000852.XSHG
 ```
 
 ## Derived feature panel
