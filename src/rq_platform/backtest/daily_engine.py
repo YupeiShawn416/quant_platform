@@ -78,19 +78,21 @@ class DailyBacktestEngine:
     def __init__(
         self,
         config: dict[str, Any],
-        strategy_path: str | Path,
+        strategy_path: str | Path | None = None,
         data_loader=None,
+        strategy=None,
     ):
         merged = {**DEFAULTS, **config}
         self.config = merged
-        self.strategy_path = Path(strategy_path)
+        self.strategy_path = Path(strategy_path) if strategy_path is not None else None
         self.data_loader = data_loader or ResearchDataLoader()
+        self.strategy = strategy
         self.logs: list[str] = []
 
     def run(self) -> dict[str, Any]:
         self._validate_config()
         run_id = str(self.config["run_id"])
-        strategy = load_strategy_module(self.strategy_path)
+        strategy = self.strategy or load_strategy_module(self.strategy_path)
         symbols = self._resolve_symbols(strategy)
         if not symbols:
             raise ValueError("strategy returned no symbols during bootstrap; add config.symbols for V0")
@@ -133,7 +135,9 @@ class DailyBacktestEngine:
             trading_dates=[],
             previous_positions={},
         )
-        weights = strategy.generate_weights(context, data) or {}
+        weights = strategy.generate_weights(context, data)
+        if weights is None:
+            return _unique_symbols(self.config.get("symbols", []))
         return _unique_symbols(weights.keys())
 
     def _load_prices(self, symbols: list[str], price_field: str) -> pd.DataFrame:
@@ -231,21 +235,23 @@ class DailyBacktestEngine:
                 trading_dates=trading_dates,
                 previous_positions=positions.copy(),
             )
-            raw_weights = strategy.generate_weights(context, data) or {}
-            weights = self._normalize_weights(raw_weights)
-            self.logs.append(f"每日调仓 trade_date={trade_date} weights={weights}")
-
             total_before = self._total_value(cash, positions, current_prices)
-            cash, positions = self._rebalance(
-                trade_date=trade_date,
-                total_value=total_before,
-                cash=cash,
-                positions=positions,
-                weights=weights,
-                prices=current_prices,
-                trade_rows=trade_rows,
-                order_rows=order_rows,
-            )
+            raw_weights = strategy.generate_weights(context, data)
+            if raw_weights is None:
+                self.logs.append(f"不调仓 trade_date={trade_date} reason=weights_none")
+            else:
+                weights = self._normalize_weights(raw_weights)
+                self.logs.append(f"每日调仓 trade_date={trade_date} weights={weights}")
+                cash, positions = self._rebalance(
+                    trade_date=trade_date,
+                    total_value=total_before,
+                    cash=cash,
+                    positions=positions,
+                    weights=weights,
+                    prices=current_prices,
+                    trade_rows=trade_rows,
+                    order_rows=order_rows,
+                )
 
             market_value = self._market_value(positions, current_prices)
             total_value = cash + market_value

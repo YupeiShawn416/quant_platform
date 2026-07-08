@@ -83,3 +83,14 @@ BACKTEST_EXECUTION_MODE=docker
 ```
 
 上传策略最大 200KB，平台固定写入 `strategy.py`，不接受用户路径，也不会挂载 `.env`。
+
+## POST /backtests/run-package
+
+上传 Strategy Package：
+
+```bash
+curl -F "file=@/tmp/demo_weights_strategy_package.zip" \
+  http://127.0.0.1:8000/backtests/run-package
+```
+
+V1 主路径是 `weights` 模式。上传成功后仍通过 `/backtests/current/*` 查看结果。

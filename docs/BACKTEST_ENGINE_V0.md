@@ -64,3 +64,7 @@ V0 先保持自研、可解释、可测试。后续可以把同一套标准结�
 
 现在可以通过 `POST /backtests/run` 提交策略代码和配置。平台会清理旧 current，
 运行 V0 日频回测，并把最新标准结果包复制到 `runs/backtests/current/`。
+
+`POST /backtests/run-package` 支持上传 Strategy Package。weights 模式会读取
+`weights.parquet` 或 `weights.csv`，转换为目标权重调仓策略，再进入同一套
+`DailyBacktestEngine` 撮合和绩效链路。

@@ -1,17 +1,18 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
 import pandas as pd
 import pyarrow.parquet as pq
-from fastapi import Body, Depends, FastAPI, Header, HTTPException, Query
+from fastapi import Body, Depends, FastAPI, File, Header, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
 from rq_platform.backtest.current_store import CurrentBacktestNotFound, CurrentBacktestStore
 from rq_platform.backtest.job_manager import BacktestJobError, BacktestJobManager
+from rq_platform.backtest.package_job_manager import StrategyPackageJobManager
 from rq_platform.backtest.result_store import BacktestResultStore
 from rq_platform.api.web_routes import router as web_router
 from rq_platform.data.data_loader import ResearchDataLoader
@@ -172,6 +173,27 @@ def run_backtest(
         )
     except BacktestJobError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/backtests/run-package")
+def run_backtest_package(
+    file: UploadFile = File(...),
+    _: None = Depends(require_api_token),
+) -> dict[str, Any]:
+    if not file.filename or not file.filename.lower().endswith(".zip"):
+        raise HTTPException(status_code=400, detail="strategy package must be a .zip file")
+    upload_dir = settings.backtest_jobs_dir_path / "uploads"
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    upload_path = upload_dir / f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{Path(file.filename).name}"
+    content = file.file.read()
+    max_size = 100 * 1024 * 1024
+    if len(content) > max_size:
+        raise HTTPException(status_code=400, detail="strategy package exceeds 100MB limit")
+    upload_path.write_bytes(content)
+    result = StrategyPackageJobManager().run_package(upload_path)
+    if result.get("status") == "failed":
+        return result
+    return result
 
 
 @app.get("/backtests/current")

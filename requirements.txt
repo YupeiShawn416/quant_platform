@@ -5,6 +5,7 @@ duckdb
 fastapi
 uvicorn[standard]
 jinja2
+python-multipart
 pydantic-settings
 python-dotenv
 rqdatac

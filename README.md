@@ -125,6 +125,30 @@ make dashboard-smoke
 http://127.0.0.1:8000/ui/backtests/current
 ```
 
+## Strategy Package V1
+
+推荐研究员使用 `weights` 模式：线下完成因子、信号和组合构建，导出标准
+`weights.parquet`：
+
+```text
+trade_date
+order_book_id
+target_weight
+```
+
+高级用户可以使用 `code` 模式上传 `strategy.py`，但生产环境必须走 Docker 沙箱。
+
+本地 demo：
+
+```bash
+make create-demo-weights-package
+make api
+make submit-demo-weights-package
+make dashboard-smoke
+```
+
+上传成功后打开 dashboard 查看 current 回测，并通过页面下载 result zip。
+
 ## 数据安全
 
 1. `.env` 不提交

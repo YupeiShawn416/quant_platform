@@ -60,6 +60,27 @@ def test_daily_engine_empty_weights_clear_positions(tmp_path):
     assert positions["trade_date"].max() == "2025-01-02"
 
 
+def test_daily_engine_none_weights_keep_positions(tmp_path):
+    strategy_path = tmp_path / "strategy.py"
+    strategy_path.write_text(
+        "def generate_weights(context, data):\n"
+        "    if context.current_date == '2025-01-02':\n"
+        "        return {'AAA.X': 1.0}\n"
+        "    return None\n",
+        encoding="utf-8",
+    )
+    config = _config(tmp_path, run_id="daily_engine_none_weights")
+
+    DailyBacktestEngine(config, strategy_path, data_loader=FakeDataLoader()).run()
+
+    run_dir = tmp_path / "runs" / "daily_engine_none_weights"
+    trades = pd.read_csv(run_dir / "trades.csv")
+    positions = pd.read_csv(run_dir / "positions.csv")
+    assert len(trades) == 1
+    assert trades.iloc[0]["side"] == "BUY"
+    assert positions["trade_date"].max() == "2025-01-06"
+
+
 def _config(tmp_path, run_id="daily_engine_test"):
     return {
         "run_id": run_id,

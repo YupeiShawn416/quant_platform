@@ -9,6 +9,7 @@ description = "Internal quant research platform based on RQData, Parquet, DuckDB
 requires-python = ">=3.11"
 dependencies = [
     "jinja2",
+    "python-multipart",
 ]
 
 [tool.setuptools.packages.find]

@@ -43,6 +43,9 @@ V0 已提供 `run_backtest_in_docker(...)`，通过 `subprocess.run` 执行 Dock
 API job 默认使用 `BACKTEST_EXECUTION_MODE=local` 方便开发，生产环境必须改为
 `BACKTEST_EXECUTION_MODE=docker`。
 
+Strategy Package 的 code 模式同样必须在生产环境走 Docker。weights 模式不执行用户代码，
+只读取标准化权重文件并进入平台统一回测引擎。
+
 ## 后续接入
 
 Worker CLI：
