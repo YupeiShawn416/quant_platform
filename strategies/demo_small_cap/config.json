@@ -1,0 +1,15 @@
+{
+  "run_id": "demo_daily_backtest",
+  "strategy_name": "demo_small_cap",
+  "start_date": "2025-01-02",
+  "end_date": "2025-02-28",
+  "initial_cash": 1000000,
+  "benchmark": "000300.XSHG",
+  "adjust_type": "pre",
+  "frequency": "daily",
+  "commission_rate": 0.0003,
+  "tax_rate": 0.001,
+  "slippage_rate": 0.0001,
+  "lot_size": 100,
+  "price_field": "close"
+}

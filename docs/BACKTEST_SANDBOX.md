@@ -35,15 +35,19 @@ no .env mount
 
 ## 当前边界
 
-V0 只构造 Docker 命令，不真正执行 Docker，也不接入真实 RQAlpha。
-用户脚本不允许直接在宿主机执行。
+V0 已提供 `run_backtest_in_docker(...)`，通过 `subprocess.run` 执行 Docker
+命令并捕获 stdout/stderr/timeout。pytest 不依赖本机 Docker，因此测试只覆盖命令构造
+和返回结构。
+
+本地开发可以直接运行 Worker CLI；真实生产应通过 Docker 沙箱运行用户策略。
 
 ## 后续接入
 
-真实回测引擎会接入：
+Worker CLI：
 
 ```text
-python -m rq_platform.backtest.worker --run-id <run_id>
+python -m rq_platform.backtest.worker --config /app/config/config.json --strategy /app/strategy/strategy.py --output-root /app/runs/backtests
 ```
 
 `worker.py` 负责读取 run 配置、加载只读数据、执行策略、写出标准结果包。
+失败时写出 `error.json` 和 `logs.txt`，并返回非 0 exit code。

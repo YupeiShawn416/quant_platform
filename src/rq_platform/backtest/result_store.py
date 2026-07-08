@@ -67,10 +67,10 @@ class BacktestResultStore:
         run_dir = self._run_dir(run_id)
         if not run_dir.exists():
             raise FileNotFoundError(run_dir)
-        zip_path = self.root / f"backtest_result_{run_id}.zip"
+        zip_path = run_dir / f"backtest_result_{run_id}.zip"
         with zipfile.ZipFile(zip_path, mode="w", compression=zipfile.ZIP_DEFLATED) as archive:
             for path in sorted(run_dir.iterdir()):
-                if path.is_file():
+                if path.is_file() and path != zip_path:
                     archive.write(path, arcname=f"{run_id}/{path.name}")
         return zip_path
 

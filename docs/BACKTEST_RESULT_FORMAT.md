@@ -21,10 +21,10 @@ charts.json
 error.json
 ```
 
-`error.json` 只在失败 run 中需要。zip 下载包命名为：
+`error.json` 只在失败 run 中需要。zip 下载包位于 run 目录内，命名为：
 
 ```text
-backtest_result_<run_id>.zip
+runs/backtests/<run_id>/backtest_result_<run_id>.zip
 ```
 
 ## 文件含义
@@ -89,6 +89,8 @@ curl -H "X-API-Token: your_token" "http://127.0.0.1:8000/backtests/demo_run/down
 ```bash
 make demo-backtest
 make view-demo-backtest
+make demo-daily-backtest
+make view-demo-daily-backtest
 ```
 
 多个 zip 后续可以按 `summary.csv`、`nav.csv` 和 `trades.csv` 横向比较。

@@ -16,6 +16,8 @@ RQData -> Parquet -> DuckDB -> ResearchDataLoader -> FastAPI
 4. Parquet 数据湖
 5. DuckDB 本地查询
 6. FastAPI 本地数据服务
+7. 标准回测结果包
+8. 自研日频回测引擎 V0
 
 ## 本地运行方式
 
@@ -42,6 +44,12 @@ GET /instruments
 GET /calendar
 GET /prices
 GET /data-quality
+GET /backtests
+GET /backtests/{run_id}/summary
+GET /backtests/{run_id}/nav
+GET /backtests/{run_id}/trades
+GET /backtests/{run_id}/positions
+GET /backtests/{run_id}/download
 ```
 
 行情查询示例：
@@ -85,6 +93,15 @@ make deploy-check
 make api-prod
 ```
 
+## Backtest Demo
+
+```bash
+make demo-daily-backtest
+make view-demo-daily-backtest
+```
+
+结果写入 `runs/backtests/demo_daily_backtest/`，该目录不会提交到 Git。
+
 ## 数据安全
 
 1. `.env` 不提交
@@ -98,6 +115,6 @@ make api-prod
 1. 回补 2024 / 2023 日频数据
 2. 实现每日增量更新
 3. 增强 API 权限、审计和限流
-4. 增加 RQAlpha bundle 和回测 runner
+4. 增加 RQAlpha bundle 和 runner 对接
 5. 增加每日模拟盘
 6. 部署到阿里云服务器
