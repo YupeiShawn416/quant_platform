@@ -1,0 +1,58 @@
+strategy_id: sample_20d_momentum_top20
+strategy_name: Sample 20D Momentum Top 20
+author: researcher_name
+description: "Simple 20-day momentum example for researcher onboarding."
+package_version: "1.0"
+mode: weights
+
+run:
+  run_id: sample_20d_momentum_top20_2025
+  strategy_name: Sample 20D Momentum Top 20
+  start_date: "2025-01-02"
+  end_date: "2025-02-28"
+  initial_cash: 1000000
+  benchmark: "000300.XSHG"
+  adjust_type: pre
+  frequency: daily
+  commission_rate: 0.0003
+  tax_rate: 0.001
+  slippage_rate: 0.0001
+  lot_size: 100
+  price_field: close
+  weight_mode: daily_target
+  allow_weight_normalization: false
+
+universe:
+  symbols:
+    - "000001.XSHE"
+    - "000002.XSHE"
+    - "000063.XSHE"
+    - "000333.XSHE"
+    - "000651.XSHE"
+    - "000858.XSHE"
+    - "002415.XSHE"
+    - "002594.XSHE"
+    - "300059.XSHE"
+    - "300750.XSHE"
+    - "600000.XSHG"
+    - "600030.XSHG"
+    - "600036.XSHG"
+    - "600276.XSHG"
+    - "600519.XSHG"
+    - "600887.XSHG"
+    - "601318.XSHG"
+    - "601398.XSHG"
+    - "601899.XSHG"
+    - "603259.XSHG"
+
+portfolio:
+  lookback_days: 20
+  top_n: 20
+
+output:
+  price_path: data/raw/prices.csv
+  factor_path: data/processed/factor.csv
+  signal_path: data/processed/signal.csv
+  weights_path: data/output/weights.csv
+  package_path: package/strategy_package.zip
+  result_zip_path: data/output/result.zip

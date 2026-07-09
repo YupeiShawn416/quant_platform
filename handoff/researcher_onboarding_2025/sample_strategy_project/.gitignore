@@ -1,0 +1,15 @@
+.env
+__pycache__/
+*.pyc
+
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+data/output/*
+!data/output/.gitkeep
+
+package/*.zip
+package/*.csv
+package/*.parquet
+reports/*.html

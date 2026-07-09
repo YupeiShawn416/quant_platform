@@ -37,6 +37,23 @@ Data API -> local research template -> weights package -> platform backtest -> D
 13. VIX Q5 真实策略验收样例
 14. 当前平台审计文档：`docs/PLATFORM_AUDIT_CURRENT_STATE.md`
 
+## Current Stage
+
+Server Deployment MVP 已通过公网验收。下一步是 Researcher Trial：把研究员交付包发给
+1-3 名研究员，用 2025 MVP 数据完成真实试运行。
+
+研究员交付包：
+
+```text
+handoff/researcher_onboarding_2025/
+```
+
+入口文件：
+
+- `handoff/researcher_onboarding_2025/00_READ_ME_FIRST.md`
+- `handoff/researcher_onboarding_2025/02_SIMPLE_USER_MANUAL.md`
+- `handoff/researcher_onboarding_2025/03_AI_AGENT_PROMPT.md`
+
 ## MVP Usage Flow
 
 ```bash
