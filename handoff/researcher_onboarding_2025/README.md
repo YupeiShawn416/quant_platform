@@ -28,6 +28,7 @@ Send these files and folders:
 - `05_TROUBLESHOOTING.md`
 - `06_RESEARCH_REPORT_TEMPLATE.md`
 - `07_PLATFORM_INFO_TEMPLATE.md`
+- `08_AGENT_REPO_MIGRATION_RUNBOOK.md`
 - `sample_strategy_project/`
 - `agent_prompts/`
 
@@ -50,3 +51,15 @@ temporary token.
 - platform result zip
 - short research note
 - issue feedback
+
+## 6. Recommended Agent Entry
+
+If a researcher already has an old strategy repository, start from:
+
+```text
+08_AGENT_REPO_MIGRATION_RUNBOOK.md
+```
+
+The researcher fills in the placeholders, provides the old strategy repository
+and this onboarding folder to an agent, and lets the agent migrate the strategy
+into the standard `weights package` workflow.
