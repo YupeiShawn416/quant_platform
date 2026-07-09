@@ -42,7 +42,7 @@ API_TOKEN=<管理员单独提供的 token>
 DASHBOARD_URL=<SERVER_URL>/ui/backtests/current
 
 BACKTEST_START_DATE=2025-01-02
-BACKTEST_END_DATE=2025-02-28
+BACKTEST_END_DATE=2025-12-31
 
 STRATEGY_NAME=<你的策略名称>
 RUN_ID=<本次回测 run_id，例如 my_strategy_2025_smoke>
@@ -55,14 +55,6 @@ BENCHMARK=000300.XSHG
 ```text
 2025-01-02 到 2025-12-31
 ```
-
-建议第一次先用：
-
-```text
-2025-01-02 到 2025-02-28
-```
-
-跑通后再改成全年。
 
 ## 1. 你要填写哪些信息
 
@@ -83,7 +75,7 @@ INITIAL_CASH
 BENCHMARK
 ```
 
-填写建议：
+填写说明：
 
 - `ORIGINAL_STRATEGY_REPO`：你的旧策略仓库路径。
 - `ONBOARDING_DIR`：本文件所在的 `handoff/researcher_onboarding_2025` 路径。
@@ -91,7 +83,7 @@ BENCHMARK
 - `SERVER_URL`：管理员给你的服务器地址。
 - `API_TOKEN`：管理员单独给你的 token。
 - `DASHBOARD_URL`：一般是 `<SERVER_URL>/ui/backtests/current`。
-- `RUN_ID`：建议只用英文、数字、下划线，例如 `my_strategy_2025_smoke`。
+- `RUN_ID`：使用英文、数字、下划线，例如 `my_strategy_2025`。
 
 ## 2. 复制这一整段给 agent
 
@@ -112,7 +104,7 @@ API_TOKEN=<管理员单独提供的 token>
 DASHBOARD_URL=<SERVER_URL>/ui/backtests/current
 
 BACKTEST_START_DATE=2025-01-02
-BACKTEST_END_DATE=2025-02-28
+BACKTEST_END_DATE=2025-12-31
 
 STRATEGY_NAME=<你的策略名称>
 RUN_ID=<本次回测 run_id，例如 my_strategy_2025_smoke>
@@ -288,9 +280,6 @@ Dashboard：
 当前可回测时间范围：
 2025-01-02 到 2025-12-31
 
-建议首次回测区间：
-2025-01-02 到 2025-02-28
-
 API token：
 我会通过安全渠道单独发给你。
 
@@ -305,7 +294,6 @@ API token：
 
 ## 7. 简短提醒
 
-- 第一次先跑短区间，跑通后再跑全年。
 - 不要让 agent 覆盖你的原策略仓库。
 - 不要把 token 写进任何文件。
 - 不要把数据、结果明细、result zip 发到公开平台。
