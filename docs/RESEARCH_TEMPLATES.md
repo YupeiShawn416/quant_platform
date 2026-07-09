@@ -1,20 +1,27 @@
 # Research Templates
 
 Client research templates give researchers, interns, and AI agents one stable
-starting point. The goal is not to run backtests locally. The goal is to produce
-standard outputs that quant_platform can validate, execute, and display.
+starting point. The goal is not to run backtests locally or to force every
+research script onto the server. The goal is to produce standard outputs that
+quant_platform can validate, execute, and display.
+
+The platform unifies the backtest, not every research notebook. Researchers can
+work on local machines, notebooks, or AI-agent projects, then submit a standard
+Strategy Package to the server.
 
 ## Templates
 
-`research_weights_template` is the recommended default. It loads or reads data,
-computes factors, creates signals, builds long-only target weights, validates
-outputs, and creates a Strategy Package V1 `weights` zip.
+`research_weights_template` is the recommended default and the first training
+path. It loads or reads data, computes factors, creates signals, builds
+long-only target weights, validates outputs, and creates a Strategy Package V1
+`weights` zip.
 
 `research_factor_template` is for factor-library preparation. It exports
 `factor_long`, `factor_wide`, and a small report.
 
 `strategy_code_template` is for advanced users who need `generate_weights` code
-mode. Production code mode must use Docker sandbox execution.
+mode. It is not the first-phase researcher onboarding path. Production code mode
+must use Docker sandbox execution.
 
 ## Standard Workflow
 
@@ -25,12 +32,23 @@ mode. Production code mode must use Docker sandbox execution.
 5. Build `strategy_package.zip`.
 6. Upload to `/backtests/run-package`.
 7. Review current results in the dashboard.
+8. Download result zip if the result must be preserved.
 
 ## AI Agent Workflow
 
 Agents should keep the template structure and standard function names intact.
 They should not add a custom backtest engine, rename standard columns, commit
 generated data, or bypass validators.
+
+Agents should edit strategy logic in:
+
+- `configs/strategy.yaml`
+- `src/strategy_research/factor.py`
+- `src/strategy_research/signal.py`
+- `src/strategy_research/portfolio.py`
+
+Agents should not change `package_builder.py` or Strategy Package layout unless
+the platform contract itself is being changed deliberately.
 
 ## Standard Functions
 
@@ -105,6 +123,18 @@ Then from the research project:
 ```bash
 python scripts/07_submit_package.py
 ```
+
+## Current Result Reminder
+
+The platform currently has a single `current` result. A new upload can overwrite
+the previous current result. Download the result zip from Dashboard or
+`/backtests/current/download` for long-term preservation.
+
+## Data Policy
+
+Templates are for internal research only. Do not commit API tokens, `.env`, raw
+data, downloaded API responses, generated Parquet files, or result zips. Follow
+`docs/DATA_USAGE_POLICY.md`.
 
 ## Future Split
 

@@ -1,25 +1,43 @@
 # quant_platform
 
-内部量化投研数据平台 MVP。
+内部量化投研平台 MVP。
 
-当前主链路：
+当前主流程：
 
 ```text
-RQData -> Parquet -> DuckDB -> ResearchDataLoader -> FastAPI
+Data API -> local research template -> weights package -> platform backtest -> Dashboard -> result zip
 ```
 
-## 当前已完成能力
+平台的定位不是让所有研究脚本都在服务器上运行。服务器负责统一数据服务、统一回测裁判、
+统一结果展示和 Strategy Package 上传回测。研究员可以在本地电脑、Notebook 或 AI agent
+项目中研究因子、信号和目标权重，但进入平台回测时必须提交标准 `strategy_package.zip`。
 
-1. RQData license 连接检查
-2. 小样本数据落盘
-3. 2025 全 A 日频数据落盘
-4. Parquet 数据湖
-5. DuckDB 本地查询
-6. FastAPI 本地数据服务
-7. 标准回测结果包
-8. 自研日频回测引擎 V0
+核心原则：
 
-## 本地运行方式
+```text
+因子可以自由研究，回测必须统一裁判。
+```
+
+## Current Platform Status
+
+当前已经具备：
+
+1. 2025 本地 Parquet 数据湖
+2. DuckDB 内存查询层
+3. FastAPI 数据 API + token
+4. Python Client
+5. DailyBacktestEngine V0
+6. Result Bundle
+7. Current Result 生命周期
+8. `/backtests/run`
+9. `/backtests/run-package`
+10. Strategy Package `weights` mode
+11. Dashboard current result MVP
+12. Research weights template
+13. VIX Q5 真实策略验收样例
+14. 当前平台审计文档：`docs/PLATFORM_AUDIT_CURRENT_STATE.md`
+
+## MVP Usage Flow
 
 ```bash
 conda activate quant_platform
@@ -28,162 +46,161 @@ make test
 make api
 ```
 
-另一个终端运行 API smoke test：
+研究员使用流程：
 
-```bash
-conda activate quant_platform
-make api-smoke
-```
+1. 通过 API 或 Python Client 拉取 2025 数据。
+2. 在本地研究项目中计算 factor / signal / weights。
+3. 用 `research_weights_template` 生成 `strategy_package.zip`。
+4. 上传到 `/backtests/run-package`。
+5. 打开 Dashboard 查看 current result。
+6. 下载 result zip 长期保存。
 
-## 常用接口
+## API Data Access
+
+本地 API：
 
 ```text
-GET /health
-GET /status
-GET /instruments
-GET /calendar
-GET /prices
-GET /data-quality
-GET /backtests
-GET /backtests/{run_id}/summary
-GET /backtests/{run_id}/nav
-GET /backtests/{run_id}/trades
-GET /backtests/{run_id}/positions
-GET /backtests/{run_id}/download
-POST /backtests/run
-GET /backtests/current
-GET /backtests/current/summary
-GET /backtests/current/nav
-GET /backtests/current/trades
-GET /backtests/current/positions
-GET /backtests/current/download
+http://127.0.0.1:8000
 ```
 
-行情查询示例：
+服务器 API：
+
+```text
+http://<server-ip-or-domain>
+```
+
+生产环境必须通过 `X-API-Token` 传 token：
 
 ```bash
-curl "http://127.0.0.1:8000/prices?symbols=000001.XSHE,600519.XSHG&start=2025-01-02&end=2025-01-10&adjust_type=pre&fields=open,close,volume"
+curl -H "X-API-Token: <your_token>" \
+  "http://127.0.0.1:8000/prices?symbols=000001.XSHE,600519.XSHG&start=2025-01-02&end=2025-01-10&adjust_type=pre&fields=open,close,volume"
 ```
 
-## Python Client 使用方式
+本地开发默认 `API_TOKEN=change_me` 时可以不传 token。详细说明见
+`docs/API_DATA_ACCESS_GUIDE.md`。
 
-```python
-from rq_platform.client import QuantPlatformClient
+## Researcher Workflow
 
-client = QuantPlatformClient(
-    base_url="http://127.0.0.1:8000",
-    token=None,
-)
-
-df = client.get_prices(
-    symbols=["000001.XSHE", "600519.XSHG"],
-    start="2025-01-02",
-    end="2025-01-10",
-    adjust_type="pre",
-    fields=["open", "close", "volume"],
-)
-
-print(df.head())
-```
-
-本地开发默认 `API_TOKEN=change_me`，可不传 token。部署到服务器时必须设置强
-token，并通过 `X-API-Token` 调用。
-
-## Deployment Preparation
-
-部署预备说明见 [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)。
-
-本地可先运行：
+推荐普通研究员使用 `research_weights_template`：
 
 ```bash
-make deploy-check
-make api-prod
+PYTHONPATH=src python scripts/20_create_research_project_from_template.py \
+  --template weights \
+  --name my_first_strategy \
+  --output-dir /tmp \
+  --force
 ```
 
-## Backtest Demo
+进入项目后运行：
 
 ```bash
-make demo-daily-backtest
-make view-demo-daily-backtest
-make backtest-api-smoke
+python scripts/01_load_data.py
+python scripts/02_compute_factor.py
+python scripts/03_generate_signal.py
+python scripts/04_generate_weights.py
+python scripts/05_validate_outputs.py
+python scripts/06_build_package.py
 ```
 
-结果写入 `runs/backtests/demo_daily_backtest/`，该目录不会提交到 Git。
-通过 API 提交的最新结果写入 `runs/backtests/current/`，新回测会覆盖旧 current。
+研究员主要修改：
 
-## Backtest Dashboard
+- `configs/strategy.yaml`
+- `src/strategy_research/factor.py`
+- `src/strategy_research/signal.py`
+- `src/strategy_research/portfolio.py`
+
+不要随意修改标准字段名、Strategy Package 结构或平台结果格式。说明见
+`docs/RESEARCHER_QUICKSTART.md` 和 `docs/RESEARCH_TEMPLATES.md`。
+
+## Backtest And Dashboard
+
+启动 API 后可以上传 Strategy Package：
 
 ```bash
-make api
-make backtest-api-smoke
-make dashboard-smoke
+curl -F "file=@/tmp/my_first_strategy_package.zip" \
+  http://127.0.0.1:8000/backtests/run-package
 ```
 
-打开：
+Dashboard：
 
 ```text
 http://127.0.0.1:8000/ui/backtests/current
 ```
 
-## Strategy Package V1
-
-推荐研究员使用 `weights` 模式：线下完成因子、信号和组合构建，导出标准
-`weights.parquet`：
+下载当前结果：
 
 ```text
-trade_date
-order_book_id
-target_weight
+GET /backtests/current/download
 ```
 
-高级用户可以使用 `code` 模式上传 `strategy.py`，但生产环境必须走 Docker 沙箱。
+当前平台只保留一个 `current` 结果。新回测会覆盖旧 current。需要长期保存完整结果时，
+必须下载 result zip。
 
-本地 demo：
+## Data Usage Policy
 
-```bash
-make create-demo-weights-package
-make api
-make submit-demo-weights-package
-make dashboard-smoke
-```
-
-上传成功后打开 dashboard 查看 current 回测，并通过页面下载 result zip。
-
-## Research Templates
-
-统一研究模板位于 `templates/`：
+平台数据仅供内部学习、研究、回测、教学和策略验证使用。禁止外传原始行情数据、
+接口返回数据、Parquet 文件、API token 或未脱敏的明细结果。详细制度见：
 
 ```text
-templates/research_weights_template
-templates/research_factor_template
-templates/strategy_code_template
+docs/DATA_USAGE_POLICY.md
 ```
 
-推荐默认使用 `research_weights_template`，研究员只需要实现因子、信号和组合权重，
-最终生成符合 Strategy Package V1 的 `strategy_package.zip`。
+## 2025 MVP Acceptance
 
-创建新项目并跑模板 smoke：
+当前验收重点是使用 2025 数据跑通完整链路：
 
-```bash
-PYTHONPATH=src python scripts/20_create_research_project_from_template.py --template weights --name my_first_factor_strategy --output-dir /tmp --force
-make template-smoke
+```text
+data -> API -> template -> package -> backtest -> Dashboard -> result zip
 ```
 
-说明见 [docs/RESEARCH_TEMPLATES.md](docs/RESEARCH_TEMPLATES.md)。
+验收清单见：
 
-## 数据安全
+```text
+docs/MVP_2025_ACCEPTANCE_CHECKLIST.md
+```
 
-1. `.env` 不提交
-2. `data/` 不提交
-3. RQData license 不打印
-4. API token 不打印
-5. Parquet 本地数据不进 Git
+VIX Q5 是真实验收样例，不是当前产品主线。它用于确认平台能力，不应继续把单一策略研究
+当成平台建设主线。
 
-## 下一步计划
+## Server Deployment MVP
 
-1. 回补 2024 / 2023 日频数据
-2. 实现每日增量更新
-3. 增强 API 权限、审计和限流
-4. 增加 RQAlpha bundle 和 runner 对接
-5. 增加每日模拟盘
-6. 部署到阿里云服务器
+MVP 部署建议：
+
+1. 本地授权机器负责 RQData 抓取和数据校验。
+2. 用 `rsync` 把本地 Parquet 数据同步到服务器。
+3. 服务器负责 API、Dashboard、回测和 result zip 下载。
+4. 服务器默认不直接访问 RQData，除非确认授权、IP 白名单和 license 使用范围。
+
+部署 checklist 见：
+
+```text
+docs/SERVER_DEPLOYMENT_MVP_CHECKLIST.md
+docs/MVP_ROLLOUT_PLAN.md
+```
+
+## What Not To Do Yet
+
+当前不要优先做：
+
+- 完整 Run Registry
+- 完整因子库
+- 模拟交易 / Paper Trading
+- 复杂用户系统
+- 多 run 对比
+- 服务器大规模直接访问 RQData
+- 永久保存所有历史回测大文件
+- 继续把 VIX Q5 策略深挖当成主线
+
+这些能力应该在 MVP 上线试运行、研究员培训和 2025 验收之后再排期。
+
+## Next Roadmap
+
+推荐近期顺序：
+
+1. 服务器部署 MVP。
+2. 用 2025 数据组织 1-3 名研究员试运行。
+3. 修正文档、模板和部署细节。
+4. 扩展 2016 至今数据。
+5. 完善每日 ETL。
+6. 再进入 Run Registry + Ephemeral Result Cache。
+7. 后续再做因子库、权限系统、多 run 对比和模拟交易。

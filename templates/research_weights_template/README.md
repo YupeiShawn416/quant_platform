@@ -5,6 +5,10 @@ It guides a researcher from deterministic demo data through factor, signal, and
 portfolio construction, then builds a Strategy Package V1 `weights` zip that can
 be uploaded to `/backtests/run-package`.
 
+The research code can run on a local machine, notebook, or AI-agent project.
+The server unifies the backtest result, not every research script. The final
+deliverable for the platform is a standard `strategy_package.zip`.
+
 Change these files for a real study:
 
 - `configs/strategy.yaml`
@@ -43,6 +47,10 @@ Then open the dashboard:
 http://127.0.0.1:8000/ui/backtests/current
 ```
 
+Download the result zip from the dashboard if the result must be preserved.
+The platform currently has a single current result, so a later upload can
+overwrite what you see.
+
 Common failures:
 
 - Missing standard columns: fix the upstream output instead of changing the
@@ -51,3 +59,5 @@ Common failures:
 - API not running: start quant_platform with `make api`.
 - Package rejected: compare `manifest.json`, `config.json`, and weights columns
   with `docs/STRATEGY_PACKAGE_SPEC.md` in the platform repository.
+- Data policy violation: do not commit API tokens, raw data, generated output,
+  result zips, or downloaded API responses.

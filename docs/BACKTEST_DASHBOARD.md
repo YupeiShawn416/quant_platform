@@ -3,6 +3,9 @@
 V0 dashboard 是 FastAPI + Jinja2 服务端渲染页面，用来查看当前 current 回测结果。
 它不调用 RQData，不运行回测，只读取 `CurrentBacktestStore` 中的标准结果文件。
 
+Dashboard 是平台统一结果展示层。研究员可以在本地生成 Strategy Package，但最终应以
+Dashboard 和 result zip 中的平台结果作为回测结论来源。
+
 ## 启动
 
 ```bash
@@ -54,6 +57,8 @@ benchmark warning。概览页会把基准收益、超额收益、跟踪误差和
 
 如果当前没有回测结果，页面会显示空状态，下载按钮不可用。
 
+当前只保留一个 current。新回测可能覆盖旧 current。需要长期保存时必须下载 result zip。
+
 ## V0 限制
 
 1. 单用户 current。
@@ -61,5 +66,21 @@ benchmark warning。概览页会把基准收益、超额收益、跟踪误差和
 3. 不做历史回测横向对比。
 4. 不做复杂前端构建。
 5. 生产权限模型后续再补。
+6. 不支持历史 run 选择。
+7. 不支持多策略横向对比。
 
 后续计划：横向对比、本地 result viewer、多用户 current。
+
+## Acceptance Use
+
+2025 MVP 验收时至少检查：
+
+- overview 可打开
+- nav 可打开
+- account 可打开
+- positions 可打开
+- trades 可打开
+- orders 可打开
+- logs 可打开
+- result zip 可下载
+- benchmark 缺失时显示 warning
