@@ -1,16 +1,19 @@
 [Unit]
 Description=Quant Platform FastAPI Data Service
-After=network.target
+After=network.target docker.service
+Wants=network.target docker.service
 
 [Service]
 Type=simple
 WorkingDirectory=/opt/quant_platform
 Environment="PYTHONPATH=/opt/quant_platform/src"
+EnvironmentFile=/opt/quant_platform/.env
 ExecStart=/opt/quant_platform/.venv/bin/python scripts/10_run_api_prod.py
 Restart=always
 RestartSec=5
 User=quant
 Group=quant
+NoNewPrivileges=true
 
 [Install]
 WantedBy=multi-user.target

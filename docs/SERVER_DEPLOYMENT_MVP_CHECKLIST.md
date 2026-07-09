@@ -43,6 +43,9 @@ MVP 推荐：
 - [ ] nginx 反代
 - [ ] smoke test
 
+完整命令见 `docs/SERVER_DEPLOYMENT_RUNBOOK_MVP.md`。上线后按
+`docs/SERVER_DEPLOYMENT_SMOKE_TEST.md` 验收。
+
 ## 4. 数据同步
 
 本地执行：
@@ -81,8 +84,11 @@ rsync -avz --progress \
 
 - [ ] `/health`
 - [ ] `/status`
+- [ ] `/prices` 小范围查询
 - [ ] `/ui/backtests/current`
 - [ ] `/backtests/run-package`
+- [ ] `/backtests/current/summary`
+- [ ] `/backtests/current/nav`
 - [ ] result zip download
 - [ ] dashboard smoke
 - [ ] demo package smoke
@@ -93,7 +99,16 @@ rsync -avz --progress \
 - [ ] systemd restart 正常
 - [ ] nginx reload 正常
 
-## 8. 回滚方案
+## 8. Production Template Checks
+
+- [ ] `.env.production.example` contains `HOST`, `PORT`, `WORKERS`, `API_TOKEN`, `DATA_ROOT`, backtest dirs and limits.
+- [ ] systemd uses `/opt/quant_platform/.env` through `EnvironmentFile`.
+- [ ] nginx proxies to `127.0.0.1:8000`.
+- [ ] nginx `client_max_body_size` is large enough for package uploads.
+- [ ] port 8000 is not public.
+- [ ] Docker image is built or execution mode is explicitly set to trusted local mode for trial only.
+
+## 9. 回滚方案
 
 - 保留上一版代码 commit。
 - 保留 `.env` 备份，不进入 Git。

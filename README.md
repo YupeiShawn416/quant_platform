@@ -174,9 +174,15 @@ MVP 部署建议：
 部署 checklist 见：
 
 ```text
+docs/SERVER_DEPLOYMENT_RUNBOOK_MVP.md
+docs/SERVER_DEPLOYMENT_SMOKE_TEST.md
+docs/POST_DEPLOYMENT_RESEARCHER_TRIAL.md
 docs/SERVER_DEPLOYMENT_MVP_CHECKLIST.md
 docs/MVP_ROLLOUT_PLAN.md
 ```
+
+当前推荐下一步是 Server Deployment MVP：手动部署到轻量云/ECS，`rsync` 2025 数据，
+跑 smoke test，然后组织 1-3 名研究员试运行。
 
 ## What Not To Do Yet
 

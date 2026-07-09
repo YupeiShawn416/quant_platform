@@ -20,6 +20,10 @@ VIX Q5 是验收样例，不是平台建设主线。
 
 ## Phase 2: Server Deployment Trial
 
+Stage 21 documentation is complete. Stage 22 is the server deployment MVP
+preparation step: runbook, smoke test, data sync procedure, and researcher trial
+plan.
+
 目标：
 
 - 轻量云或 ECS 部署
@@ -38,6 +42,8 @@ VIX Q5 是验收样例，不是平台建设主线。
 服务器不是所有研究脚本的统一运行环境。
 
 ## Phase 3: Researcher Trial
+
+This should happen after the server smoke test passes.
 
 目标：
 
@@ -90,7 +96,9 @@ VIX Q5 是验收样例，不是平台建设主线。
 
 下一步主线不是继续深挖 VIX Q5，也不是马上做大型功能。建议先完成：
 
-1. 服务器部署 MVP。
-2. 用 2025 数据组织研究员试运行。
-3. 根据试运行反馈修正文档和模板。
-4. 再扩展 2016 至今数据和每日 ETL。
+1. 按 `docs/SERVER_DEPLOYMENT_RUNBOOK_MVP.md` 手动部署 MVP。
+2. `rsync` 2025 数据到服务器。
+3. 按 `docs/SERVER_DEPLOYMENT_SMOKE_TEST.md` 跑 smoke test。
+4. 按 `docs/POST_DEPLOYMENT_RESEARCHER_TRIAL.md` 组织 1-3 名研究员试运行。
+5. 根据试运行反馈修正文档和模板。
+6. 再扩展 2016 至今数据和每日 ETL。
