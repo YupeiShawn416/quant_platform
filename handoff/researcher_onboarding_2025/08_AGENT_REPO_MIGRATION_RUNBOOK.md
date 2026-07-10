@@ -43,8 +43,8 @@ API_TOKEN=<管理员单独提供的 token>
 DASHBOARD_URL=<SERVER_URL>/ui/backtests/current
 RUN_DASHBOARD_URL=<SERVER_URL>/ui/backtests/runs/<run_id>
 
-BACKTEST_START_DATE=<管理员确认的开始日期>
-BACKTEST_END_DATE=<管理员确认的结束日期>
+BACKTEST_START_DATE=<2016-01-04 到 2026-07-10 之间的开始日期>
+BACKTEST_END_DATE=<2016-01-04 到 2026-07-10 之间的结束日期>
 
 STRATEGY_NAME=<你的策略名称>
 RUN_ID=<本次回测 run_id，例如 my_strategy_2025_smoke>
@@ -52,10 +52,10 @@ INITIAL_CASH=1000000
 BENCHMARK=000300.XSHG
 ```
 
-当前可回测范围由管理员填写：
+当前可回测范围：
 
 ```text
-SUPPORTED_DATE_RANGE=<由管理员填写>
+SUPPORTED_DATE_RANGE=2016-01-04 to 2026-07-10
 ```
 
 ## 1. 你要填写哪些信息
@@ -288,7 +288,7 @@ Dashboard：
 <SERVER_URL>/ui/backtests/current
 
 当前可回测时间范围：
-SUPPORTED_DATE_RANGE=<由管理员填写>
+SUPPORTED_DATE_RANGE=2016-01-04 to 2026-07-10
 
 API token：
 我会通过安全渠道单独发给你。

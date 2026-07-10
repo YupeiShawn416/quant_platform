@@ -1,6 +1,6 @@
 BACKFILL_END_DATE ?= $(shell date +%F)
 
-.PHONY: install test api api-prod api-smoke client-smoke backtest-api-smoke dashboard-smoke create-demo-weights-package submit-demo-weights-package template-smoke check-data audit-data-lake backfill-core-smoke backfill-core-dry-run backfill-core-full check-data-2016-present server-sync-manifest update-index-2025 check-index-data update-tradability-2025 check-tradability-data update-valuation-2025 check-valuation-data update-industry-2025 check-industry-data update-index-membership-2025 check-index-membership-data vix-q5-exposure-audit vix-q5-build-lagged-package vix-q5-compare-lagged daily-data-update deploy-check query-sample demo-backtest view-demo-backtest demo-daily-backtest view-demo-daily-backtest status clean
+.PHONY: install test api api-prod api-smoke client-smoke backtest-api-smoke dashboard-smoke create-demo-weights-package submit-demo-weights-package template-smoke check-data audit-data-lake backfill-core-smoke backfill-core-dry-run backfill-core-full check-data-2016-present server-sync-manifest daily-update-dry-run daily-update daily-update-status daily-update-report update-index-2025 check-index-data update-tradability-2025 check-tradability-data update-valuation-2025 check-valuation-data update-industry-2025 check-industry-data update-index-membership-2025 check-index-membership-data vix-q5-exposure-audit vix-q5-build-lagged-package vix-q5-compare-lagged daily-data-update deploy-check query-sample demo-backtest view-demo-backtest demo-daily-backtest view-demo-daily-backtest status clean
 
 install:
 	python -m pip install -e .
@@ -55,6 +55,20 @@ check-data-2016-present:
 
 server-sync-manifest:
 	PYTHONPATH=src python scripts/28_generate_server_sync_manifest.py
+
+daily-update-dry-run:
+	@test -n "$(END_DATE)" || (echo "END_DATE is required, e.g. make daily-update-dry-run END_DATE=2026-07-11"; exit 2)
+	PYTHONPATH=src python scripts/31_daily_data_update.py --end-date $(END_DATE) --dry-run
+
+daily-update:
+	@test -n "$(END_DATE)" || (echo "END_DATE is required, e.g. make daily-update END_DATE=2026-07-11"; exit 2)
+	PYTHONPATH=src python scripts/31_daily_data_update.py --end-date $(END_DATE) --confirm-daily-update
+
+daily-update-status:
+	PYTHONPATH=src python scripts/32_check_daily_update_status.py
+
+daily-update-report:
+	PYTHONPATH=src python scripts/32_check_daily_update_status.py
 
 update-index-2025:
 	PYTHONPATH=src python scripts/22_update_2025_index_prices.py

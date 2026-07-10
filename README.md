@@ -203,8 +203,30 @@ docs/SERVER_DEPLOYMENT_MVP_CHECKLIST.md
 docs/MVP_ROLLOUT_PLAN.md
 ```
 
-当前推荐下一步是执行 Stage 25 数据补全流程：先 audit 和 dry-run，再由管理员确认后
-执行 full backfill，最后同步到服务器。
+当前正式数据支持区间：
+
+```text
+SUPPORTED_DATE_RANGE=2016-01-04 to 2026-07-10
+```
+
+Stage 26 增加每日盘后增量更新流程。先运行 dry-run：
+
+```bash
+make daily-update-dry-run END_DATE=2026-07-11
+```
+
+确认计划无误后再由本地授权机器执行真实更新：
+
+```bash
+make daily-update END_DATE=2026-07-11
+make check-data-2016-present
+```
+
+每日更新说明见：
+
+```text
+docs/DAILY_DATA_UPDATE.md
+```
 
 ## What Not To Do Yet
 
@@ -213,8 +235,8 @@ docs/MVP_ROLLOUT_PLAN.md
 - 完整因子库
 - 模拟交易 / Paper Trading
 - 复杂用户系统
-- 多 run 对比
 - 服务器大规模直接访问 RQData
+- 实时行情或分钟级行情
 - 永久保存所有历史回测大文件
 - 继续把 VIX Q5 策略深挖当成主线
 
@@ -224,10 +246,8 @@ docs/MVP_ROLLOUT_PLAN.md
 
 推荐近期顺序：
 
-1. 部署 Stage 24 到服务器。
-2. 让研究员按 run_id 查看和下载结果。
-3. 修正文档、模板和部署细节。
-4. 管理员确认后执行 2016 至今 full backfill。
-5. 生成数据质量报告并 rsync 到服务器。
-6. 完善每日 ETL。
-7. 后续再做因子库、权限系统、多 run 对比和模拟交易。
+1. 每日盘后先 dry-run，再执行单日增量更新。
+2. 更新后运行数据质量检查。
+3. 质量通过后生成同步 manifest 并 rsync 到服务器。
+4. 用长周期回测做数据验收。
+5. 后续再做因子库、权限系统和模拟交易。
