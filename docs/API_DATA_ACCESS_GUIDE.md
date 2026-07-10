@@ -133,7 +133,13 @@ prices.to_parquet("prices_sample.parquet", index=False)
 
 ## 9. Data Scope
 
-当前主要可用数据范围是 2025：
+当前数据范围由管理员填写：
+
+```text
+SUPPORTED_DATE_RANGE=<由管理员填写>
+```
+
+如果 Stage 25 未完成，主要可用数据范围仍是 2025：
 
 - instruments
 - trading calendar
@@ -144,7 +150,7 @@ prices.to_parquet("prices_sample.parquet", index=False)
 - industry classification
 - index components and weights
 
-后续扩展到 2016 至今后，API 可以服务更长历史研究。
+Stage 25 执行并通过质量检查后，API 可以服务更长历史研究。
 
 ## 10. Request Discipline
 

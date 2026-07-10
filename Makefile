@@ -1,4 +1,6 @@
-.PHONY: install test api api-prod api-smoke client-smoke backtest-api-smoke dashboard-smoke create-demo-weights-package submit-demo-weights-package template-smoke check-data update-index-2025 check-index-data update-tradability-2025 check-tradability-data update-valuation-2025 check-valuation-data update-industry-2025 check-industry-data update-index-membership-2025 check-index-membership-data vix-q5-exposure-audit vix-q5-build-lagged-package vix-q5-compare-lagged daily-data-update deploy-check query-sample demo-backtest view-demo-backtest demo-daily-backtest view-demo-daily-backtest status clean
+BACKFILL_END_DATE ?= $(shell date +%F)
+
+.PHONY: install test api api-prod api-smoke client-smoke backtest-api-smoke dashboard-smoke create-demo-weights-package submit-demo-weights-package template-smoke check-data audit-data-lake backfill-core-smoke backfill-core-dry-run backfill-core-full check-data-2016-present server-sync-manifest update-index-2025 check-index-data update-tradability-2025 check-tradability-data update-valuation-2025 check-valuation-data update-industry-2025 check-industry-data update-index-membership-2025 check-index-membership-data vix-q5-exposure-audit vix-q5-build-lagged-package vix-q5-compare-lagged daily-data-update deploy-check query-sample demo-backtest view-demo-backtest demo-daily-backtest view-demo-daily-backtest status clean
 
 install:
 	python -m pip install -e .
@@ -35,6 +37,24 @@ template-smoke:
 
 check-data:
 	PYTHONPATH=src python scripts/05_check_local_data.py
+
+audit-data-lake:
+	PYTHONPATH=src python scripts/25_audit_data_lake_coverage.py
+
+backfill-core-smoke:
+	PYTHONPATH=src python scripts/26_backfill_2016_present_core_data.py --start-date 2025-01-02 --end-date 2025-01-31 --datasets index_prices,calendar --smoke
+
+backfill-core-dry-run:
+	PYTHONPATH=src python scripts/26_backfill_2016_present_core_data.py --start-date 2016-01-01 --end-date $(BACKFILL_END_DATE) --datasets prices,index_prices,calendar,instruments,tradability,valuation,industry,index_members --dry-run
+
+backfill-core-full:
+	PYTHONPATH=src python scripts/26_backfill_2016_present_core_data.py --start-date 2016-01-01 --end-date $(BACKFILL_END_DATE) --datasets prices,index_prices,calendar,instruments,tradability,valuation,industry,index_members --confirm-full-backfill
+
+check-data-2016-present:
+	PYTHONPATH=src python scripts/27_check_2016_present_data_quality.py
+
+server-sync-manifest:
+	PYTHONPATH=src python scripts/28_generate_server_sync_manifest.py
 
 update-index-2025:
 	PYTHONPATH=src python scripts/22_update_2025_index_prices.py

@@ -71,6 +71,10 @@ This should happen after the server smoke test passes.
 
 数据扩展应保留质量检查和 update log，不要只追求落盘速度。
 
+Stage 25 provides the resumable backfill workflow. Do not mark 2016-present as
+supported until `make audit-data-lake`, full backfill, and
+`make check-data-2016-present` pass.
+
 ## Phase 5: Daily ETL
 
 目标：

@@ -7,20 +7,25 @@
 当前本地数据湖是 Parquet 文件 + DuckDB 临时查询层，不是持久 DuckDB 数据库。
 DuckDB 只在查询时读取 Parquet。
 
-已落库的数据集：
+已落库或计划补全的数据集：
 
 ```text
 instruments/instruments.parquet
 trading_calendar/trading_calendar.parquet
-prices_1d_pre/year=2025.parquet
-prices_1d_none/year=2025.parquet
-index_prices_1d/year=2025.parquet
-tradability_1d/year=2025.parquet
-valuation_1d/year=2025.parquet
-industry_classification/year=2025.parquet
-index_components/year=2025.parquet
-index_weights/year=2025.parquet
+prices_1d_pre/year=<year>.parquet
+prices_1d_none/year=<year>.parquet
+index_prices_1d/year=<year>.parquet
+tradability_1d/year=<year>.parquet
+valuation_1d/year=<year>.parquet
+industry_classification/year=<year>.parquet
+index_components/year=<year>.parquet
+index_weights/year=<year>.parquet
 ```
+
+Stage 25 introduces a resumable workflow to expand yearly partitions from 2016
+to the latest available trading date. Until that workflow is executed and
+quality-checked, the practical supported range remains the existing 2025 MVP
+data.
 
 股票行情和指数行情分开存储。`prices_1d_pre` / `prices_1d_none` 只放股票日频行情，
 `index_prices_1d` 是 benchmark 的本地来源。

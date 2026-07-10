@@ -36,7 +36,8 @@ Data API -> local research template -> weights package -> platform backtest -> D
 12. Research weights template
 13. VIX Q5 真实策略验收样例
 14. Backtest Run Registry + run_id 独立结果查看
-15. 当前平台审计文档：`docs/PLATFORM_AUDIT_CURRENT_STATE.md`
+15. 2016 至今数据补全 workflow
+16. 当前平台审计文档：`docs/PLATFORM_AUDIT_CURRENT_STATE.md`
 
 ## Current Stage
 
@@ -202,8 +203,8 @@ docs/SERVER_DEPLOYMENT_MVP_CHECKLIST.md
 docs/MVP_ROLLOUT_PLAN.md
 ```
 
-当前推荐下一步是部署 Stage 24 到服务器，让研究员按 run_id 查看结果，然后进入
-2016 至今数据补全。
+当前推荐下一步是执行 Stage 25 数据补全流程：先 audit 和 dry-run，再由管理员确认后
+执行 full backfill，最后同步到服务器。
 
 ## What Not To Do Yet
 
@@ -226,6 +227,7 @@ docs/MVP_ROLLOUT_PLAN.md
 1. 部署 Stage 24 到服务器。
 2. 让研究员按 run_id 查看和下载结果。
 3. 修正文档、模板和部署细节。
-4. 扩展 2016 至今数据。
-5. 完善每日 ETL。
-6. 后续再做因子库、权限系统、多 run 对比和模拟交易。
+4. 管理员确认后执行 2016 至今 full backfill。
+5. 生成数据质量报告并 rsync 到服务器。
+6. 完善每日 ETL。
+7. 后续再做因子库、权限系统、多 run 对比和模拟交易。
