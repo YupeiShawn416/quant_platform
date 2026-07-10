@@ -6,6 +6,8 @@ import pandas as pd
 import rq_platform.backtest.package_job_manager as package_job_manager
 from rq_platform.backtest.current_store import CurrentBacktestStore
 from rq_platform.backtest.package_job_manager import StrategyPackageJobManager
+from rq_platform.backtest.run_registry import BacktestRunRegistry
+from rq_platform.backtest.run_store import BacktestRunStore
 from rq_platform.settings import settings
 
 
@@ -47,6 +49,8 @@ def test_package_job_manager_runs_weights_package(tmp_path, monkeypatch):
     assert result["summary"]["total_return"] == 0.12
     current_summary = CurrentBacktestStore().read_current_json("summary.json")
     assert current_summary["run_id"] == "weights_package_test"
+    assert BacktestRunRegistry().get("weights_package_test")["status"] == "success"
+    assert BacktestRunStore().result_available("weights_package_test") is True
 
 
 def test_package_job_manager_invalid_package_writes_current_error(tmp_path, monkeypatch):
@@ -59,6 +63,7 @@ def test_package_job_manager_invalid_package_writes_current_error(tmp_path, monk
 
     assert result["status"] == "failed"
     assert CurrentBacktestStore().read_current_json("error.json")["error_type"]
+    assert BacktestRunRegistry().get(result["run_id"])["status"] == "failed"
 
 
 def test_package_job_manager_signals_mode_is_explicitly_unimplemented(tmp_path, monkeypatch):
@@ -148,3 +153,9 @@ def _config(run_id):
 def _patch_dirs(tmp_path, monkeypatch):
     monkeypatch.setattr(settings, "backtest_current_dir", str(tmp_path / "current"))
     monkeypatch.setattr(settings, "backtest_jobs_dir", str(tmp_path / "jobs"))
+    monkeypatch.setattr(
+        settings,
+        "backtest_run_registry_path",
+        str(tmp_path / "registry" / "backtest_runs.jsonl"),
+    )
+    monkeypatch.setattr(settings, "backtest_run_cache_dir", str(tmp_path / "cache"))

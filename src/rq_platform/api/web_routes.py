@@ -10,6 +10,8 @@ from fastapi.templating import Jinja2Templates
 from rq_platform.web.dashboard_data import (
     format_value,
     load_current_dashboard_data,
+    load_run_dashboard_data,
+    load_runs_dashboard_data,
     table_columns,
 )
 
@@ -22,6 +24,7 @@ router = APIRouter()
 
 
 NAV_ITEMS = [
+    ("runs", "历史 Runs", "/ui/backtests/runs"),
     ("overview", "概览", "/ui/backtests/current/overview"),
     ("nav", "净值曲线", "/ui/backtests/current/nav"),
     ("account", "账户", "/ui/backtests/current/account"),
@@ -77,6 +80,54 @@ def current_logs(request: Request):
     return _render(request, "current_logs.html", "logs")
 
 
+@router.get("/ui/backtests/runs")
+def run_list(request: Request):
+    data = load_runs_dashboard_data()
+    return templates.TemplateResponse(
+        request,
+        "runs.html",
+        {
+            "request": request,
+            "active": "runs",
+            "nav_items": NAV_ITEMS,
+            "data": data,
+            "table_columns": table_columns,
+            "page_label": "Backtest Runs",
+            "status_label": "registry",
+        },
+    )
+
+
+@router.get("/ui/backtests/runs/{run_id}")
+def run_detail(request: Request, run_id: str):
+    return _render_run(request, run_id, "current_overview.html", "run_overview")
+
+
+@router.get("/ui/backtests/runs/{run_id}/nav")
+def run_nav(request: Request, run_id: str):
+    return _render_run(request, run_id, "current_nav.html", "run_nav")
+
+
+@router.get("/ui/backtests/runs/{run_id}/positions")
+def run_positions(request: Request, run_id: str):
+    return _render_run(request, run_id, "current_positions.html", "run_positions")
+
+
+@router.get("/ui/backtests/runs/{run_id}/trades")
+def run_trades(request: Request, run_id: str):
+    return _render_run(request, run_id, "current_trades.html", "run_trades")
+
+
+@router.get("/ui/backtests/runs/{run_id}/orders")
+def run_orders(request: Request, run_id: str):
+    return _render_run(request, run_id, "current_orders.html", "run_orders")
+
+
+@router.get("/ui/backtests/runs/{run_id}/logs")
+def run_logs(request: Request, run_id: str):
+    return _render_run(request, run_id, "current_logs.html", "run_logs")
+
+
 def _render(request: Request, template_name: str, active: str):
     data = load_current_dashboard_data()
     context: dict[str, Any] = {
@@ -85,5 +136,27 @@ def _render(request: Request, template_name: str, active: str):
         "nav_items": NAV_ITEMS,
         "data": data,
         "table_columns": table_columns,
+    }
+    return templates.TemplateResponse(request, template_name, context)
+
+
+def _render_run(request: Request, run_id: str, template_name: str, active: str):
+    data = load_run_dashboard_data(run_id)
+    context: dict[str, Any] = {
+        "request": request,
+        "active": active,
+        "nav_items": [
+            ("runs", "历史 Runs", "/ui/backtests/runs"),
+            ("run_overview", "Run 概览", f"/ui/backtests/runs/{run_id}"),
+            ("run_nav", "净值曲线", f"/ui/backtests/runs/{run_id}/nav"),
+            ("run_positions", "持仓", f"/ui/backtests/runs/{run_id}/positions"),
+            ("run_trades", "交易日志", f"/ui/backtests/runs/{run_id}/trades"),
+            ("run_orders", "订单", f"/ui/backtests/runs/{run_id}/orders"),
+            ("run_logs", "日志", f"/ui/backtests/runs/{run_id}/logs"),
+        ],
+        "data": data,
+        "table_columns": table_columns,
+        "page_label": f"Run {run_id}",
+        "status_label": "run ready" if data.get("exists") else "run unavailable",
     }
     return templates.TemplateResponse(request, template_name, context)

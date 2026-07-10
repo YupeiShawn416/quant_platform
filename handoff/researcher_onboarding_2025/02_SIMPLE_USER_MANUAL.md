@@ -70,11 +70,18 @@ python scripts/07_submit_package.py
 <SERVER_URL>/ui/backtests/current
 ```
 
+脚本返回 `run_id` 后，也可以打开自己的独立结果页：
+
+```text
+<SERVER_URL>/ui/backtests/runs/<run_id>
+```
+
 ## 7. 下载 result zip
 
 从 Dashboard 左侧下载按钮下载。
 
-如果 current 被别人覆盖，不要慌，重新上传一次你的 `strategy_package.zip`。
+`current` 仍然会显示最新一次回测，可能被别人覆盖。请保存自己的 `run_id`，
+优先使用 `/ui/backtests/runs/<run_id>` 查看自己的结果。
 
 ## 8. 写研究说明
 

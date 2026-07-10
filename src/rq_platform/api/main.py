@@ -14,6 +14,8 @@ from rq_platform.backtest.current_store import CurrentBacktestNotFound, CurrentB
 from rq_platform.backtest.job_manager import BacktestJobError, BacktestJobManager
 from rq_platform.backtest.package_job_manager import StrategyPackageJobManager
 from rq_platform.backtest.result_store import BacktestResultStore
+from rq_platform.backtest.run_registry import BacktestRunRegistry
+from rq_platform.backtest.run_store import BacktestRunResultNotFound, BacktestRunStore
 from rq_platform.api.web_routes import router as web_router
 from rq_platform.data.data_loader import ResearchDataLoader
 from rq_platform.etl.quality_check import check_all_price_datasets
@@ -232,6 +234,11 @@ def current_backtest_positions(_: None = Depends(require_api_token)) -> dict[str
     return _read_current_csv("positions.csv")
 
 
+@app.get("/backtests/current/orders")
+def current_backtest_orders(_: None = Depends(require_api_token)) -> dict[str, Any]:
+    return _read_current_csv("orders.csv")
+
+
 @app.get("/backtests/current/logs")
 def current_backtest_logs(_: None = Depends(require_api_token)) -> dict[str, str]:
     try:
@@ -257,6 +264,86 @@ def current_backtest_download(_: None = Depends(require_api_token)) -> FileRespo
 def delete_current_backtest(_: None = Depends(require_api_token)) -> dict[str, bool]:
     CurrentBacktestStore().delete_current()
     return {"deleted": True}
+
+
+@app.get("/backtests/runs")
+def backtest_runs(
+    limit: int = Query(default=50, ge=1, le=500),
+    status: str | None = None,
+    include_expired: bool = True,
+    _: None = Depends(require_api_token),
+) -> list[dict[str, Any]]:
+    return BacktestRunRegistry().list_runs(
+        limit=limit,
+        status=status,
+        include_expired=include_expired,
+    )
+
+
+@app.get("/backtests/runs/{run_id}")
+def backtest_run_detail(run_id: str, _: None = Depends(require_api_token)) -> dict[str, Any]:
+    record = _get_run_record(run_id)
+    return {
+        **record,
+        "result_urls": _run_result_urls(record["run_id"]),
+    }
+
+
+@app.get("/backtests/runs/{run_id}/summary")
+def backtest_run_summary(run_id: str, _: None = Depends(require_api_token)) -> dict[str, Any]:
+    return _read_run_json(run_id, "summary.json")
+
+
+@app.get("/backtests/runs/{run_id}/nav")
+def backtest_run_nav(run_id: str, _: None = Depends(require_api_token)) -> dict[str, Any]:
+    return _read_run_csv(run_id, "nav.csv")
+
+
+@app.get("/backtests/runs/{run_id}/trades")
+def backtest_run_trades(run_id: str, _: None = Depends(require_api_token)) -> dict[str, Any]:
+    return _read_run_csv(run_id, "trades.csv")
+
+
+@app.get("/backtests/runs/{run_id}/positions")
+def backtest_run_positions(run_id: str, _: None = Depends(require_api_token)) -> dict[str, Any]:
+    return _read_run_csv(run_id, "positions.csv")
+
+
+@app.get("/backtests/runs/{run_id}/orders")
+def backtest_run_orders(run_id: str, _: None = Depends(require_api_token)) -> dict[str, Any]:
+    return _read_run_csv(run_id, "orders.csv")
+
+
+@app.get("/backtests/runs/{run_id}/logs")
+def backtest_run_logs(run_id: str, _: None = Depends(require_api_token)) -> dict[str, str]:
+    _get_run_record(run_id)
+    try:
+        return {"logs": BacktestRunStore().read_text(run_id, "logs.txt")}
+    except BacktestRunResultNotFound as exc:
+        raise HTTPException(status_code=410, detail="run result files are no longer available") from exc
+
+
+@app.get("/backtests/runs/{run_id}/download")
+def backtest_run_download(run_id: str, _: None = Depends(require_api_token)) -> FileResponse:
+    record = _get_run_record(run_id)
+    try:
+        zip_path = BacktestRunStore().package_zip(run_id)
+    except BacktestRunResultNotFound as exc:
+        raise HTTPException(status_code=410, detail="run result files are no longer available") from exc
+    return FileResponse(
+        zip_path,
+        media_type="application/zip",
+        filename=f"backtest_result_{record['run_id']}.zip",
+    )
+
+
+@app.post("/backtests/runs/cleanup")
+def cleanup_backtest_runs(_: None = Depends(require_api_token)) -> dict[str, Any]:
+    registry = BacktestRunRegistry()
+    store = BacktestRunStore()
+    expired = registry.cleanup_expired()
+    deleted = [run_id for run_id in expired if store.delete_cache(run_id)]
+    return {"expired": expired, "deleted": deleted, "count": len(deleted)}
 
 
 @app.get("/backtests/{run_id}/summary")
@@ -329,6 +416,43 @@ def _read_current_csv(filename: str) -> dict[str, Any]:
     except (CurrentBacktestNotFound, ValueError) as exc:
         raise HTTPException(status_code=404, detail="current backtest result not found") from exc
     return {"count": int(len(frame)), "data": _records(frame)}
+
+
+def _get_run_record(run_id: str) -> dict[str, Any]:
+    record = BacktestRunRegistry().get(run_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="backtest run_id not found")
+    return record
+
+
+def _read_run_json(run_id: str, filename: str) -> dict[str, Any]:
+    _get_run_record(run_id)
+    try:
+        return BacktestRunStore().read_json(run_id, filename)
+    except BacktestRunResultNotFound as exc:
+        raise HTTPException(status_code=410, detail="run result files are no longer available") from exc
+
+
+def _read_run_csv(run_id: str, filename: str) -> dict[str, Any]:
+    _get_run_record(run_id)
+    try:
+        frame = BacktestRunStore().read_csv(run_id, filename)
+    except BacktestRunResultNotFound as exc:
+        raise HTTPException(status_code=410, detail="run result files are no longer available") from exc
+    return {"count": int(len(frame)), "data": _records(frame)}
+
+
+def _run_result_urls(run_id: str) -> dict[str, str]:
+    return {
+        "summary": f"/backtests/runs/{run_id}/summary",
+        "nav": f"/backtests/runs/{run_id}/nav",
+        "trades": f"/backtests/runs/{run_id}/trades",
+        "positions": f"/backtests/runs/{run_id}/positions",
+        "orders": f"/backtests/runs/{run_id}/orders",
+        "logs": f"/backtests/runs/{run_id}/logs",
+        "download": f"/backtests/runs/{run_id}/download",
+        "dashboard": f"/ui/backtests/runs/{run_id}",
+    }
 
 
 def _dataset_status(path: Path) -> dict[str, Any]:

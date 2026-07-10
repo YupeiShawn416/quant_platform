@@ -16,6 +16,12 @@ from rq_platform.backtest.package_validator import (
 )
 from rq_platform.backtest.result_schema import ERROR_JSON, LOGS_TXT
 from rq_platform.backtest.result_store import BacktestResultStore
+from rq_platform.backtest.run_registry import (
+    BacktestRunRegistry,
+    build_run_record,
+    sanitize_run_id,
+)
+from rq_platform.backtest.run_store import BacktestRunStore
 from rq_platform.backtest.weight_strategy import WeightFileStrategy
 from rq_platform.settings import settings
 
@@ -25,6 +31,8 @@ class StrategyPackageJobManager:
         self.jobs_dir = settings.backtest_jobs_dir_path
         self.current_store = CurrentBacktestStore()
         self.validator = StrategyPackageValidator()
+        self.registry = BacktestRunRegistry()
+        self.run_store = BacktestRunStore()
 
     def run_package(self, package_path: str | Path) -> dict:
         job_dir = self._create_job_dir()
@@ -37,13 +45,27 @@ class StrategyPackageJobManager:
             mode = manifest["mode"]
             config = self.validator.load_config(package_dir)
             self.validator.validate_config(config, mode)
-            run_id = str(config["run_id"])
+            run_id = self.registry.ensure_unique_run_id(sanitize_run_id(config["run_id"]))
+            config["run_id"] = run_id
 
             if mode == "weights":
                 weights_df, warnings = self.validator.validate_weights_package(package_dir, config)
                 result = self._run_weights_package(job_dir, config, weights_df)
                 self.current_store.set_current_from_run_dir(Path(result["run_dir"]))
                 summary = self.current_store.read_current_json("summary.json")
+                cache_dir = self.run_store.save_result_to_cache(run_id, result["run_dir"])
+                self.registry.append(
+                    build_run_record(
+                        run_id=run_id,
+                        config=config,
+                        summary=summary,
+                        mode=mode,
+                        status="success",
+                        result_dir=cache_dir,
+                        result_available=True,
+                        package_name=Path(package_path).name,
+                    )
+                )
                 return {
                     "status": "success",
                     "job_id": job_id,
@@ -51,6 +73,7 @@ class StrategyPackageJobManager:
                     "mode": mode,
                     "summary": summary,
                     "warnings": warnings,
+                    "result_urls": _result_urls(run_id),
                 }
             if mode == "code":
                 self.validator.validate_code_package(package_dir, config)
@@ -64,8 +87,22 @@ class StrategyPackageJobManager:
             )
         except Exception as exc:
             run_id = self._read_run_id(package_dir) or f"package_failed_{job_id}"
+            run_id = self.registry.ensure_unique_run_id(sanitize_run_id(run_id))
             run_dir = self._write_failure_result(job_dir, run_id, exc)
             self.current_store.set_current_from_run_dir(run_dir)
+            cache_dir = self.run_store.save_result_to_cache(run_id, run_dir)
+            self.registry.append(
+                build_run_record(
+                    run_id=run_id,
+                    config=self._read_config(package_dir),
+                    mode=None,
+                    status="failed",
+                    result_dir=cache_dir,
+                    result_available=True,
+                    error_message=str(exc),
+                    package_name=Path(package_path).name,
+                )
+            )
             return {
                 "status": "failed",
                 "job_id": job_id,
@@ -73,6 +110,7 @@ class StrategyPackageJobManager:
                 "mode": None,
                 "error": str(exc),
                 "warnings": [],
+                "result_urls": _result_urls(run_id),
             }
 
     def _run_weights_package(self, job_dir: Path, config: dict, weights_df):
@@ -96,15 +134,18 @@ class StrategyPackageJobManager:
         return job_dir
 
     def _read_run_id(self, package_dir: Path) -> str | None:
-        config_path = package_dir / "config.json"
-        if not config_path.exists():
-            return None
-        try:
-            config = json.loads(config_path.read_text(encoding="utf-8"))
-        except Exception:
-            return None
+        config = self._read_config(package_dir)
         run_id = config.get("run_id")
         return str(run_id) if run_id else None
+
+    def _read_config(self, package_dir: Path) -> dict[str, Any]:
+        config_path = package_dir / "config.json"
+        if not config_path.exists():
+            return {}
+        try:
+            return json.loads(config_path.read_text(encoding="utf-8"))
+        except Exception:
+            return {}
 
     def _write_failure_result(self, job_dir: Path, run_id: str, exc: Exception) -> Path:
         store = BacktestResultStore(root=job_dir)
@@ -125,3 +166,12 @@ class StrategyPackageJobManager:
         ]
         (run_dir / LOGS_TXT).write_text("\n".join(logs) + "\n", encoding="utf-8")
         return run_dir
+
+
+def _result_urls(run_id: str) -> dict[str, str]:
+    return {
+        "detail": f"/backtests/runs/{run_id}",
+        "summary": f"/backtests/runs/{run_id}/summary",
+        "download": f"/backtests/runs/{run_id}/download",
+        "dashboard": f"/ui/backtests/runs/{run_id}",
+    }

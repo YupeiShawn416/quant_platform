@@ -13,6 +13,7 @@
 - Strategy Package `weights` mode
 - `/backtests/run-package`
 - Dashboard current result MVP
+- Backtest Run Registry + run_id result view
 - Research templates
 - VIX Q5 pilot
 
@@ -51,6 +52,7 @@ This should happen after the server smoke test passes.
 - 跑 demo package
 - 跑 VIX Q5 acceptance sample
 - 跑一个简单动量或反转样例
+- 确认每个参与者能保存 run_id 并打开自己的 run detail 页面
 - 收集文档、模板、API、Dashboard 反馈
 - 修正文档和模板
 
@@ -84,7 +86,6 @@ This should happen after the server smoke test passes.
 
 后续能力：
 
-- Run Registry + Ephemeral Result Cache
 - 多 run 对比
 - 本地 viewer
 - 用户管理
@@ -96,9 +97,8 @@ This should happen after the server smoke test passes.
 
 下一步主线不是继续深挖 VIX Q5，也不是马上做大型功能。建议先完成：
 
-1. 按 `docs/SERVER_DEPLOYMENT_RUNBOOK_MVP.md` 手动部署 MVP。
-2. `rsync` 2025 数据到服务器。
-3. 按 `docs/SERVER_DEPLOYMENT_SMOKE_TEST.md` 跑 smoke test。
-4. 按 `docs/POST_DEPLOYMENT_RESEARCHER_TRIAL.md` 组织 1-3 名研究员试运行。
-5. 根据试运行反馈修正文档和模板。
-6. 再扩展 2016 至今数据和每日 ETL。
+1. 部署 Stage 24 到服务器。
+2. 让研究员按 run_id 查看自己的结果。
+3. 按 `docs/POST_DEPLOYMENT_RESEARCHER_TRIAL.md` 组织 1-3 名研究员试运行。
+4. 根据试运行反馈修正文档和模板。
+5. 再扩展 2016 至今数据和每日 ETL。

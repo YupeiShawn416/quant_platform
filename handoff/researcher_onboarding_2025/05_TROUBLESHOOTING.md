@@ -65,10 +65,20 @@ YYYY-MM-DD
 600519.XSHG
 ```
 
-## 11. Dashboard 不是自己的结果
+## 11. Current Dashboard 不是自己的结果
 
-平台当前只显示 current。别人上传新回测后会覆盖 current。重新上传一次你的
-`strategy_package.zip`。
+`current` 会显示最新一次回测，别人上传新回测后会覆盖 current。
+请使用你的 `run_id` 打开：
+
+```text
+<SERVER_URL>/ui/backtests/runs/<run_id>
+```
+
+如果忘记 run_id，打开：
+
+```text
+<SERVER_URL>/ui/backtests/runs
+```
 
 ## 12. result zip 下载不了
 

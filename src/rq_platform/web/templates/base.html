@@ -30,18 +30,18 @@
       <main class="main">
         <header class="topbar">
           <div>
-            <div class="eyebrow">Current Backtest</div>
+            <div class="eyebrow">{{ page_label|default("Current Backtest") }}</div>
             <h1>{% block page_title %}当前回测{% endblock %}</h1>
           </div>
           <div class="status-pill {% if data.exists %}ok{% else %}empty{% endif %}">
-            {% if data.exists %}current ready{% else %}no current{% endif %}
+            {% if data.exists %}{{ status_label|default("current ready") }}{% else %}{{ data.missing_message or "no current" }}{% endif %}
           </div>
         </header>
 
         {% if not data.exists %}
           <section class="empty-state">
             <h2>当前没有回测结果。</h2>
-            <p>请先运行 /backtests/run 或 make backtest-api-smoke。</p>
+            <p>{{ data.missing_message or "请先运行 /backtests/run 或 make backtest-api-smoke。" }}</p>
           </section>
         {% else %}
           {% block content %}{% endblock %}

@@ -5,6 +5,8 @@ import pytest
 
 import rq_platform.backtest.job_manager as job_manager_module
 from rq_platform.backtest.job_manager import BacktestJobError, BacktestJobManager
+from rq_platform.backtest.run_registry import BacktestRunRegistry
+from rq_platform.backtest.run_store import BacktestRunStore
 from rq_platform.settings import settings
 
 
@@ -53,6 +55,8 @@ def test_job_manager_local_success_sets_current(tmp_path, monkeypatch):
     assert result["status"] == "success"
     assert result["run_id"] == "job_test"
     assert (tmp_path / "current" / "summary.json").exists()
+    assert BacktestRunRegistry().get("job_test")["status"] == "success"
+    assert BacktestRunStore().result_available("job_test") is True
 
 
 def test_job_manager_failure_writes_error_to_current(tmp_path, monkeypatch):
@@ -68,11 +72,19 @@ def test_job_manager_failure_writes_error_to_current(tmp_path, monkeypatch):
     error = json.loads((tmp_path / "current" / "error.json").read_text())
     assert error["error_type"] == "RuntimeError"
     assert (tmp_path / "current" / "logs.txt").exists()
+    assert BacktestRunRegistry().get("job_test")["status"] == "failed"
+    assert BacktestRunStore().result_available("job_test") is True
 
 
 def _patch_backtest_dirs(tmp_path, monkeypatch):
     monkeypatch.setattr(settings, "backtest_current_dir", str(tmp_path / "current"))
     monkeypatch.setattr(settings, "backtest_jobs_dir", str(tmp_path / "jobs"))
+    monkeypatch.setattr(
+        settings,
+        "backtest_run_registry_path",
+        str(tmp_path / "registry" / "backtest_runs.jsonl"),
+    )
+    monkeypatch.setattr(settings, "backtest_run_cache_dir", str(tmp_path / "cache"))
     monkeypatch.setattr(settings, "backtest_execution_mode", "local")
 
 

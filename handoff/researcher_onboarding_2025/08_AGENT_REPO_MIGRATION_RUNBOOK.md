@@ -15,6 +15,7 @@ Dashboard 看结果，并下载 result zip 保存。
 - 服务器地址
 - API token
 - Dashboard 地址
+- run_id 结果地址
 - 回测开始日期
 - 回测结束日期
 - 策略名称
@@ -40,6 +41,7 @@ WORK_PROJECT_DIR=<希望 agent 输出标准化项目的路径>
 SERVER_URL=<管理员提供的服务器地址>
 API_TOKEN=<管理员单独提供的 token>
 DASHBOARD_URL=<SERVER_URL>/ui/backtests/current
+RUN_DASHBOARD_URL=<SERVER_URL>/ui/backtests/runs/<run_id>
 
 BACKTEST_START_DATE=2025-01-02
 BACKTEST_END_DATE=2025-12-31
@@ -245,7 +247,13 @@ Agent 跑完后，你只需要检查这些结果：
 
 ## 5. 怎么打开 Dashboard 看结果
 
-上传成功后，用浏览器打开：
+上传成功后，优先用浏览器打开自己的 run_id 页面：
+
+```text
+<SERVER_URL>/ui/backtests/runs/<run_id>
+```
+
+也可以打开最新 current：
 
 ```text
 <SERVER_URL>/ui/backtests/current
@@ -255,9 +263,11 @@ Agent 跑完后，你只需要检查这些结果：
 
 ```text
 DASHBOARD_URL=<SERVER_URL>/ui/backtests/current
+RUN_DASHBOARD_URL=<SERVER_URL>/ui/backtests/runs/<run_id>
 ```
 
-注意：当前只保留一个 `current` 结果。别人提交新回测后，你的 current 可能会被覆盖。
+注意：`current` 仍然只代表最新结果。别人提交新回测后，current 可能会被覆盖。
+请保存自己的 `run_id`，优先使用 `/ui/backtests/runs/<run_id>`。
 
 所以你看到结果后，请立刻下载 result zip 保存。
 

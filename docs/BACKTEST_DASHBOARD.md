@@ -1,7 +1,7 @@
 # Backtest Dashboard
 
-V0 dashboard 是 FastAPI + Jinja2 服务端渲染页面，用来查看当前 current 回测结果。
-它不调用 RQData，不运行回测，只读取 `CurrentBacktestStore` 中的标准结果文件。
+Dashboard 是 FastAPI + Jinja2 服务端渲染页面，用来查看 backtest result bundle。
+它不运行回测，只读取平台已经生成的标准结果文件。
 
 Dashboard 是平台统一结果展示层。研究员可以在本地生成 Strategy Package，但最终应以
 Dashboard 和 result zip 中的平台结果作为回测结论来源。
@@ -22,6 +22,18 @@ make backtest-api-smoke
 
 ```text
 http://127.0.0.1:8000/ui/backtests/current
+```
+
+历史 run 列表：
+
+```text
+http://127.0.0.1:8000/ui/backtests/runs
+```
+
+按 run_id 查看：
+
+```text
+http://127.0.0.1:8000/ui/backtests/runs/{run_id}
 ```
 
 ## 页面模块
@@ -57,19 +69,23 @@ benchmark warning。概览页会把基准收益、超额收益、跟踪误差和
 
 如果当前没有回测结果，页面会显示空状态，下载按钮不可用。
 
-当前只保留一个 current。新回测可能覆盖旧 current。需要长期保存时必须下载 result zip。
+`current` 只代表最新结果。新回测可能覆盖 current。
+
+Stage 24 起，每次回测会生成独立 `run_id`，可以在 `/ui/backtests/runs` 列表中查看。
+研究员应保存自己的 run_id，并优先使用 `/ui/backtests/runs/{run_id}` 查看结果。
+需要长期保存时仍必须下载 result zip。
 
 ## V0 限制
 
-1. 单用户 current。
+1. current 仍是单用户最新结果。
 2. 不做登录系统。
-3. 不做历史回测横向对比。
+3. 不做多用户隔离。
 4. 不做复杂前端构建。
 5. 生产权限模型后续再补。
-6. 不支持历史 run 选择。
+6. cached result 会过期。
 7. 不支持多策略横向对比。
 
-后续计划：横向对比、本地 result viewer、多用户 current。
+后续计划：横向对比、本地 result viewer、多用户隔离。
 
 ## Acceptance Use
 
@@ -84,3 +100,5 @@ benchmark warning。概览页会把基准收益、超额收益、跟踪误差和
 - logs 可打开
 - result zip 可下载
 - benchmark 缺失时显示 warning
+- runs 列表可打开
+- run_id detail 可打开

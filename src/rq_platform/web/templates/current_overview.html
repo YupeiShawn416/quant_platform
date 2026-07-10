@@ -26,7 +26,7 @@
 <section class="panel">
   <div class="panel-header">
     <h2>净值预览</h2>
-    <a class="text-link" href="/ui/backtests/current/nav">查看完整净值</a>
+    <a class="text-link" href="{{ data.url_prefix }}/nav">查看完整净值</a>
   </div>
   <div class="chart-box" data-chart='{{ data.nav|tojson }}'></div>
 </section>

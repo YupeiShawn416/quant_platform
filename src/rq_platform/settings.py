@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     backtest_result_ttl_hours: int = 24
     backtest_current_dir: str = "./runs/backtests/current"
     backtest_jobs_dir: str = "./runs/backtests/jobs"
+    backtest_run_registry_path: str = "./runs/backtests/registry/backtest_runs.jsonl"
+    backtest_run_cache_dir: str = "./runs/backtests/cache"
     backtest_image: str = "quant-platform-backtest:latest"
     backtest_cpu_limit: str = "1.0"
     backtest_memory_limit: str = "2g"
@@ -52,6 +54,20 @@ class Settings(BaseSettings):
     @property
     def backtest_jobs_dir_path(self) -> Path:
         path = Path(self.backtest_jobs_dir)
+        if not path.is_absolute():
+            path = PROJECT_ROOT / path
+        return path.resolve()
+
+    @property
+    def backtest_run_registry_path_obj(self) -> Path:
+        path = Path(self.backtest_run_registry_path)
+        if not path.is_absolute():
+            path = PROJECT_ROOT / path
+        return path.resolve()
+
+    @property
+    def backtest_run_cache_dir_path(self) -> Path:
+        path = Path(self.backtest_run_cache_dir)
         if not path.is_absolute():
             path = PROJECT_ROOT / path
         return path.resolve()

@@ -11,6 +11,12 @@ from rq_platform.backtest.current_store import CurrentBacktestStore
 from rq_platform.backtest.docker_runner import run_backtest_in_docker
 from rq_platform.backtest.result_schema import ERROR_JSON, LOGS_TXT
 from rq_platform.backtest.result_store import BacktestResultStore
+from rq_platform.backtest.run_registry import (
+    BacktestRunRegistry,
+    build_run_record,
+    sanitize_run_id,
+)
+from rq_platform.backtest.run_store import BacktestRunStore
 from rq_platform.backtest.worker import run_worker
 from rq_platform.settings import settings
 
@@ -40,6 +46,8 @@ class BacktestJobManager:
     def __init__(self):
         self.jobs_dir = settings.backtest_jobs_dir_path
         self.current_store = CurrentBacktestStore()
+        self.registry = BacktestRunRegistry()
+        self.run_store = BacktestRunStore()
 
     def create_job_dir(self, job_id: str | None = None) -> Path:
         job_id = job_id or datetime.now().strftime("%Y%m%d_%H%M%S_") + uuid.uuid4().hex[:8]
@@ -59,7 +67,9 @@ class BacktestJobManager:
 
         job_dir = self.create_job_dir()
         job_id = job_dir.name
-        run_id = str(config["run_id"])
+        config = dict(config)
+        run_id = self.registry.ensure_unique_run_id(sanitize_run_id(config["run_id"]))
+        config["run_id"] = run_id
         strategy_path = job_dir / "strategy.py"
         config_path = job_dir / "config.json"
         strategy_path.write_text(strategy_code, encoding="utf-8")
@@ -92,20 +102,46 @@ class BacktestJobManager:
 
             self.current_store.set_current_from_run_dir(run_dir)
             summary = self.current_store.read_current_json("summary.json")
+            cache_dir = self.run_store.save_result_to_cache(run_id, run_dir)
+            self.registry.append(
+                build_run_record(
+                    run_id=run_id,
+                    config=config,
+                    summary=summary,
+                    mode="code",
+                    status="success",
+                    result_dir=cache_dir,
+                    result_available=True,
+                )
+            )
             return {
                 "status": "success",
                 "job_id": job_id,
                 "run_id": run_id,
                 "summary": summary,
+                "result_urls": _result_urls(run_id),
             }
         except Exception as exc:
             run_dir = self._write_failure_result(job_dir, run_id, config, exc)
             self.current_store.set_current_from_run_dir(run_dir)
+            cache_dir = self.run_store.save_result_to_cache(run_id, run_dir)
+            self.registry.append(
+                build_run_record(
+                    run_id=run_id,
+                    config=config,
+                    mode="code",
+                    status="failed",
+                    result_dir=cache_dir,
+                    result_available=True,
+                    error_message=str(exc),
+                )
+            )
             return {
                 "status": "failed",
                 "job_id": job_id,
                 "run_id": run_id,
                 "error": str(exc),
+                "result_urls": _result_urls(run_id),
             }
 
     def _validate_config(self, config: dict) -> None:
@@ -154,3 +190,12 @@ class BacktestJobManager:
         if self.jobs_dir not in path.parents and path != self.jobs_dir:
             raise ValueError(f"path escapes backtest jobs dir: {job_id}")
         return path
+
+
+def _result_urls(run_id: str) -> dict[str, str]:
+    return {
+        "detail": f"/backtests/runs/{run_id}",
+        "summary": f"/backtests/runs/{run_id}/summary",
+        "download": f"/backtests/runs/{run_id}/download",
+        "dashboard": f"/ui/backtests/runs/{run_id}",
+    }

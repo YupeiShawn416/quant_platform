@@ -1,7 +1,8 @@
 # Backtest Job API
 
 V0 支持通过 API 提交策略代码和回测配置，运行 `DailyBacktestEngine`，并把最新结果
-设为 single-user `current backtest`。
+设为 `current backtest`。Stage 24 起，每次提交也会写入 run registry，并缓存为独立
+`run_id` 结果。
 
 ## POST /backtests/run
 
@@ -35,7 +36,11 @@ V0 支持通过 API 提交策略代码和回测配置，运行 `DailyBacktestEng
   "status": "success",
   "job_id": "...",
   "run_id": "api_demo_backtest",
-  "summary": {}
+  "summary": {},
+  "result_urls": {
+    "dashboard": "/ui/backtests/runs/api_demo_backtest",
+    "download": "/backtests/runs/api_demo_backtest/download"
+  }
 }
 ```
 
@@ -60,16 +65,25 @@ price_field
 
 ## Current 生命周期
 
-平台 V0 是单用户模型，只保留一个 current backtest：
+`current` 继续代表最近一次结果：
 
 ```text
 POST /backtests/run -> 清理旧 current -> 运行新 job -> 复制结果到 current
 ```
 
-长期保存结果需要下载 zip：
+同时，每次回测会写入独立 run：
+
+```text
+GET /backtests/runs
+GET /backtests/runs/{run_id}
+GET /backtests/runs/{run_id}/download
+```
+
+长期保存结果仍需要下载 zip：
 
 ```text
 GET /backtests/current/download
+GET /backtests/runs/{run_id}/download
 ```
 
 `DELETE /backtests/current` 会删除当前临时结果。
@@ -93,4 +107,5 @@ curl -F "file=@/tmp/demo_weights_strategy_package.zip" \
   http://127.0.0.1:8000/backtests/run-package
 ```
 
-V1 主路径是 `weights` 模式。上传成功后仍通过 `/backtests/current/*` 查看结果。
+V1 主路径是 `weights` 模式。上传成功后可以继续通过 `/backtests/current/*` 查看最新结果，
+也可以通过 `/backtests/runs/{run_id}/*` 查看自己的独立结果。

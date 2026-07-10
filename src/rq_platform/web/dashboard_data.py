@@ -6,6 +6,8 @@ from typing import Any
 import pandas as pd
 
 from rq_platform.backtest.current_store import CurrentBacktestNotFound, CurrentBacktestStore
+from rq_platform.backtest.run_registry import BacktestRunRegistry
+from rq_platform.backtest.run_store import BacktestRunResultNotFound, BacktestRunStore
 
 
 TABLE_LIMITS = {
@@ -51,17 +53,57 @@ def load_current_dashboard_data() -> dict[str, Any]:
     if not store.current_exists():
         return _empty_dashboard()
 
-    summary = _with_benchmark_defaults(_read_json(store, "summary.json"))
-    nav = _read_csv_records(store, "nav.csv")
-    account = _read_csv_records(store, "daily_account.csv", tail=TABLE_LIMITS["account"])
-    positions_df = _read_csv(store, "positions.csv")
+    return _load_dashboard_data(
+        reader=_CurrentReader(store),
+        download_url="/backtests/current/download",
+        url_prefix="/ui/backtests/current",
+    )
+
+
+def load_run_dashboard_data(run_id: str) -> dict[str, Any]:
+    registry = BacktestRunRegistry()
+    record = registry.get(run_id)
+    if record is None:
+        data = _empty_dashboard()
+        data["missing_message"] = "Run ID 不存在。"
+        return data
+    if not record.get("result_available"):
+        data = _empty_dashboard()
+        data["record"] = record
+        data["missing_message"] = "This run record exists, but result files are no longer available."
+        return data
+    return _load_dashboard_data(
+        reader=_RunReader(BacktestRunStore(), record["run_id"]),
+        download_url=f"/backtests/runs/{record['run_id']}/download",
+        url_prefix=f"/ui/backtests/runs/{record['run_id']}",
+        record=record,
+    )
+
+
+def load_runs_dashboard_data(limit: int = 100) -> dict[str, Any]:
+    runs = BacktestRunRegistry().list_runs(limit=limit)
+    return {"exists": True, "runs": runs, "download_url": None}
+
+
+def _load_dashboard_data(
+    *,
+    reader: "_ResultReader",
+    download_url: str,
+    url_prefix: str,
+    record: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    summary = _with_benchmark_defaults(_read_json(reader, "summary.json"))
+    nav = _read_csv_records(reader, "nav.csv")
+    account = _read_csv_records(reader, "daily_account.csv", tail=TABLE_LIMITS["account"])
+    positions_df = _read_csv(reader, "positions.csv")
     positions, latest_position_date = _latest_positions(positions_df)
-    trades = _read_csv_records(store, "trades.csv", tail=TABLE_LIMITS["trades"])
-    orders = _read_csv_records(store, "orders.csv", tail=TABLE_LIMITS["orders"])
-    logs = _read_logs(store)
+    trades = _read_csv_records(reader, "trades.csv", tail=TABLE_LIMITS["trades"])
+    orders = _read_csv_records(reader, "orders.csv", tail=TABLE_LIMITS["orders"])
+    logs = _read_logs(reader)
 
     return {
         "exists": True,
+        "record": record or {},
         "summary": summary,
         "summary_metrics": _summary_metrics(summary),
         "nav": nav,
@@ -71,7 +113,8 @@ def load_current_dashboard_data() -> dict[str, Any]:
         "trades": trades,
         "orders": orders,
         "logs": logs,
-        "download_url": "/backtests/current/download",
+        "download_url": download_url,
+        "url_prefix": url_prefix,
     }
 
 
@@ -108,6 +151,9 @@ def _empty_dashboard() -> dict[str, Any]:
         "orders": [],
         "logs": "",
         "download_url": None,
+        "url_prefix": "/ui/backtests/current",
+        "record": {},
+        "missing_message": None,
     }
 
 
@@ -122,22 +168,62 @@ def _with_benchmark_defaults(summary: dict[str, Any]) -> dict[str, Any]:
     return clean
 
 
-def _read_json(store: CurrentBacktestStore, filename: str) -> dict:
+class _ResultReader:
+    def read_json(self, filename: str) -> dict:
+        raise NotImplementedError
+
+    def read_csv(self, filename: str) -> pd.DataFrame:
+        raise NotImplementedError
+
+    def read_text(self, filename: str) -> str:
+        raise NotImplementedError
+
+
+class _CurrentReader(_ResultReader):
+    def __init__(self, store: CurrentBacktestStore):
+        self.store = store
+
+    def read_json(self, filename: str) -> dict:
+        return self.store.read_current_json(filename)
+
+    def read_csv(self, filename: str) -> pd.DataFrame:
+        return self.store.read_current_csv(filename)
+
+    def read_text(self, filename: str) -> str:
+        return self.store.read_current_text(filename)
+
+
+class _RunReader(_ResultReader):
+    def __init__(self, store: BacktestRunStore, run_id: str):
+        self.store = store
+        self.run_id = run_id
+
+    def read_json(self, filename: str) -> dict:
+        return self.store.read_json(self.run_id, filename)
+
+    def read_csv(self, filename: str) -> pd.DataFrame:
+        return self.store.read_csv(self.run_id, filename)
+
+    def read_text(self, filename: str) -> str:
+        return self.store.read_text(self.run_id, filename)
+
+
+def _read_json(store: _ResultReader, filename: str) -> dict:
     try:
-        return store.read_current_json(filename)
-    except (CurrentBacktestNotFound, ValueError):
+        return store.read_json(filename)
+    except (CurrentBacktestNotFound, BacktestRunResultNotFound, ValueError):
         return {}
 
 
-def _read_csv(store: CurrentBacktestStore, filename: str) -> pd.DataFrame:
+def _read_csv(store: _ResultReader, filename: str) -> pd.DataFrame:
     try:
-        return store.read_current_csv(filename)
-    except (CurrentBacktestNotFound, ValueError):
+        return store.read_csv(filename)
+    except (CurrentBacktestNotFound, BacktestRunResultNotFound, ValueError):
         return pd.DataFrame()
 
 
 def _read_csv_records(
-    store: CurrentBacktestStore, filename: str, tail: int | None = None
+    store: _ResultReader, filename: str, tail: int | None = None
 ) -> list[dict[str, Any]]:
     frame = _read_csv(store, filename)
     if frame.empty:
@@ -157,10 +243,10 @@ def _latest_positions(frame: pd.DataFrame) -> tuple[list[dict[str, Any]], str | 
     return latest.to_dict(orient="records"), latest_date
 
 
-def _read_logs(store: CurrentBacktestStore) -> str:
+def _read_logs(store: _ResultReader) -> str:
     try:
-        logs = store.read_current_text("logs.txt")
-    except (CurrentBacktestNotFound, ValueError):
+        logs = store.read_text("logs.txt")
+    except (CurrentBacktestNotFound, BacktestRunResultNotFound, ValueError):
         return ""
     lines = logs.splitlines()
     return "\n".join(lines[-TABLE_LIMITS["logs"]:])

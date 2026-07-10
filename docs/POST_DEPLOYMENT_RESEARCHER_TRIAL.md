@@ -31,7 +31,8 @@ Task 3: Build one simple 20-day momentum Top 20 equal-weight strategy:
 - create long-only equal weights
 - build Strategy Package
 - upload to platform
-- inspect Dashboard
+- save run_id
+- inspect `/ui/backtests/runs/{run_id}`
 - download result zip
 
 ## 4. Submission Requirements
@@ -40,6 +41,7 @@ Each participant submits:
 
 - `strategy_package.zip`
 - result zip
+- run_id
 - short research note
 - list of issues encountered
 
@@ -54,6 +56,7 @@ Questions:
 - Is the template structure clear?
 - Can package errors be diagnosed?
 - Can Dashboard metrics be explained?
+- Can the researcher find their result by run_id?
 - Is result zip sufficient?
 - Which step was most confusing?
 - Did the data policy feel clear?
@@ -62,6 +65,7 @@ Questions:
 
 - At least 1 person independently completes the full workflow.
 - At least 1 custom strategy uploads and backtests successfully.
+- Each completed run can be reopened by run_id.
 - All failures can be traced to a clear cause.
 - Data usage policy is read and acknowledged.
 - No data is shared outside authorized channels.

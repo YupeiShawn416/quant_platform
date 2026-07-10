@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}历史 Runs - Backtest Dashboard{% endblock %}
+{% block page_title %}历史回测{% endblock %}
+
+{% block content %}
+<section class="panel">
+  <div class="panel-header">
+    <h2>Run Registry</h2>
+    <span>最近 {{ data.runs|length }} 条</span>
+  </div>
+  {% if data.runs %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>run_id</th>
+            <th>strategy_name</th>
+            <th>created_at</th>
+            <th>status</th>
+            <th>start_date</th>
+            <th>end_date</th>
+            <th>total_return</th>
+            <th>sharpe</th>
+            <th>max_drawdown</th>
+            <th>result</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for run in data.runs %}
+            <tr>
+              <td>{{ run.run_id }}</td>
+              <td>{{ run.strategy_name or "-" }}</td>
+              <td>{{ run.created_at or "-" }}</td>
+              <td>{{ run.status }}</td>
+              <td>{{ run.start_date or "-" }}</td>
+              <td>{{ run.end_date or "-" }}</td>
+              <td>{{ run.total_return|fmt("percent") }}</td>
+              <td>{{ run.sharpe|fmt("ratio") }}</td>
+              <td>{{ run.max_drawdown|fmt("percent") }}</td>
+              <td>{% if run.result_available %}available{% else %}expired{% endif %}</td>
+              <td>
+                <a class="text-link" href="/ui/backtests/runs/{{ run.run_id }}">查看</a>
+                {% if run.result_available %}
+                  <a class="text-link" href="/backtests/runs/{{ run.run_id }}/download">下载</a>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <h2>暂无历史回测。</h2>
+      <p>提交回测后，这里会按 run_id 列出结果。</p>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}
