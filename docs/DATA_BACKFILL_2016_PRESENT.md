@@ -39,6 +39,26 @@ index_components/year=<year>.parquet
 index_weights/year=<year>.parquet
 ```
 
+`instruments` and `trading_calendar` are single-file datasets.
+
+The following datasets are partitioned by year:
+
+```text
+prices_1d_pre
+prices_1d_none
+index_prices_1d
+tradability_1d
+valuation_1d
+industry_classification
+index_components
+index_weights
+```
+
+Calendar backfill uses coverage checking plus merge and deduplication. In
+normal mode it extends the existing calendar file instead of replacing covered
+years. Use `--force` only when an administrator intentionally wants to rebuild
+the calendar file.
+
 ## Execution Order
 
 1. Audit current coverage.
@@ -48,6 +68,10 @@ index_weights/year=<year>.parquet
 5. Run data quality checks.
 6. Generate server sync manifest.
 7. Sync Parquet files to the server.
+
+Before full backfill, inspect dry-run output and confirm that existing years are
+shown as skipped or covered. Missing years should be shown as create or extend
+work, not as an unqualified overwrite of existing data.
 
 ## Commands
 
@@ -121,6 +145,14 @@ reports/generated/
 ```
 
 This directory is ignored by Git.
+
+Backfill status snapshots are local run artifacts:
+
+```text
+reports/backfill_snapshots/
+```
+
+Do not commit them.
 
 ## Server Sync
 

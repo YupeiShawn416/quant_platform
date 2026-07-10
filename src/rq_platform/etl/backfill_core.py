@@ -124,11 +124,17 @@ def run_core_backfill(
 
 def render_plan(tasks: list[BackfillTask | dict[str, Any]]) -> str:
     rows = [task.to_dict() if isinstance(task, BackfillTask) else task for task in tasks]
-    lines = ["# Backfill Plan", "", "| dataset | year | start | end | skip | output | reason |", "| --- | --- | --- | --- | --- | --- | --- |"]
+    lines = [
+        "# Backfill Plan",
+        "",
+        "| dataset | year | start | end | skip | action | output | reason |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- |",
+    ]
     for row in rows:
         lines.append(
             f"| {row['dataset']} | {row.get('year') or ''} | {row['start_date']} | {row['end_date']} | "
-            f"{row['should_skip']} | {row['output_path']} | {row.get('reason') or ''} |"
+            f"{row['should_skip']} | {row.get('action') or ''} | {row['output_path']} | "
+            f"{row.get('reason') or ''} |"
         )
     return "\n".join(lines) + "\n"
 
@@ -146,8 +152,9 @@ def _run_task(
         return BackfillResult(task.dataset, task.year, "success", len(frame), str(path))
     if task.dataset == "calendar":
         frame = source.get_trading_calendar(task.start_date, task.end_date)
-        path = write_single_file(frame, "trading_calendar", "trading_calendar.parquet")
-        return BackfillResult(task.dataset, task.year, "success", len(frame), str(path))
+        path = merge_trading_calendar_file(frame, Path(task.output_path), force=task.action == "rebuild")
+        rows = len(pd.read_parquet(path, columns=["trade_date"]))
+        return BackfillResult(task.dataset, task.year, "success", rows, str(path))
     if task.dataset == "index_prices":
         frame = source.get_index_prices(DEFAULT_INDEX_IDS, task.start_date, task.end_date)
         path = write_index_prices(frame, year=int(task.year))
@@ -193,6 +200,27 @@ def _backfill_prices(
             output_files.extend(str(path) for path in paths)
             total_rows += len(frame)
     return BackfillResult(task.dataset, task.year, "success", total_rows, ";".join(sorted(set(output_files))))
+
+
+def merge_trading_calendar_file(new_frame: pd.DataFrame, path: Path, *, force: bool = False) -> Path:
+    if "trade_date" not in new_frame.columns:
+        raise ValueError("trade_date column is required for trading calendar backfill")
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    frames = [new_frame.copy()]
+    if path.exists() and not force:
+        frames.insert(0, pd.read_parquet(path))
+
+    output = pd.concat(frames, ignore_index=True)
+    output["trade_date"] = pd.to_datetime(output["trade_date"], errors="coerce").dt.strftime("%Y-%m-%d")
+    output = output.dropna(subset=["trade_date"])
+    output = output.drop_duplicates(["trade_date"], keep="last")
+    output = output.sort_values("trade_date").reset_index(drop=True)
+
+    tmp_path = path.with_name(f".{path.name}.tmp")
+    output.to_parquet(tmp_path, index=False)
+    tmp_path.replace(path)
+    return path
 
 
 def _backfill_valuation(

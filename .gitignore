@@ -15,4 +15,5 @@ build/
 dist/
 runs/
 reports/generated/
+reports/backfill_snapshots/
 *.zip

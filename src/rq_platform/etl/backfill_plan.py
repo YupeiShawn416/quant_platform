@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
+import pandas as pd
+
 from rq_platform.settings import settings
 
 
@@ -28,6 +30,7 @@ class BackfillTask:
     output_path: str
     should_skip: bool
     reason: str = ""
+    action: str = ""
 
     def to_dict(self) -> dict:
         return {
@@ -38,6 +41,7 @@ class BackfillTask:
             "output_path": self.output_path,
             "should_skip": self.should_skip,
             "reason": self.reason,
+            "action": self.action,
         }
 
 
@@ -60,9 +64,13 @@ def build_backfill_plan(
     tasks: list[BackfillTask] = []
 
     for dataset in normalized:
+        if dataset == "calendar":
+            output = root / "trading_calendar" / "trading_calendar.parquet"
+            tasks.append(_calendar_task(output, start_date, end_date, force))
+            continue
         if dataset == "instruments":
             output = root / "instruments" / "instruments.parquet"
-            tasks.append(_task(dataset, None, start_date, end_date, [output], force))
+            tasks.append(_single_file_task(dataset, output, start_date, end_date, force))
             continue
         for year in selected_years:
             year_start = max(start, date(year, 1, 1))
@@ -120,6 +128,80 @@ def _task(
         output_path=";".join(str(output) for output in outputs),
         should_skip=exists and not force,
         reason="exists" if exists and not force else "",
+        action="skip" if exists and not force else "create",
+    )
+
+
+def _single_file_task(
+    dataset: str,
+    output: Path,
+    start_date: str,
+    end_date: str,
+    force: bool,
+) -> BackfillTask:
+    exists = output.exists()
+    if force:
+        action = "rebuild"
+        should_skip = False
+        reason = "force"
+    elif exists:
+        action = "skip"
+        should_skip = True
+        reason = "exists"
+    else:
+        action = "create"
+        should_skip = False
+        reason = "missing"
+    return BackfillTask(
+        dataset=dataset,
+        year=None,
+        start_date=start_date,
+        end_date=end_date,
+        output_path=str(output),
+        should_skip=should_skip,
+        reason=reason,
+        action=action,
+    )
+
+
+def _calendar_task(output: Path, start_date: str, end_date: str, force: bool) -> BackfillTask:
+    coverage = _calendar_coverage(output, start_date, end_date)
+    requested_years = set(range(date.fromisoformat(start_date).year, date.fromisoformat(end_date).year + 1))
+    covered_years = coverage["covered_years"]
+    missing_years = sorted(requested_years - covered_years)
+    existing_range = coverage["existing_date_range"]
+    requested_range = f"{start_date}..{end_date}"
+
+    if force:
+        action = "rebuild"
+        should_skip = False
+        reason = f"force requested_date_range={requested_range}"
+    elif not output.exists():
+        action = "create"
+        should_skip = False
+        reason = f"missing requested_date_range={requested_range}"
+    elif coverage["covers_requested_range"] and not missing_years:
+        action = "skip"
+        should_skip = True
+        reason = f"covered existing_date_range={existing_range} requested_date_range={requested_range}"
+    else:
+        action = "extend"
+        should_skip = False
+        missing = ",".join(str(year) for year in missing_years) or "partial-range"
+        reason = (
+            f"missing_years={missing} existing_date_range={existing_range} "
+            f"requested_date_range={requested_range}"
+        )
+
+    return BackfillTask(
+        dataset="calendar",
+        year=None,
+        start_date=start_date,
+        end_date=end_date,
+        output_path=str(output),
+        should_skip=should_skip,
+        reason=reason,
+        action=action,
     )
 
 
@@ -130,7 +212,6 @@ def _output_paths(root: Path, dataset: str, year: int) -> list[Path]:
             root / "prices_1d_none" / f"year={year}.parquet",
         ],
         "index_prices": [root / "index_prices_1d" / f"year={year}.parquet"],
-        "calendar": [root / "trading_calendar" / "trading_calendar.parquet"],
         "tradability": [root / "tradability_1d" / f"year={year}.parquet"],
         "valuation": [root / "valuation_1d" / f"year={year}.parquet"],
         "industry": [root / "industry_classification" / f"year={year}.parquet"],
@@ -145,15 +226,29 @@ def _output_paths(root: Path, dataset: str, year: int) -> list[Path]:
 def _outputs_exist(dataset: str, outputs: list[Path], start_date: str, end_date: str) -> bool:
     if not all(path.exists() for path in outputs):
         return False
-    if dataset != "calendar":
-        return True
-    try:
-        import pandas as pd
+    return True
 
-        frame = pd.read_parquet(outputs[0], columns=["trade_date"])
+
+def _calendar_coverage(path: Path, start_date: str, end_date: str) -> dict:
+    empty = {
+        "covered_years": set(),
+        "existing_date_range": "missing",
+        "covers_requested_range": False,
+    }
+    if not path.exists():
+        return empty
+    try:
+        frame = pd.read_parquet(path, columns=["trade_date"])
         dates = pd.to_datetime(frame["trade_date"], errors="coerce").dropna()
-        if dates.empty:
-            return False
-        return dates.min().date().isoformat() <= start_date and dates.max().date().isoformat() >= end_date
     except Exception:
-        return False
+        return empty
+    if dates.empty:
+        return empty
+    return {
+        "covered_years": set(int(year) for year in dates.dt.year.dropna().unique()),
+        "existing_date_range": f"{dates.min().date().isoformat()}..{dates.max().date().isoformat()}",
+        "covers_requested_range": (
+            int(dates.min().year) <= date.fromisoformat(start_date).year
+            and dates.max().date().isoformat() >= end_date
+        ),
+    }
