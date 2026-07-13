@@ -10,6 +10,7 @@ from fastapi.templating import Jinja2Templates
 from rq_platform.web.dashboard_data import (
     format_value,
     load_current_dashboard_data,
+    load_researcher_usage_dashboard_data,
     load_run_dashboard_data,
     load_runs_dashboard_data,
     table_columns,
@@ -25,6 +26,7 @@ router = APIRouter()
 
 NAV_ITEMS = [
     ("runs", "历史 Runs", "/ui/backtests/runs"),
+    ("researchers", "研究员", "/ui/researchers"),
     ("overview", "概览", "/ui/backtests/current/overview"),
     ("nav", "净值曲线", "/ui/backtests/current/nav"),
     ("account", "账户", "/ui/backtests/current/account"),
@@ -81,8 +83,8 @@ def current_logs(request: Request):
 
 
 @router.get("/ui/backtests/runs")
-def run_list(request: Request):
-    data = load_runs_dashboard_data()
+def run_list(request: Request, researcher_id: str | None = None, researcher_name: str | None = None):
+    data = load_runs_dashboard_data(researcher_id=researcher_id, researcher_name=researcher_name)
     return templates.TemplateResponse(
         request,
         "runs.html",
@@ -94,6 +96,24 @@ def run_list(request: Request):
             "table_columns": table_columns,
             "page_label": "Backtest Runs",
             "status_label": "registry",
+        },
+    )
+
+
+@router.get("/ui/researchers")
+def researchers(request: Request):
+    data = load_researcher_usage_dashboard_data()
+    return templates.TemplateResponse(
+        request,
+        "researchers.html",
+        {
+            "request": request,
+            "active": "researchers",
+            "nav_items": NAV_ITEMS,
+            "data": data,
+            "table_columns": table_columns,
+            "page_label": "Researchers",
+            "status_label": "usage",
         },
     )
 
@@ -147,6 +167,7 @@ def _render_run(request: Request, run_id: str, template_name: str, active: str):
         "active": active,
         "nav_items": [
             ("runs", "历史 Runs", "/ui/backtests/runs"),
+            ("researchers", "研究员", "/ui/researchers"),
             ("run_overview", "Run 概览", f"/ui/backtests/runs/{run_id}"),
             ("run_nav", "净值曲线", f"/ui/backtests/runs/{run_id}/nav"),
             ("run_positions", "持仓", f"/ui/backtests/runs/{run_id}/positions"),

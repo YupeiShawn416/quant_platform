@@ -6,7 +6,7 @@ from typing import Any
 
 import pandas as pd
 import pyarrow.parquet as pq
-from fastapi import Body, Depends, FastAPI, File, Header, HTTPException, Query, UploadFile
+from fastapi import Body, Depends, FastAPI, File, Header, HTTPException, Query, Request, UploadFile
 from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -17,6 +17,7 @@ from rq_platform.backtest.result_store import BacktestResultStore
 from rq_platform.backtest.run_registry import BacktestRunRegistry
 from rq_platform.backtest.run_store import BacktestRunResultNotFound, BacktestRunStore
 from rq_platform.api.web_routes import router as web_router
+from rq_platform.auth import AuthContext, authenticate_token, legacy_admin_context
 from rq_platform.data.data_loader import ResearchDataLoader
 from rq_platform.etl.quality_check import check_all_price_datasets
 from rq_platform.settings import settings
@@ -39,13 +40,19 @@ def health() -> dict[str, str]:
 def require_api_token(
     x_api_token: str | None = Header(default=None, alias="X-API-Token"),
     api_token: str | None = Query(default=None),
-) -> None:
+) -> AuthContext:
     expected_token = settings.api_token
-    if not expected_token or expected_token == "change_me":
-        return
     supplied_token = x_api_token or api_token
-    if supplied_token != expected_token:
+    if not supplied_token and (not expected_token or expected_token == "change_me"):
+        return legacy_admin_context()
+    if not supplied_token:
         raise HTTPException(status_code=401, detail="invalid or missing api token")
+    context = authenticate_token(supplied_token)
+    if context is None:
+        raise HTTPException(status_code=401, detail="invalid or missing api token")
+    if not context.enabled:
+        raise HTTPException(status_code=403, detail="api token disabled")
+    return context
 
 
 @app.get("/status")
@@ -163,8 +170,9 @@ def backtests(_: None = Depends(require_api_token)) -> dict[str, Any]:
 
 @app.post("/backtests/run")
 def run_backtest(
+    request: Request,
     payload: dict[str, Any] = Body(...),
-    _: None = Depends(require_api_token),
+    auth: AuthContext = Depends(require_api_token),
 ) -> dict[str, Any]:
     strategy_code = payload.get("strategy_code")
     config = payload.get("config")
@@ -172,6 +180,7 @@ def run_backtest(
         return BacktestJobManager().run_backtest(
             strategy_code=strategy_code,
             config=config,
+            submitter=_submitter_metadata(request, auth),
         )
     except BacktestJobError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -179,8 +188,9 @@ def run_backtest(
 
 @app.post("/backtests/run-package")
 def run_backtest_package(
+    request: Request,
     file: UploadFile = File(...),
-    _: None = Depends(require_api_token),
+    auth: AuthContext = Depends(require_api_token),
 ) -> dict[str, Any]:
     if not file.filename or not file.filename.lower().endswith(".zip"):
         raise HTTPException(status_code=400, detail="strategy package must be a .zip file")
@@ -192,7 +202,7 @@ def run_backtest_package(
     if len(content) > max_size:
         raise HTTPException(status_code=400, detail="strategy package exceeds 100MB limit")
     upload_path.write_bytes(content)
-    result = StrategyPackageJobManager().run_package(upload_path)
+    result = StrategyPackageJobManager().run_package(upload_path, submitter=_submitter_metadata(request, auth))
     if result.get("status") == "failed":
         return result
     return result
@@ -270,12 +280,16 @@ def delete_current_backtest(_: None = Depends(require_api_token)) -> dict[str, b
 def backtest_runs(
     limit: int = Query(default=50, ge=1, le=500),
     status: str | None = None,
+    researcher_id: str | None = None,
+    researcher_name: str | None = None,
     include_expired: bool = True,
     _: None = Depends(require_api_token),
 ) -> list[dict[str, Any]]:
     return BacktestRunRegistry().list_runs(
         limit=limit,
         status=status,
+        researcher_id=researcher_id,
+        researcher_name=researcher_name,
         include_expired=include_expired,
     )
 
@@ -452,6 +466,16 @@ def _run_result_urls(run_id: str) -> dict[str, str]:
         "logs": f"/backtests/runs/{run_id}/logs",
         "download": f"/backtests/runs/{run_id}/download",
         "dashboard": f"/ui/backtests/runs/{run_id}",
+    }
+
+
+def _submitter_metadata(request: Request, auth: AuthContext) -> dict[str, str]:
+    client_ip = request.client.host if request.client else ""
+    return {
+        **auth.to_metadata(),
+        "token_type": auth.token_type,
+        "client_ip": client_ip,
+        "user_agent": request.headers.get("user-agent", ""),
     }
 
 

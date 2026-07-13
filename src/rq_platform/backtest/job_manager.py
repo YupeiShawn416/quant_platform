@@ -60,6 +60,7 @@ class BacktestJobManager:
         strategy_code: str,
         config: dict,
         strategy_filename: str = "strategy.py",
+        submitter: dict[str, str] | None = None,
     ) -> dict:
         self._validate_strategy_code(strategy_code)
         self._validate_strategy_filename(strategy_filename)
@@ -68,6 +69,7 @@ class BacktestJobManager:
         job_dir = self.create_job_dir()
         job_id = job_dir.name
         config = dict(config)
+        submitter = _normalize_submitter(submitter)
         run_id = self.registry.ensure_unique_run_id(sanitize_run_id(config["run_id"]))
         config["run_id"] = run_id
         strategy_path = job_dir / "strategy.py"
@@ -112,6 +114,7 @@ class BacktestJobManager:
                     status="success",
                     result_dir=cache_dir,
                     result_available=True,
+                    **submitter,
                 )
             )
             return {
@@ -134,6 +137,7 @@ class BacktestJobManager:
                     result_dir=cache_dir,
                     result_available=True,
                     error_message=str(exc),
+                    **submitter,
                 )
             )
             return {
@@ -198,4 +202,16 @@ def _result_urls(run_id: str) -> dict[str, str]:
         "summary": f"/backtests/runs/{run_id}/summary",
         "download": f"/backtests/runs/{run_id}/download",
         "dashboard": f"/ui/backtests/runs/{run_id}",
+    }
+
+
+def _normalize_submitter(submitter: dict[str, str] | None) -> dict[str, str]:
+    item = dict(submitter or {})
+    researcher_name = item.get("researcher_name") or item.get("submitted_by") or "Admin"
+    return {
+        "researcher_id": item.get("researcher_id") or "admin",
+        "researcher_name": researcher_name,
+        "submitted_by": item.get("submitted_by") or researcher_name,
+        "client_ip": item.get("client_ip") or "",
+        "user_agent": item.get("user_agent") or "",
     }

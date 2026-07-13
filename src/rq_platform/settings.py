@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     rqalpha_bundle_path: str = "./data/rqalpha_bundle"
 
     api_token: str = "change_me"
+    researcher_tokens_path: str = "./config/researcher_tokens.json"
     host: str = "127.0.0.1"
     port: int = 8000
     workers: int = 2
@@ -68,6 +69,13 @@ class Settings(BaseSettings):
     @property
     def backtest_run_cache_dir_path(self) -> Path:
         path = Path(self.backtest_run_cache_dir)
+        if not path.is_absolute():
+            path = PROJECT_ROOT / path
+        return path.resolve()
+
+    @property
+    def researcher_tokens_path_obj(self) -> Path:
+        path = Path(self.researcher_tokens_path)
         if not path.is_absolute():
             path = PROJECT_ROOT / path
         return path.resolve()

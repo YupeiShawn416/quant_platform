@@ -30,7 +30,7 @@ def test_run_package_sets_current_and_downloads_zip(tmp_path, monkeypatch):
     monkeypatch.setattr(settings, "backtest_jobs_dir", str(tmp_path / "jobs"))
 
     class FakePackageManager:
-        def run_package(self, package_path):
+        def run_package(self, package_path, submitter=None):
             assert package_path.name.lower().endswith(".zip")
             run_dir = tmp_path / "run"
             run_dir.mkdir()

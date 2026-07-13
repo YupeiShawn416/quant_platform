@@ -252,6 +252,41 @@ h2 {
   font-weight: 700;
 }
 
+.filter-form {
+  align-items: end;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 16px;
+}
+
+.filter-form label {
+  color: var(--muted);
+  display: grid;
+  font-size: 12px;
+  gap: 4px;
+}
+
+.filter-form input {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font: inherit;
+  min-width: 180px;
+  padding: 7px 9px;
+}
+
+.filter-form button {
+  background: var(--accent);
+  border: 0;
+  border-radius: 6px;
+  color: #ffffff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  padding: 8px 12px;
+}
+
 .chart-box {
   min-height: 320px;
   padding: 16px;

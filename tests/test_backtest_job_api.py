@@ -39,7 +39,7 @@ def test_run_backtest_sets_current_and_delete_clears_it(tmp_path, monkeypatch):
     monkeypatch.setattr(settings, "api_token", "change_me")
 
     class FakeManager:
-        def run_backtest(self, strategy_code, config, strategy_filename="strategy.py"):
+        def run_backtest(self, strategy_code, config, strategy_filename="strategy.py", submitter=None):
             run_dir = tmp_path / "run"
             run_dir.mkdir()
             (run_dir / "summary.json").write_text(

@@ -1,0 +1,9 @@
+[
+  {
+    "researcher_id": "r001",
+    "name": "Researcher One",
+    "token_hash": "<sha256 hash>",
+    "enabled": true,
+    "note": "trial user"
+  }
+]

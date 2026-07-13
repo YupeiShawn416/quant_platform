@@ -8,6 +8,7 @@ import pandas as pd
 from rq_platform.backtest.current_store import CurrentBacktestNotFound, CurrentBacktestStore
 from rq_platform.backtest.run_registry import BacktestRunRegistry
 from rq_platform.backtest.run_store import BacktestRunResultNotFound, BacktestRunStore
+from rq_platform.auth import load_researcher_tokens
 
 
 TABLE_LIMITS = {
@@ -80,9 +81,50 @@ def load_run_dashboard_data(run_id: str) -> dict[str, Any]:
     )
 
 
-def load_runs_dashboard_data(limit: int = 100) -> dict[str, Any]:
-    runs = BacktestRunRegistry().list_runs(limit=limit)
-    return {"exists": True, "runs": runs, "download_url": None}
+def load_runs_dashboard_data(
+    limit: int = 100,
+    researcher_id: str | None = None,
+    researcher_name: str | None = None,
+) -> dict[str, Any]:
+    runs = BacktestRunRegistry().list_runs(
+        limit=limit,
+        researcher_id=researcher_id,
+        researcher_name=researcher_name,
+    )
+    return {
+        "exists": True,
+        "runs": runs,
+        "download_url": None,
+        "filters": {
+            "researcher_id": researcher_id or "",
+            "researcher_name": researcher_name or "",
+        },
+    }
+
+
+def load_researcher_usage_dashboard_data() -> dict[str, Any]:
+    usage = BacktestRunRegistry().researcher_usage()
+    rows: list[dict[str, Any]] = []
+    for token in load_researcher_tokens():
+        row = usage.pop(
+            token.researcher_id,
+            {
+                "researcher_id": token.researcher_id,
+                "name": token.name,
+                "total_runs": 0,
+                "success_runs": 0,
+                "failed_runs": 0,
+                "last_used_at": None,
+            },
+        )
+        row["name"] = token.name
+        row["enabled"] = token.enabled
+        rows.append(row)
+    for row in usage.values():
+        row["enabled"] = True
+        rows.append(row)
+    rows = sorted(rows, key=lambda item: (str(item.get("researcher_id") or "")))
+    return {"exists": True, "researchers": rows, "download_url": None}
 
 
 def _load_dashboard_data(

@@ -34,10 +34,11 @@ class StrategyPackageJobManager:
         self.registry = BacktestRunRegistry()
         self.run_store = BacktestRunStore()
 
-    def run_package(self, package_path: str | Path) -> dict:
+    def run_package(self, package_path: str | Path, submitter: dict[str, str] | None = None) -> dict:
         job_dir = self._create_job_dir()
         job_id = job_dir.name
         package_dir = job_dir / "package"
+        submitter = _normalize_submitter(submitter)
         try:
             self.validator.extract_to_temp_dir(package_path, package_dir)
             manifest = self.validator.load_manifest(package_dir)
@@ -64,6 +65,7 @@ class StrategyPackageJobManager:
                         result_dir=cache_dir,
                         result_available=True,
                         package_name=Path(package_path).name,
+                        **submitter,
                     )
                 )
                 return {
@@ -78,7 +80,7 @@ class StrategyPackageJobManager:
             if mode == "code":
                 self.validator.validate_code_package(package_dir, config)
                 strategy_code = (package_dir / "strategy.py").read_text(encoding="utf-8")
-                result = BacktestJobManager().run_backtest(strategy_code, config)
+                result = BacktestJobManager().run_backtest(strategy_code, config, submitter=submitter)
                 result["mode"] = mode
                 result["warnings"] = []
                 return result
@@ -101,6 +103,7 @@ class StrategyPackageJobManager:
                     result_available=True,
                     error_message=str(exc),
                     package_name=Path(package_path).name,
+                    **submitter,
                 )
             )
             return {
@@ -174,4 +177,16 @@ def _result_urls(run_id: str) -> dict[str, str]:
         "summary": f"/backtests/runs/{run_id}/summary",
         "download": f"/backtests/runs/{run_id}/download",
         "dashboard": f"/ui/backtests/runs/{run_id}",
+    }
+
+
+def _normalize_submitter(submitter: dict[str, str] | None) -> dict[str, str]:
+    item = dict(submitter or {})
+    researcher_name = item.get("researcher_name") or item.get("submitted_by") or "Admin"
+    return {
+        "researcher_id": item.get("researcher_id") or "admin",
+        "researcher_name": researcher_name,
+        "submitted_by": item.get("submitted_by") or researcher_name,
+        "client_ip": item.get("client_ip") or "",
+        "user_agent": item.get("user_agent") or "",
     }

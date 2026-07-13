@@ -9,6 +9,18 @@
     <h2>Run Registry</h2>
     <span>最近 {{ data.runs|length }} 条</span>
   </div>
+  <form class="filter-form" method="get" action="/ui/backtests/runs">
+    <label>
+      Researcher ID
+      <input name="researcher_id" value="{{ data.filters.researcher_id }}" placeholder="r001">
+    </label>
+    <label>
+      Researcher Name
+      <input name="researcher_name" value="{{ data.filters.researcher_name }}" placeholder="Researcher">
+    </label>
+    <button type="submit">筛选</button>
+    <a class="text-link" href="/ui/backtests/runs">清除</a>
+  </form>
   {% if data.runs %}
     <div class="table-wrap">
       <table>
@@ -16,6 +28,7 @@
           <tr>
             <th>run_id</th>
             <th>strategy_name</th>
+            <th>researcher</th>
             <th>created_at</th>
             <th>status</th>
             <th>start_date</th>
@@ -32,6 +45,7 @@
             <tr>
               <td>{{ run.run_id }}</td>
               <td>{{ run.strategy_name or "-" }}</td>
+              <td>{{ run.researcher_name or run.submitted_by or "-" }}</td>
               <td>{{ run.created_at or "-" }}</td>
               <td>{{ run.status }}</td>
               <td>{{ run.start_date or "-" }}</td>

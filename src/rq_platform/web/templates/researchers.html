@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}研究员使用统计 - Backtest Dashboard{% endblock %}
+{% block page_title %}研究员使用统计{% endblock %}
+
+{% block content %}
+<section class="panel">
+  <div class="panel-header">
+    <h2>Researchers</h2>
+    <span>{{ data.researchers|length }} 人</span>
+  </div>
+  {% if data.researchers %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>researcher_id</th>
+            <th>name</th>
+            <th>enabled</th>
+            <th>total_runs</th>
+            <th>success_runs</th>
+            <th>failed_runs</th>
+            <th>last_used_at</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in data.researchers %}
+            <tr>
+              <td>{{ row.researcher_id }}</td>
+              <td>{{ row.name }}</td>
+              <td>{% if row.enabled %}true{% else %}false{% endif %}</td>
+              <td>{{ row.total_runs }}</td>
+              <td>{{ row.success_runs }}</td>
+              <td>{{ row.failed_runs }}</td>
+              <td>{{ row.last_used_at or "-" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <h2>暂无研究员 token。</h2>
+      <p>管理员可以通过 CLI 创建 researcher token。</p>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

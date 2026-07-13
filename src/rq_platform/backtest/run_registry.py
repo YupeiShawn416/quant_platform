@@ -50,6 +50,10 @@ class BacktestRunRecord:
     error_message: str | None = None
     package_name: str | None = None
     submitted_by: str = "unknown"
+    researcher_id: str = "unknown"
+    researcher_name: str = "unknown"
+    client_ip: str | None = None
+    user_agent: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -79,12 +83,19 @@ class BacktestRunRegistry:
         self,
         limit: int = 50,
         status: str | None = None,
+        researcher_id: str | None = None,
+        researcher_name: str | None = None,
         include_expired: bool = True,
     ) -> list[dict[str, Any]]:
         records = self._latest_records()
         items = sorted(records.values(), key=lambda row: row.get("created_at") or "", reverse=True)
         if status:
             items = [item for item in items if item.get("status") == status]
+        if researcher_id:
+            items = [item for item in items if item.get("researcher_id") == researcher_id]
+        if researcher_name:
+            needle = researcher_name.lower()
+            items = [item for item in items if needle in str(item.get("researcher_name") or "").lower()]
         if not include_expired:
             items = [item for item in items if not item.get("result_expired")]
         return items[:limit]
@@ -128,6 +139,33 @@ class BacktestRunRegistry:
 
     def records(self) -> list[dict[str, Any]]:
         return list(self._iter_records())
+
+    def researcher_usage(self) -> dict[str, dict[str, Any]]:
+        usage: dict[str, dict[str, Any]] = {}
+        for item in self._latest_records().values():
+            researcher_id = str(item.get("researcher_id") or item.get("submitted_by") or "unknown")
+            name = str(item.get("researcher_name") or item.get("submitted_by") or researcher_id)
+            row = usage.setdefault(
+                researcher_id,
+                {
+                    "researcher_id": researcher_id,
+                    "name": name,
+                    "total_runs": 0,
+                    "success_runs": 0,
+                    "failed_runs": 0,
+                    "last_used_at": None,
+                },
+            )
+            row["name"] = name
+            row["total_runs"] += 1
+            if item.get("status") == "success":
+                row["success_runs"] += 1
+            if item.get("status") == "failed":
+                row["failed_runs"] += 1
+            used_at = item.get("created_at") or item.get("updated_at")
+            if used_at and (not row["last_used_at"] or str(used_at) > str(row["last_used_at"])):
+                row["last_used_at"] = used_at
+        return usage
 
     def _latest_records(self) -> dict[str, dict[str, Any]]:
         records: dict[str, dict[str, Any]] = {}
@@ -173,6 +211,10 @@ def build_run_record(
     error_message: str | None = None,
     package_name: str | None = None,
     submitted_by: str = "unknown",
+    researcher_id: str = "unknown",
+    researcher_name: str = "unknown",
+    client_ip: str | None = None,
+    user_agent: str | None = None,
 ) -> BacktestRunRecord:
     config = config or {}
     summary = summary or {}
@@ -203,6 +245,10 @@ def build_run_record(
         error_message=error_message,
         package_name=package_name,
         submitted_by=submitted_by,
+        researcher_id=researcher_id,
+        researcher_name=researcher_name,
+        client_ip=client_ip,
+        user_agent=user_agent,
     )
 
 
