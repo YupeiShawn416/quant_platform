@@ -10,6 +10,7 @@ from fastapi.templating import Jinja2Templates
 from rq_platform.web.dashboard_data import (
     format_value,
     load_current_dashboard_data,
+    load_data_catalog_dashboard_data,
     load_researcher_usage_dashboard_data,
     load_run_dashboard_data,
     load_runs_dashboard_data,
@@ -27,6 +28,7 @@ router = APIRouter()
 NAV_ITEMS = [
     ("runs", "历史 Runs", "/ui/backtests/runs"),
     ("researchers", "研究员", "/ui/researchers"),
+    ("data", "数据", "/ui/data"),
     ("overview", "概览", "/ui/backtests/current/overview"),
     ("nav", "净值曲线", "/ui/backtests/current/nav"),
     ("account", "账户", "/ui/backtests/current/account"),
@@ -118,6 +120,24 @@ def researchers(request: Request):
     )
 
 
+@router.get("/ui/data")
+def data_catalog(request: Request):
+    data = load_data_catalog_dashboard_data()
+    return templates.TemplateResponse(
+        request,
+        "data.html",
+        {
+            "request": request,
+            "active": "data",
+            "nav_items": NAV_ITEMS,
+            "data": data,
+            "table_columns": table_columns,
+            "page_label": "Researcher Data",
+            "status_label": "data ready",
+        },
+    )
+
+
 @router.get("/ui/backtests/runs/{run_id}")
 def run_detail(request: Request, run_id: str):
     return _render_run(request, run_id, "current_overview.html", "run_overview")
@@ -168,6 +188,7 @@ def _render_run(request: Request, run_id: str, template_name: str, active: str):
         "nav_items": [
             ("runs", "历史 Runs", "/ui/backtests/runs"),
             ("researchers", "研究员", "/ui/researchers"),
+            ("data", "数据", "/ui/data"),
             ("run_overview", "Run 概览", f"/ui/backtests/runs/{run_id}"),
             ("run_nav", "净值曲线", f"/ui/backtests/runs/{run_id}/nav"),
             ("run_positions", "持仓", f"/ui/backtests/runs/{run_id}/positions"),

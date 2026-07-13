@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Researcher Data - Quant Platform{% endblock %}
+{% block page_title %}研究员数据{% endblock %}
+
+{% block content %}
+  <section class="panel">
+    <div class="panel-header">
+      <h2>Supported Range</h2>
+      <span>{{ data.supported_start_date }} to {{ data.supported_end_date }}</span>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-header">
+      <h2>Datasets</h2>
+      <span>{{ data.datasets|length }} 个</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>dataset</th>
+            <th>date column</th>
+            <th>date range</th>
+            <th>rows</th>
+            <th>primary keys</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in data.datasets %}
+            <tr>
+              <td>{{ item.dataset }}</td>
+              <td>{{ item.default_date_column or "-" }}</td>
+              <td>{{ item.date_range.min_date or "-" }} to {{ item.date_range.max_date or "-" }}</td>
+              <td>{{ item.row_count }}</td>
+              <td>{{ item.primary_keys|join(", ") }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-header">
+      <h2>API Examples</h2>
+    </div>
+    <div class="code-list">
+      {% for example in data.examples %}
+        <code>{{ example }}</code>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}

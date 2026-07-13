@@ -59,6 +59,10 @@ BENCHMARK=000300.XSHG
 `current` 页面只是最近一次回测，会被最新回测覆盖。自己的结果请优先保存 `run_id`，并查看 `/ui/backtests/runs/<run_id>`。
 回测提交后，平台会自动记录提交人，不需要你手动填写 researcher_id。
 
+如果旧策略需要平台标准数据，可以让 Agent 使用
+`examples/researcher_api_usage/quant_platform_client.py`，通过你的 `API_TOKEN`
+按日期和证券代码分页拉取数据。
+
 ## 2. 直接复制给 Agent 的任务
 
 把第 0 节信息块填好后，连同下面这段一起发给 Agent：

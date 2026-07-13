@@ -9,6 +9,7 @@ from rq_platform.backtest.current_store import CurrentBacktestNotFound, CurrentB
 from rq_platform.backtest.run_registry import BacktestRunRegistry
 from rq_platform.backtest.run_store import BacktestRunResultNotFound, BacktestRunStore
 from rq_platform.auth import load_researcher_tokens
+from rq_platform.data.query_service import DataQueryService
 
 
 TABLE_LIMITS = {
@@ -125,6 +126,25 @@ def load_researcher_usage_dashboard_data() -> dict[str, Any]:
         rows.append(row)
     rows = sorted(rows, key=lambda item: (str(item.get("researcher_id") or "")))
     return {"exists": True, "researchers": rows, "download_url": None}
+
+
+def load_data_catalog_dashboard_data() -> dict[str, Any]:
+    service = DataQueryService()
+    coverage = service.coverage()
+    datasets = service.list_datasets()
+    return {
+        "exists": True,
+        "download_url": None,
+        "supported_start_date": coverage["supported_start_date"],
+        "supported_end_date": coverage["supported_end_date"],
+        "datasets": datasets,
+        "examples": [
+            "GET /data/datasets",
+            "GET /data/coverage",
+            "GET /data/schema/prices_1d_pre",
+            "GET /data/query/prices_1d_pre?start_date=2025-01-02&end_date=2025-01-31&order_book_id=000001.XSHE&limit=5000",
+        ],
+    }
 
 
 def _load_dashboard_data(

@@ -22,9 +22,9 @@ Data API -> local research template -> weights package -> platform backtest -> D
 
 当前已经具备：
 
-1. 2025 本地 Parquet 数据湖
+1. 2016-2026 本地 Parquet 数据湖
 2. DuckDB 内存查询层
-3. FastAPI 数据 API + token
+3. FastAPI 数据 API + researcher token
 4. Python Client
 5. DailyBacktestEngine V0
 6. Result Bundle
@@ -67,7 +67,7 @@ make api
 
 研究员使用流程：
 
-1. 通过 API 或 Python Client 拉取 2025 数据。
+1. 通过 API 或 Python Client 拉取 2016-2026 标准数据。
 2. 在本地研究项目中计算 factor / signal / weights。
 3. 用 `research_weights_template` 生成 `strategy_package.zip`。
 4. 上传到 `/backtests/run-package`。
@@ -95,8 +95,8 @@ curl -H "X-API-Token: <your_token>" \
   "http://127.0.0.1:8000/prices?symbols=000001.XSHE,600519.XSHG&start=2025-01-02&end=2025-01-10&adjust_type=pre&fields=open,close,volume"
 ```
 
-本地开发默认 `API_TOKEN=change_me` 时可以不传 token。详细说明见
-`docs/API_DATA_ACCESS_GUIDE.md`。
+本地开发默认 `API_TOKEN=change_me` 时可以不传 token。研究员数据 API 见
+`docs/RESEARCHER_DATA_API.md`，token 管理见 `docs/RESEARCHER_TOKEN_MANAGEMENT.md`。
 
 ## Researcher Workflow
 
@@ -146,6 +146,8 @@ Dashboard：
 http://127.0.0.1:8000/ui/backtests/current
 http://127.0.0.1:8000/ui/backtests/runs
 http://127.0.0.1:8000/ui/backtests/runs/<run_id>
+http://127.0.0.1:8000/ui/data
+http://127.0.0.1:8000/ui/researchers
 ```
 
 下载当前结果：

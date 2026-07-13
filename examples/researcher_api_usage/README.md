@@ -36,6 +36,20 @@ examples/researcher_api_usage/output/prices_sample.csv
 
 The `output/` directory is ignored by Git.
 
+## Researcher Data API Client
+
+`quant_platform_client.py` is a single-file client that can be copied into a
+research project. It returns pandas DataFrames from the Stage 29 `/data/*` API.
+
+Quickstart:
+
+```bash
+python examples/researcher_api_usage/data_api_quickstart.py
+```
+
+It fetches a trading calendar, stock prices, valuation data, builds a small
+feature panel, and prints a simple example weights DataFrame.
+
 ## Build Simple Momentum Weights
 
 After fetching prices:

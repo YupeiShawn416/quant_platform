@@ -38,6 +38,17 @@ def test_current_dashboard_pages_do_not_crash(monkeypatch, tmp_path):
         assert "Backtest Dashboard" in response.text
 
 
+def test_data_dashboard_page_opens(monkeypatch, tmp_path):
+    _patch_empty_current(monkeypatch, tmp_path)
+    monkeypatch.setattr(settings, "data_root", str(tmp_path / "rqdata"))
+
+    response = client.get("/ui/data")
+
+    assert response.status_code == 200
+    assert "研究员数据" in response.text
+    assert "prices_1d_pre" in response.text
+
+
 def _patch_empty_current(monkeypatch, tmp_path):
     monkeypatch.setattr(settings, "api_token", "change_me")
     monkeypatch.setattr(settings, "backtest_current_dir", str(tmp_path / "missing_current"))
