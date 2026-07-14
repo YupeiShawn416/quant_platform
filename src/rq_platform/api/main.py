@@ -17,6 +17,7 @@ from rq_platform.backtest.result_store import BacktestResultStore
 from rq_platform.backtest.run_registry import BacktestRunRegistry
 from rq_platform.backtest.run_store import BacktestRunResultNotFound, BacktestRunStore
 from rq_platform.api.data_routes import router as data_router
+from rq_platform.api.paper_routes import router as paper_router
 from rq_platform.api.web_routes import router as web_router
 from rq_platform.auth import AuthContext, authenticate_token, legacy_admin_context
 from rq_platform.data.data_loader import ResearchDataLoader
@@ -32,6 +33,7 @@ app.mount(
 )
 app.include_router(web_router)
 app.include_router(data_router)
+app.include_router(paper_router)
 
 
 @app.get("/health")

@@ -59,6 +59,8 @@ BENCHMARK=000300.XSHG
 `current` 页面只是最近一次回测，会被最新回测覆盖。自己的结果请优先保存 `run_id`，并查看 `/ui/backtests/runs/<run_id>`。
 回测提交后，平台会自动记录提交人，不需要你手动填写 researcher_id。
 
+如果你只想做模拟盘跟踪，可以让 agent 生成 `target_weights.csv`，由管理员创建 paper account 后上传到 `/paper/accounts/<paper_id>/target-weights`，再打开 `SERVER_URL/ui/paper/<paper_id>` 查看 NAV、持仓、订单和成交。
+
 如果旧策略需要平台标准数据，可以让 Agent 使用
 `examples/researcher_api_usage/quant_platform_client.py`，通过你的 `API_TOKEN`
 按日期和证券代码分页拉取数据。

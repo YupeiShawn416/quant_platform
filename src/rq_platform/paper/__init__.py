@@ -1,0 +1,2 @@
+"""Paper trading MVP primitives."""
+

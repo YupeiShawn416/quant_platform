@@ -10,6 +10,8 @@ from rq_platform.backtest.run_registry import BacktestRunRegistry
 from rq_platform.backtest.run_store import BacktestRunResultNotFound, BacktestRunStore
 from rq_platform.auth import load_researcher_tokens
 from rq_platform.data.query_service import DataQueryService
+from rq_platform.paper.paper_registry import PaperAccountRegistry
+from rq_platform.paper.paper_store import PaperAccountNotFound, PaperAccountStore
 
 
 TABLE_LIMITS = {
@@ -144,6 +146,58 @@ def load_data_catalog_dashboard_data() -> dict[str, Any]:
             "GET /data/schema/prices_1d_pre",
             "GET /data/query/prices_1d_pre?start_date=2025-01-02&end_date=2025-01-31&order_book_id=000001.XSHE&limit=5000",
         ],
+    }
+
+
+def load_paper_accounts_dashboard_data(
+    researcher_id: str | None = None,
+    status: str | None = None,
+) -> dict[str, Any]:
+    accounts = PaperAccountRegistry().list_accounts(
+        researcher_id=researcher_id,
+        status=status,
+        limit=500,
+    )
+    return {
+        "exists": True,
+        "accounts": accounts,
+        "download_url": None,
+        "filters": {
+            "researcher_id": researcher_id or "",
+            "status": status or "",
+        },
+    }
+
+
+def load_paper_account_dashboard_data(paper_id: str) -> dict[str, Any]:
+    store = PaperAccountStore()
+    try:
+        account = store.read_account(paper_id).to_dict()
+    except PaperAccountNotFound:
+        data = _empty_dashboard()
+        data["missing_message"] = "Paper account 不存在。"
+        return data
+    nav = _paper_csv_records(store, account["paper_id"], "nav.csv")
+    daily_account = _paper_csv_records(store, account["paper_id"], "daily_account.csv", tail=TABLE_LIMITS["account"])
+    positions_df = _paper_csv(store, account["paper_id"], "positions.csv")
+    positions, latest_position_date = _latest_positions(positions_df)
+    trades = _paper_csv_records(store, account["paper_id"], "trades.csv", tail=TABLE_LIMITS["trades"])
+    orders = _paper_csv_records(store, account["paper_id"], "orders.csv", tail=TABLE_LIMITS["orders"])
+    logs = store.read_logs(account["paper_id"])
+    return {
+        "exists": True,
+        "account": account,
+        "summary": account,
+        "summary_metrics": _paper_summary_metrics(account),
+        "nav": nav,
+        "daily_account": daily_account,
+        "positions": positions,
+        "latest_position_date": latest_position_date,
+        "trades": trades,
+        "orders": orders,
+        "logs": logs[-TABLE_LIMITS["logs"] :],
+        "download_url": f"/paper/accounts/{account['paper_id']}/download",
+        "url_prefix": f"/ui/paper/{account['paper_id']}",
     }
 
 
@@ -314,6 +368,28 @@ def _read_logs(store: _ResultReader) -> str:
     return "\n".join(lines[-TABLE_LIMITS["logs"]:])
 
 
+def _paper_csv(store: PaperAccountStore, paper_id: str, filename: str) -> pd.DataFrame:
+    try:
+        return store.read_csv(paper_id, filename)
+    except (PaperAccountNotFound, ValueError):
+        return pd.DataFrame()
+
+
+def _paper_csv_records(
+    store: PaperAccountStore,
+    paper_id: str,
+    filename: str,
+    tail: int | None = None,
+) -> list[dict[str, Any]]:
+    frame = _paper_csv(store, paper_id, filename)
+    if frame.empty:
+        return []
+    if tail is not None:
+        frame = frame.tail(tail)
+    clean = frame.where(pd.notna(frame), None)
+    return clean.to_dict(orient="records")
+
+
 def _summary_metrics(summary: dict[str, Any]) -> list[dict[str, Any]]:
     benchmark_reliable = bool(summary.get("benchmark_metrics_reliable", True))
     items = []
@@ -328,3 +404,27 @@ def _summary_metrics(summary: dict[str, Any]) -> list[dict[str, Any]]:
             }
         )
     return items
+
+
+def _paper_summary_metrics(account: dict[str, Any]) -> list[dict[str, Any]]:
+    fields = [
+        ("paper_id", "Paper ID", "text"),
+        ("strategy_name", "策略名称", "text"),
+        ("researcher_name", "研究员", "text"),
+        ("status", "状态", "text"),
+        ("initial_cash", "初始资金", "money"),
+        ("cash", "现金", "money"),
+        ("current_nav", "当前 NAV", "ratio"),
+        ("total_return", "累计收益", "percent"),
+        ("max_drawdown", "最大回撤", "percent"),
+        ("latest_trade_date", "最新交易日", "text"),
+    ]
+    return [
+        {
+            "key": key,
+            "label": label,
+            "value": format_value(account.get(key), kind),
+            "unreliable": False,
+        }
+        for key, label, kind in fields
+    ]

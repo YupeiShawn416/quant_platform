@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}模拟账户详情 - Quant Platform{% endblock %}
+{% block page_title %}模拟账户详情{% endblock %}
+
+{% block content %}
+<section class="metric-grid">
+  {% for metric in data.summary_metrics %}
+    <div class="metric-card">
+      <div class="metric-label">{{ metric.label }}</div>
+      <div class="metric-value">{{ metric.value }}</div>
+    </div>
+  {% endfor %}
+</section>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>NAV</h2>
+    <span>{{ data.nav|length }} rows</span>
+  </div>
+  {% if data.nav %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>{% for column in table_columns(data.nav) %}<th>{{ column }}</th>{% endfor %}</tr>
+        </thead>
+        <tbody>
+          {% for row in data.nav %}
+            <tr>{% for column in table_columns(data.nav) %}<td>{{ row[column] }}</td>{% endfor %}</tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-table">暂无 NAV。</div>
+  {% endif %}
+</section>
+
+{% for section, title, rows in [
+  ("positions", "持仓", data.positions),
+  ("orders", "订单", data.orders),
+  ("trades", "成交", data.trades),
+  ("daily_account", "账户流水", data.daily_account)
+] %}
+  <section class="panel">
+    <div class="panel-header">
+      <h2>{{ title }}</h2>
+      <span>{{ rows|length }} rows</span>
+    </div>
+    {% if rows %}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>{% for column in table_columns(rows) %}<th>{{ column }}</th>{% endfor %}</tr>
+          </thead>
+          <tbody>
+            {% for row in rows %}
+              <tr>{% for column in table_columns(rows) %}<td>{{ row[column] }}</td>{% endfor %}</tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-table">暂无数据。</div>
+    {% endif %}
+  </section>
+{% endfor %}
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>日志</h2>
+    <span>{{ data.logs|length }} rows</span>
+  </div>
+  <pre class="log-view">{% for row in data.logs %}{{ row }}
+{% endfor %}</pre>
+</section>
+{% endblock %}

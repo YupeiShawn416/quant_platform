@@ -231,12 +231,36 @@ make reconcile-daily-update
 docs/DAILY_DATA_UPDATE.md
 ```
 
+## Paper Trading MVP
+
+平台现在支持多账户 Paper Trading MVP：研究员创建模拟账户，上传每日
+`target_weights.csv`，平台按本地日频行情生成 NAV、持仓、订单、成交和日志。
+
+入口：
+
+```text
+/ui/paper
+/ui/paper/<paper_id>
+```
+
+本地 smoke：
+
+```bash
+make paper-smoke-local
+```
+
+说明见：
+
+```text
+docs/PAPER_TRADING_MVP.md
+```
+
 ## What Not To Do Yet
 
 当前不要优先做：
 
 - 完整因子库
-- 模拟交易 / Paper Trading
+- 复杂模拟交易 / 真实券商交易
 - 复杂用户系统
 - 服务器大规模直接访问 RQData
 - 实时行情或分钟级行情
@@ -253,4 +277,4 @@ docs/DAILY_DATA_UPDATE.md
 2. 更新后运行数据质量检查。
 3. 质量通过后生成同步 manifest 并 rsync 到服务器。
 4. 用长周期回测做数据验收。
-5. 后续再做因子库、权限系统和模拟交易。
+5. 后续再做因子库、权限系统和更完整的模拟交易。

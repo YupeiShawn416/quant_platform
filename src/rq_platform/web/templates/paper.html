@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}模拟账户 - Quant Platform{% endblock %}
+{% block page_title %}模拟账户{% endblock %}
+
+{% block content %}
+<section class="panel">
+  <div class="panel-header">
+    <h2>Paper Accounts</h2>
+    <span>{{ data.accounts|length }} 个账户</span>
+  </div>
+  <form class="filter-form" method="get" action="/ui/paper">
+    <label>
+      Researcher ID
+      <input name="researcher_id" value="{{ data.filters.researcher_id }}" placeholder="r001">
+    </label>
+    <label>
+      Status
+      <input name="status" value="{{ data.filters.status }}" placeholder="active">
+    </label>
+    <button type="submit">筛选</button>
+    <a class="text-link" href="/ui/paper">清除</a>
+  </form>
+  {% if data.accounts %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>paper_id</th>
+            <th>strategy_name</th>
+            <th>researcher</th>
+            <th>status</th>
+            <th>initial_cash</th>
+            <th>current_nav</th>
+            <th>total_return</th>
+            <th>max_drawdown</th>
+            <th>latest_trade_date</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for account in data.accounts %}
+            <tr>
+              <td>{{ account.paper_id }}</td>
+              <td>{{ account.strategy_name }}</td>
+              <td>{{ account.researcher_name }}</td>
+              <td>{{ account.status }}</td>
+              <td>{{ account.initial_cash|fmt("money") }}</td>
+              <td>{{ account.current_nav|fmt("ratio") }}</td>
+              <td>{{ account.total_return|fmt("percent") }}</td>
+              <td>{{ account.max_drawdown|fmt("percent") }}</td>
+              <td>{{ account.latest_trade_date or "-" }}</td>
+              <td>
+                <a class="text-link" href="/ui/paper/{{ account.paper_id }}">查看</a>
+                <a class="text-link" href="/paper/accounts/{{ account.paper_id }}/download">下载</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-table">暂无模拟账户。</div>
+  {% endif %}
+</section>
+{% endblock %}

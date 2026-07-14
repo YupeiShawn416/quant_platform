@@ -11,6 +11,8 @@ from rq_platform.web.dashboard_data import (
     format_value,
     load_current_dashboard_data,
     load_data_catalog_dashboard_data,
+    load_paper_account_dashboard_data,
+    load_paper_accounts_dashboard_data,
     load_researcher_usage_dashboard_data,
     load_run_dashboard_data,
     load_runs_dashboard_data,
@@ -27,6 +29,7 @@ router = APIRouter()
 
 NAV_ITEMS = [
     ("runs", "历史 Runs", "/ui/backtests/runs"),
+    ("paper", "模拟账户", "/ui/paper"),
     ("researchers", "研究员", "/ui/researchers"),
     ("data", "数据", "/ui/data"),
     ("overview", "概览", "/ui/backtests/current/overview"),
@@ -134,6 +137,45 @@ def data_catalog(request: Request):
             "table_columns": table_columns,
             "page_label": "Researcher Data",
             "status_label": "data ready",
+        },
+    )
+
+
+@router.get("/ui/paper")
+def paper_accounts(request: Request, researcher_id: str | None = None, status: str | None = None):
+    data = load_paper_accounts_dashboard_data(researcher_id=researcher_id, status=status)
+    return templates.TemplateResponse(
+        request,
+        "paper.html",
+        {
+            "request": request,
+            "active": "paper",
+            "nav_items": NAV_ITEMS,
+            "data": data,
+            "table_columns": table_columns,
+            "page_label": "Paper Trading",
+            "status_label": "accounts",
+        },
+    )
+
+
+@router.get("/ui/paper/{paper_id}")
+def paper_account_detail(request: Request, paper_id: str):
+    data = load_paper_account_dashboard_data(paper_id)
+    return templates.TemplateResponse(
+        request,
+        "paper_detail.html",
+        {
+            "request": request,
+            "active": "paper",
+            "nav_items": [
+                ("paper", "模拟账户", "/ui/paper"),
+                ("paper_detail", "账户详情", f"/ui/paper/{paper_id}"),
+            ],
+            "data": data,
+            "table_columns": table_columns,
+            "page_label": f"Paper {paper_id}",
+            "status_label": "paper ready" if data.get("exists") else "paper unavailable",
         },
     )
 
