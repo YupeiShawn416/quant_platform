@@ -1,31 +1,23 @@
 # 用 Agent 标准化旧策略并提交服务器回测
 
+这份 runbook 给研究员使用。你不需要服务器密码、RQData license 或数据库账号。
+
 ## 0. 你需要准备的全部东西
 
-开始前只需要准备这些：
-
+- `SERVER_URL`：例如 `http://39.106.218.30`
+- `API_TOKEN`：管理员单独发放给你
+- Python 3.10 或 3.11
+- 一个本地研究目录
+  - Windows 示例：`C:\Users\<你的用户名>\quant_research`
+  - Mac 示例：`~/quant_research`
 - 原策略代码仓库路径
 - onboarding 文件夹路径
-- agent 输出项目路径
-- `SERVER_URL`
-- `API_TOKEN`
-- `SUPPORTED_DATE_RANGE=2016-01-04 to 2026-07-10`
-- `STRATEGY_NAME`
-- `RUN_ID`
-- `BACKTEST_START_DATE`
-- `BACKTEST_END_DATE`
-- `INITIAL_CASH`
-- `BENCHMARK`
-- 最终要提交的文件
+- Agent 输出项目路径
+- 策略名称、`run_id`、回测开始日期、回测结束日期、初始资金、benchmark
+- 最终要提交的文件：`strategy_package.zip`、result zip、`run_id`、简短研究说明
+- 可选工具：VS Code、Git、PowerShell、Python venv 或 conda
 
-`API_TOKEN` 由管理员单独发给你。每位研究员使用自己的独立 token，平台会自动记录每次回测是谁提交的。
-
-最终要提交：
-
-- `strategy_package.zip`
-- result zip
-- `run_id`
-- 简短研究说明
+`API_TOKEN` 不要发到微信群、飞书群、GitHub 或聊天记录。如果泄露，联系管理员重置。
 
 复制下面这段，填好尖括号里的内容：
 
@@ -34,38 +26,152 @@ ORIGINAL_STRATEGY_REPO=<你的原策略代码仓库本地路径>
 ONBOARDING_DIR=<handoff/researcher_onboarding_2025 的本地路径>
 WORK_PROJECT_DIR=<希望 Agent 输出标准化项目的路径>
 
-SERVER_URL=<管理员提供>
-API_TOKEN=<管理员提供>
+SERVER_URL=http://39.106.218.30
+API_TOKEN=<管理员单独提供>
 SUPPORTED_DATE_RANGE=2016-01-04 to 2026-07-10
 
 STRATEGY_NAME=<你的策略名称>
 RUN_ID=<本次回测 run_id，例如 my_strategy_2016_2026_v1>
-BACKTEST_START_DATE=<必须在 supported range 内> 格式如 2025-01-02
+BACKTEST_START_DATE=<必须在 supported range 内，例如 2025-01-02>
 BACKTEST_END_DATE=<必须在 supported range 内>
 INITIAL_CASH=1000000
 BENCHMARK=000300.XSHG
 ```
 
-## 1. 最短操作流程
+## 1. Mac / Linux 环境变量
 
-1. 填好第 0 节的信息块。
-2. 把信息块和第 2 节任务一起复制给 Agent。
-3. Agent 读取旧策略仓库，把策略转成标准 `strategy_package.zip`。
-4. Agent 上传服务器并提交回测。
-5. 保存 `run_id`。
-6. 打开 `$SERVER_URL/ui/backtests/runs/<RUN_ID>` 查看结果。
-7. 下载 result zip，并提交 `strategy_package.zip`、result zip 和简短研究说明。
+Mac / Linux 使用 bash 或 zsh：
 
-`current` 页面只是最近一次回测，会被最新回测覆盖。自己的结果请优先保存 `run_id`，并查看 `/ui/backtests/runs/<run_id>`。
-回测提交后，平台会自动记录提交人，不需要你手动填写 researcher_id。
+```bash
+export QUANT_PLATFORM_API_URL="http://39.106.218.30"
+export QUANT_PLATFORM_API_TOKEN="your_token_here"
+```
 
-如果你只想做模拟盘跟踪，可以让 agent 生成 `target_weights.csv`，由管理员创建 paper account 后上传到 `/paper/accounts/<paper_id>/target-weights`，再打开 `SERVER_URL/ui/paper/<paper_id>` 查看 NAV、持仓、订单和成交。
+Mac 不要照抄 Windows 的 `$env:`。
 
-如果旧策略需要平台标准数据，可以让 Agent 使用
-`examples/researcher_api_usage/quant_platform_client.py`，通过你的 `API_TOKEN`
-按日期和证券代码分页拉取数据。
+## 2. Windows PowerShell 环境变量
 
-## 2. 直接复制给 Agent 的任务
+Windows PowerShell 使用：
+
+```powershell
+$env:QUANT_PLATFORM_API_URL = "http://39.106.218.30"
+$env:QUANT_PLATFORM_API_TOKEN = "your_token_here"
+```
+
+Windows 不要照抄 Mac 的 `export`。
+
+完整 Windows 步骤见：
+
+```text
+handoff/researcher_onboarding_2025/09_WINDOWS_QUICKSTART.md
+```
+
+## 3. 主线 1：查看平台页面
+
+- 数据覆盖：http://39.106.218.30/ui/data
+- 回测历史：http://39.106.218.30/ui/backtests/runs
+- 研究员统计：http://39.106.218.30/ui/researchers
+- 模拟盘：http://39.106.218.30/ui/paper
+- Health：http://39.106.218.30/health
+
+说明：
+
+- `/ui/data` 看当前数据覆盖。
+- `/ui/backtests/runs` 看历史回测。
+- `/ui/researchers` 看研究员提交记录。
+- `/ui/paper` 看模拟盘跟踪。
+
+## 4. 主线 2：用 Data API 拉标准数据
+
+研究员通过平台 Data API 拉数据：
+
+- 不需要 RQData。
+- 不需要服务器密码。
+- 不需要数据库账号。
+- 不要直接拿服务器文件。
+
+建议把下面两个文件复制到你的本地研究目录：
+
+```text
+examples/researcher_api_usage/quant_platform_client.py
+examples/researcher_api_usage/data_api_quickstart.py
+```
+
+安装最小依赖：
+
+```bash
+pip install pandas requests
+```
+
+Python 示例：
+
+```python
+import os
+
+from quant_platform_client import QuantPlatformClient
+
+client = QuantPlatformClient(
+    os.environ["QUANT_PLATFORM_API_URL"],
+    os.environ["QUANT_PLATFORM_API_TOKEN"],
+)
+
+print(client.list_datasets())
+print(client.get_coverage())
+
+df = client.query_dataset(
+    "prices_1d_pre",
+    start_date="2026-07-13",
+    end_date="2026-07-13",
+    order_book_ids="000001.XSHE",
+    limit=100,
+)
+print(df.head())
+```
+
+Mac / Windows 都运行：
+
+```bash
+python data_api_quickstart.py
+```
+
+## 5. 主线 3：提交策略回测
+
+最短流程：
+
+1. 本地生成 `strategy_package.zip`。
+2. 上传到 `/backtests/run-package`。
+3. 平台返回 `run_id`。
+4. 打开 `/ui/backtests/runs/<run_id>` 查看。
+5. 下载 result zip。
+
+必须记住：
+
+- 回测结果以 `run_id` 为准。
+- `current` 只是最近一次，会被别人或你的下一次回测覆盖。
+- 如果要发给老板，发 `/ui/backtests/runs/<run_id>`。
+
+## 6. 主线 4：进入 Paper Trading
+
+当策略需要持续跟踪时，可以提交 `target_weights.csv` 到 paper trading。
+
+CSV 格式：
+
+```csv
+trade_date,order_book_id,target_weight
+2026-07-13,000001.XSHE,0.5
+2026-07-13,000002.XSHE,0.5
+```
+
+说明：
+
+- 第一版 paper trading 是模拟盘，不是实盘。
+- 不接券商。
+- 不会真实下单。
+- 多个 paper account 可以并行存在。
+- 老板可以在 `/ui/paper` 查看。
+- 单个账户详情页是 `/ui/paper/<paper_id>`。
+
+## 7. 直接复制给 Agent 的任务
 
 把第 0 节信息块填好后，连同下面这段一起发给 Agent：
 
@@ -78,8 +184,8 @@ ORIGINAL_STRATEGY_REPO=<你的原策略代码仓库本地路径>
 ONBOARDING_DIR=<handoff/researcher_onboarding_2025 的本地路径>
 WORK_PROJECT_DIR=<希望 Agent 输出标准化项目的路径>
 
-SERVER_URL=<管理员提供>
-API_TOKEN=<管理员提供>
+SERVER_URL=http://39.106.218.30
+API_TOKEN=<管理员单独提供>
 SUPPORTED_DATE_RANGE=2016-01-04 to 2026-07-10
 
 STRATEGY_NAME=<你的策略名称>
@@ -94,11 +200,12 @@ BENCHMARK=000300.XSHG
 1. 读取 ORIGINAL_STRATEGY_REPO，找出策略逻辑、数据需求、调仓频率和权重输出方式。
 2. 不要修改原策略仓库。
 3. 在 WORK_PROJECT_DIR 新建标准化项目。
-4. 生成符合平台要求的 strategy_package.zip。
-5. 回测区间必须在 SUPPORTED_DATE_RANGE 内。
-6. 上传到 SERVER_URL，并提交回测。
-7. 输出 run_id、summary、Dashboard 链接和 result zip 下载方式。
-8. 如果旧策略无法迁移，请说明原因，并给出最小改造方案。
+4. 如需平台标准数据，只通过 Data API 拉取。
+5. 生成符合平台要求的 strategy_package.zip。
+6. 回测区间必须在 SUPPORTED_DATE_RANGE 内。
+7. 上传到 SERVER_URL，并提交回测。
+8. 输出 run_id、summary、Dashboard 链接和 result zip 下载方式。
+9. 如果旧策略无法迁移，请说明原因，并给出最小改造方案。
 
 【迁移要求】
 
@@ -116,7 +223,7 @@ trade_date, order_book_id, weight
 
 【不要做】
 
-不要访问 SSH。
+不要登录服务器。
 不要访问 RQData。
 不要登录服务器。
 不要修改平台代码。
@@ -138,15 +245,34 @@ trade_date, order_book_id, weight
 10. 无法迁移或需要人工确认的地方。
 ```
 
-## 3. Agent 需要跑的命令
+## 8. Agent 需要跑的命令
 
-Agent 应该在标准化项目目录里执行：
+Agent 应该在标准化项目目录里执行。
+
+Mac / Linux：
 
 ```bash
 cd "$WORK_PROJECT_DIR"
 
 export QUANT_PLATFORM_API_URL="$SERVER_URL"
 export QUANT_PLATFORM_API_TOKEN="$API_TOKEN"
+
+python scripts/01_load_data.py
+python scripts/02_compute_factor.py
+python scripts/03_generate_signal.py
+python scripts/04_generate_weights.py
+python scripts/05_validate_outputs.py
+python scripts/06_build_package.py
+python scripts/07_submit_package.py
+```
+
+Windows PowerShell：
+
+```powershell
+cd $env:WORK_PROJECT_DIR
+
+$env:QUANT_PLATFORM_API_URL = $env:SERVER_URL
+$env:QUANT_PLATFORM_API_TOKEN = $env:API_TOKEN
 
 python scripts/01_load_data.py
 python scripts/02_compute_factor.py
@@ -166,94 +292,32 @@ RESULT_ZIP=<下载到的 result zip 路径>
 STRATEGY_PACKAGE=<strategy_package.zip 路径>
 ```
 
-## 4. 怎么看结果
+## 9. 常见问题
 
-主要入口：
+Q: 401 Unauthorized 是什么？
 
-```text
-$SERVER_URL/ui/backtests/runs/<RUN_ID>
-```
+A: token 没设置、token 写错、token 已被禁用、Windows 用了 `export`，或 Mac 用了 `$env:`。
 
-历史列表：
+Q: 403 Forbidden 是什么？
 
-```text
-$SERVER_URL/ui/backtests/runs
-```
+A: token 已禁用，或用了旧 token。联系管理员换新 token。
 
-最近一次结果：
+Q: 404 Not Found 是什么？
 
-```text
-$SERVER_URL/ui/backtests/current
-```
+A: URL 或 endpoint 写错，或者服务器版本没有部署对应功能。
 
-`current` 会被最新回测覆盖，不要把 `current` 当成长期结果保存。
+Q: 502 Bad Gateway 是什么？
 
-最终请保存：
+A: 后端服务异常。联系管理员，不要自己修服务器。
 
-- `run_id`
-- result zip
-- `strategy_package.zip`
-- 简短研究说明
+Q: Windows PowerShell 里 curl 行为奇怪怎么办？
 
-## 5. 当前平台支持什么
+A: 使用 `curl.exe`，或使用 `Invoke-RestMethod`。
 
-支持：
+Q: 服务器是 https 吗？
 
-- 日频 A 股策略
-- weights package
-- long-only / 权重型策略
-- run_id 独立结果
-- result zip 下载
-- `2016-01-04 to 2026-07-10` 的基础日频数据
-
-暂不支持或不要承诺：
-
-- 实时行情
-- 分钟级 / tick 级
-- 服务器训练机器学习模型
-- 自动 paper trading
-- 研究员直接 SSH
-- 研究员直接使用 RQData license
-
-机器学习策略的准确说法：
-
-平台不负责训练模型，但可以回测你在本地生成的标准目标权重。
-
-## 6. 如果原策略迁移不了
-
-常见原因：
-
-- 策略依赖外部私有数据
-- 策略只输出交易信号，不输出目标权重
-- 策略频率不是日频
-- 策略用了分钟级数据
-- 策略有未来函数
-- 策略没有明确回测区间
-
-处理方式：
-
-- 先改成日频目标权重
-- 先跑 supported date range 内的小区间
-- 先只迁移核心逻辑，不迁移所有花哨功能
-
-## 7. 常见问题
+A: 当前服务器是 `http`，不是 `https`。
 
 Q: 为什么我不看 current？
 
 A: `current` 是最近一次回测，别人跑了会变。请保存 `run_id`，看 `/ui/backtests/runs/<run_id>`。
-
-Q: 数据区间是什么？
-
-A: 当前 supported range 是 `2016-01-04 to 2026-07-10`。后续由管理员通过 daily update 扩展。
-
-Q: 我需要服务器密码吗？
-
-A: 不需要。
-
-Q: 我需要 RQData license 或 `.env` 吗？
-
-A: 不需要。
-
-Q: 我应该交 current 页面截图吗？
-
-A: 不建议只交截图。请提交 `run_id`、result zip、`strategy_package.zip` 和简短研究说明。

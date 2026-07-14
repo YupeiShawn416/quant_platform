@@ -55,6 +55,29 @@ handoff/researcher_onboarding_2025/
 - `handoff/researcher_onboarding_2025/00_READ_ME_FIRST.md`
 - `handoff/researcher_onboarding_2025/02_SIMPLE_USER_MANUAL.md`
 - `handoff/researcher_onboarding_2025/03_AI_AGENT_PROMPT.md`
+- `handoff/researcher_onboarding_2025/08_AGENT_REPO_MIGRATION_RUNBOOK.md`
+- `handoff/researcher_onboarding_2025/09_WINDOWS_QUICKSTART.md`
+
+## Researcher Quick Links
+
+服务器展示入口：
+
+```text
+http://39.106.218.30/ui/data
+http://39.106.218.30/ui/backtests/runs
+http://39.106.218.30/ui/researchers
+http://39.106.218.30/ui/paper
+```
+
+研究员文档：
+
+```text
+handoff/researcher_onboarding_2025/
+handoff/researcher_onboarding_2025/08_AGENT_REPO_MIGRATION_RUNBOOK.md
+handoff/researcher_onboarding_2025/09_WINDOWS_QUICKSTART.md
+docs/RESEARCHER_DATA_API.md
+docs/PAPER_TRADING_MVP.md
+```
 
 ## MVP Usage Flow
 

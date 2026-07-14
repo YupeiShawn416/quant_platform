@@ -1,24 +1,75 @@
 # Researcher Data API
 
-Stage 29 adds a small read-only data API for researchers. Researchers use their
-own API token to fetch standard platform data for local research and strategy
-package generation.
+研究员通过平台 Data API 拉取标准数据，用于本地研究、生成因子和构建 strategy package。
 
-Supported date range:
+研究员不需要：
+
+- RQData license
+- 服务器密码
+- 数据库账号
+- 服务器文件权限
+
+当前支持区间：
 
 ```text
 2016-01-04 to 2026-07-10
 ```
 
-## Token
+服务器示例：
 
-Pass the token in the request header:
-
-```bash
-curl -H "X-API-Token: <your_token>" http://127.0.0.1:8000/data/datasets
+```text
+http://39.106.218.30
 ```
 
-Local development can omit the token when `API_TOKEN=change_me`.
+不要在文档、代码、GitHub、聊天记录里写真实 token。
+
+## 环境变量
+
+Mac / Linux：
+
+```bash
+export QUANT_PLATFORM_API_URL="http://39.106.218.30"
+export QUANT_PLATFORM_API_TOKEN="your_token_here"
+```
+
+Windows PowerShell：
+
+```powershell
+$env:QUANT_PLATFORM_API_URL = "http://39.106.218.30"
+$env:QUANT_PLATFORM_API_TOKEN = "your_token_here"
+```
+
+Windows 不要照抄 `export`。Mac 不要照抄 `$env:`。
+
+## 快速测试
+
+Mac / Linux：
+
+```bash
+curl "$QUANT_PLATFORM_API_URL/health"
+
+curl -H "X-API-Token: $QUANT_PLATFORM_API_TOKEN" \
+  "$QUANT_PLATFORM_API_URL/data/datasets"
+```
+
+Windows PowerShell：
+
+```powershell
+Invoke-RestMethod "$env:QUANT_PLATFORM_API_URL/health"
+
+Invoke-RestMethod `
+  -Headers @{ "X-API-Token" = $env:QUANT_PLATFORM_API_TOKEN } `
+  "$env:QUANT_PLATFORM_API_URL/data/datasets"
+```
+
+也可以使用 `curl.exe`：
+
+```powershell
+curl.exe -H "X-API-Token: $env:QUANT_PLATFORM_API_TOKEN" `
+  "$env:QUANT_PLATFORM_API_URL/data/datasets"
+```
+
+PowerShell 里的 `curl` 可能是 alias，建议写 `curl.exe`。
 
 ## Datasets
 
@@ -42,11 +93,11 @@ GET /data/schema/{dataset}
 GET /data/query/{dataset}
 ```
 
-Query parameters:
+Query 参数：
 
 ```text
-start_date=2025-01-02
-end_date=2025-01-31
+start_date=2026-07-13
+end_date=2026-07-13
 order_book_id=000001.XSHE,600519.XSHG
 fields=trade_date,order_book_id,close
 limit=5000
@@ -54,10 +105,9 @@ offset=0
 format=json
 ```
 
-`limit` defaults to `5000` and cannot exceed `50000`. Use `offset` to page
-through larger result sets. Do not pull the entire data lake.
+`limit` 默认 `5000`，最大 `50000`。大结果用 `offset` 分页，不要一次拉整个数据湖。
 
-CSV output:
+CSV 输出：
 
 ```text
 GET /data/query/prices_1d_pre?...&format=csv
@@ -65,33 +115,49 @@ GET /data/query/prices_1d_pre?...&format=csv
 
 ## Python Client
 
-Copy or import:
+复制或引用：
 
 ```text
 examples/researcher_api_usage/quant_platform_client.py
+examples/researcher_api_usage/data_api_quickstart.py
 ```
 
-Example:
-
-```python
-from quant_platform_client import QuantPlatformClient
-
-client = QuantPlatformClient("http://127.0.0.1:8000", "<your_token>")
-prices = client.get_prices(
-    "2025-01-02",
-    "2025-01-31",
-    order_book_ids=["000001.XSHE", "600519.XSHG"],
-    fields=["trade_date", "order_book_id", "close"],
-)
-```
-
-Quickstart:
+安装最小依赖：
 
 ```bash
-export QUANT_PLATFORM_API_URL=http://127.0.0.1:8000
-export QUANT_PLATFORM_API_TOKEN=<your_token>
-python examples/researcher_api_usage/data_api_quickstart.py
+pip install pandas requests
 ```
 
-Researchers do not need RQData or SSH access. The server exposes only the
-standard API surface, not the server filesystem.
+示例：
+
+```python
+import os
+
+from quant_platform_client import QuantPlatformClient
+
+client = QuantPlatformClient(
+    os.environ["QUANT_PLATFORM_API_URL"],
+    os.environ["QUANT_PLATFORM_API_TOKEN"],
+)
+
+print(client.list_datasets())
+print(client.get_coverage())
+
+df = client.query_dataset(
+    "prices_1d_pre",
+    start_date="2026-07-13",
+    end_date="2026-07-13",
+    order_book_ids="000001.XSHE",
+    fields=["trade_date", "order_book_id", "close"],
+    limit=100,
+)
+print(df.head())
+```
+
+运行 quickstart：
+
+```bash
+python data_api_quickstart.py
+```
+
+Windows 和 Mac 都是这个 Python 命令，区别只在环境变量设置方式。
