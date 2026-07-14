@@ -111,6 +111,42 @@ def test_quality_flags_zero_row_success_status(tmp_path):
     assert any("row_count=0" in issue.message for issue in issues)
 
 
+def test_quality_ignores_zero_row_success_after_later_repair(tmp_path):
+    root = tmp_path / "rqdata"
+    calendar = root / "trading_calendar"
+    calendar.mkdir(parents=True)
+    pd.DataFrame(
+        {
+            "trade_date": ["2026-07-11", "2026-07-13"],
+            "is_open": [True, True],
+        }
+    ).to_parquet(calendar / "trading_calendar.parquet", index=False)
+    status_dir = root / "update_logs"
+    status_dir.mkdir()
+    pd.DataFrame(
+        [
+            {
+                "dataset": "prices",
+                "status": "success",
+                "row_count": 0,
+                "start_date": "2026-07-11",
+                "end_date": "2026-07-13",
+            },
+            {
+                "dataset": "prices",
+                "status": "success",
+                "row_count": 20812,
+                "start_date": "2026-07-10",
+                "end_date": "2026-07-13",
+            },
+        ]
+    ).to_csv(status_dir / "daily_update_status.csv", index=False)
+
+    issues = run_data_quality_checks(root, expected_end_date=None)
+
+    assert not any("row_count=0" in issue.message for issue in issues)
+
+
 def test_server_sync_manifest_contains_rsync_paths(tmp_path):
     manifest = render_server_sync_manifest(local_data_root=tmp_path / "rqdata")
 

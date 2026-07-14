@@ -140,19 +140,46 @@ def check_daily_update_status_zero_rows(root: Path) -> list[QualityIssue]:
         & (pd.to_numeric(frame["row_count"], errors="coerce").fillna(0).astype(int) == 0)
     ]
     issues: list[QualityIssue] = []
-    for _, row in rows.iterrows():
+    for row_index, row in rows.iterrows():
         start_date = str(row.get("start_date") or "")
         end_date = str(row.get("end_date") or "")
+        dataset = str(row.get("dataset"))
+        if _has_later_successful_repair(frame, row_index, dataset, start_date, end_date):
+            continue
         if _has_trading_days(root, start_date, end_date):
             issues.append(
                 QualityIssue(
-                    str(row.get("dataset")),
+                    dataset,
                     "error",
                     f"daily update status success with row_count=0 for trading range {start_date} to {end_date}",
                     str(status_path),
                 )
             )
     return issues
+
+
+def _has_later_successful_repair(
+    frame: pd.DataFrame,
+    row_index: int,
+    dataset: str,
+    start_date: str,
+    end_date: str,
+) -> bool:
+    if not start_date or not end_date:
+        return False
+    later = frame.loc[row_index + 1 :].copy()
+    if later.empty:
+        return False
+    later = later[
+        (later["dataset"].astype(str) == dataset)
+        & (later["status"].astype(str) == "success")
+        & (pd.to_numeric(later["row_count"], errors="coerce").fillna(0).astype(int) > 0)
+    ]
+    if later.empty:
+        return False
+    later_start = later["start_date"].astype(str)
+    later_end = later["end_date"].astype(str)
+    return bool(((later_start <= start_date) & (later_end >= end_date)).any())
 
 
 def write_quality_report(
