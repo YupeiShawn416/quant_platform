@@ -5,6 +5,7 @@ from rq_platform.etl import daily_update_core
 from rq_platform.etl import daily_update_plan as daily_update_plan_module
 from rq_platform.etl.daily_update_core import merge_partition_file, require_daily_update_confirmation, run_daily_update
 from rq_platform.etl.daily_update_plan import build_daily_update_plan
+from rq_platform.settings import settings
 
 
 def _write_calendar(root, dates):
@@ -115,7 +116,7 @@ def test_zero_row_guard_fails_for_trading_day(tmp_path, monkeypatch):
     instruments = root / "instruments"
     instruments.mkdir(parents=True)
     pd.DataFrame({"order_book_id": ["000001.XSHE"]}).to_parquet(instruments / "instruments.parquet", index=False)
-    monkeypatch.setattr(daily_update_core.settings, "data_root", str(root))
+    monkeypatch.setattr(settings, "data_root", str(root))
     monkeypatch.setattr(daily_update_core, "STATUS_PATH", root / "update_logs" / "daily_update_status.csv")
     monkeypatch.setattr(daily_update_core, "write_daily_update_report", lambda **kwargs: {"status": "failed"})
 
@@ -145,7 +146,7 @@ def test_zero_row_guard_skips_non_trading_day(tmp_path, monkeypatch):
     instruments = root / "instruments"
     instruments.mkdir(parents=True)
     pd.DataFrame({"order_book_id": ["000001.XSHE"]}).to_parquet(instruments / "instruments.parquet", index=False)
-    monkeypatch.setattr(daily_update_core.settings, "data_root", str(root))
+    monkeypatch.setattr(settings, "data_root", str(root))
     monkeypatch.setattr(daily_update_core, "STATUS_PATH", root / "update_logs" / "daily_update_status.csv")
     monkeypatch.setattr(daily_update_core, "write_daily_update_report", lambda **kwargs: {"status": "success"})
 

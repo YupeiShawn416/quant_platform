@@ -52,7 +52,7 @@ def _clean_reconcile(**overrides):
 
 
 def test_daily_update_report_success_recommends_rsync(monkeypatch):
-    monkeypatch.setattr("rq_platform.etl.daily_update_report.reconcile_daily_update_coverage", lambda **kwargs: _clean_reconcile())
+    monkeypatch.setitem(build_daily_update_report.__globals__, "reconcile_daily_update_coverage", lambda **kwargs: _clean_reconcile())
     report = build_daily_update_report(
         plan=_plan(),
         results=[_Result("prices", "success", 10)],
@@ -65,7 +65,7 @@ def test_daily_update_report_success_recommends_rsync(monkeypatch):
 
 
 def test_daily_update_report_failed_dataset_blocks_rsync(monkeypatch):
-    monkeypatch.setattr("rq_platform.etl.daily_update_report.reconcile_daily_update_coverage", lambda **kwargs: _clean_reconcile())
+    monkeypatch.setitem(build_daily_update_report.__globals__, "reconcile_daily_update_coverage", lambda **kwargs: _clean_reconcile())
     report = build_daily_update_report(
         plan=_plan(),
         results=[_Result("prices", "failed", error="boom")],
@@ -78,7 +78,7 @@ def test_daily_update_report_failed_dataset_blocks_rsync(monkeypatch):
 
 
 def test_daily_update_report_no_op_does_not_recommend_rsync(monkeypatch):
-    monkeypatch.setattr("rq_platform.etl.daily_update_report.reconcile_daily_update_coverage", lambda **kwargs: _clean_reconcile())
+    monkeypatch.setitem(build_daily_update_report.__globals__, "reconcile_daily_update_coverage", lambda **kwargs: _clean_reconcile())
     report = build_daily_update_report(
         plan=_plan(no_op=True),
         results=[],
@@ -90,7 +90,7 @@ def test_daily_update_report_no_op_does_not_recommend_rsync(monkeypatch):
 
 
 def test_daily_update_report_quality_error_marks_failed(monkeypatch):
-    monkeypatch.setattr("rq_platform.etl.daily_update_report.reconcile_daily_update_coverage", lambda **kwargs: _clean_reconcile())
+    monkeypatch.setitem(build_daily_update_report.__globals__, "reconcile_daily_update_coverage", lambda **kwargs: _clean_reconcile())
     report = build_daily_update_report(
         plan=_plan(),
         results=[_Result("prices", "success", 10)],
@@ -103,8 +103,9 @@ def test_daily_update_report_quality_error_marks_failed(monkeypatch):
 
 
 def test_daily_update_report_mismatch_blocks_rsync(monkeypatch):
-    monkeypatch.setattr(
-        "rq_platform.etl.daily_update_report.reconcile_daily_update_coverage",
+    monkeypatch.setitem(
+        build_daily_update_report.__globals__,
+        "reconcile_daily_update_coverage",
         lambda **kwargs: _clean_reconcile(mismatch_datasets=["prices"]),
     )
 

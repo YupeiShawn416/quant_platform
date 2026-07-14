@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from rq_platform.etl.daily_update_core import STATUS_PATH
+from rq_platform.etl.daily_update_paths import STATUS_PATH
 from rq_platform.etl.daily_update_reconcile import reconcile_daily_update_coverage
 
 

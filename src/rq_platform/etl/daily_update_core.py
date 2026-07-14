@@ -9,38 +9,37 @@ from uuid import uuid4
 import pandas as pd
 
 from rq_platform.data.parquet_lake import read_single_file, write_single_file
-from rq_platform.data_sources.rqdata_source import (
-    DEFAULT_INDUSTRY_SOURCE,
-    RQDataSource,
-    VALUATION_COLUMNS,
-)
-from rq_platform.etl.backfill_core import merge_trading_calendar_file
 from rq_platform.etl.daily_update_plan import (
-    DailyUpdatePlan,
     DailyUpdateTask,
     build_daily_update_plan,
 )
-from rq_platform.etl.data_quality_checks import run_data_quality_checks
+from rq_platform.etl.daily_update_paths import STATUS_COLUMNS, STATUS_PATH
 from rq_platform.etl.daily_update_report import write_daily_update_report
-from rq_platform.etl.update_index_membership import DEFAULT_INDEX_IDS as MEMBERSHIP_INDEX_IDS
-from rq_platform.etl.update_index_prices import DEFAULT_INDEX_IDS
+from rq_platform.etl.data_quality_checks import run_data_quality_checks
 from rq_platform.etl.update_tradability import update_tradability_dataset
-from rq_platform.settings import settings
 
 
-STATUS_PATH = settings.data_root_path / "update_logs" / "daily_update_status.csv"
-STATUS_COLUMNS = [
-    "run_id",
-    "created_at",
-    "dataset",
-    "start_date",
-    "end_date",
-    "year",
-    "status",
-    "row_count",
-    "output_files",
-    "error",
+DEFAULT_INDEX_IDS = [
+    "000300.XSHG",
+    "000905.XSHG",
+    "000852.XSHG",
+    "000001.XSHG",
+    "399001.XSHE",
+    "399006.XSHE",
 ]
+MEMBERSHIP_INDEX_IDS = ["000300.XSHG", "000905.XSHG", "000852.XSHG"]
+DEFAULT_INDUSTRY_SOURCE = "citics_2019"
+VALUATION_COLUMNS = [
+    "trade_date",
+    "order_book_id",
+    "market_cap",
+    "float_market_cap",
+    "pe_ratio",
+    "pb_ratio",
+    "ps_ratio",
+    "pcf_ratio",
+]
+RQDataSource = None
 
 
 @dataclass
@@ -85,7 +84,7 @@ def run_daily_update(
     dry_run: bool = False,
     confirm_daily_update: bool = False,
     batch_size: int = 300,
-    source: RQDataSource | None = None,
+    source: Any | None = None,
     run_id: str | None = None,
 ) -> dict[str, Any]:
     require_daily_update_confirmation(dry_run=dry_run, confirm_daily_update=confirm_daily_update)
@@ -116,7 +115,7 @@ def run_daily_update(
         report = write_daily_update_report(plan=plan, results=results, quality_issues=issues)
         return {"run_id": effective_run_id, "plan": plan, "results": results, "quality_issues": issues, "report": report}
 
-    data_source = source or RQDataSource()
+    data_source = source or _new_rqdata_source()
     results: list[DailyUpdateResult] = []
     for task in plan.tasks:
         if task.should_skip:
@@ -153,7 +152,7 @@ def run_daily_update(
 def _run_task(
     run_id: str,
     task: DailyUpdateTask,
-    source: RQDataSource,
+    source: Any,
     *,
     batch_size: int,
 ) -> DailyUpdateResult:
@@ -173,7 +172,7 @@ def _run_task(
             )
     if task.dataset == "calendar":
         frame = source.get_trading_calendar(task.start_date, task.end_date)
-        path = merge_trading_calendar_file(frame, Path(task.output_path), force=task.action == "rebuild")
+        path = _merge_trading_calendar_file(frame, Path(task.output_path), force=task.action == "rebuild")
         rows = len(pd.read_parquet(path, columns=["trade_date"]))
         return DailyUpdateResult(run_id, task.dataset, task.start_date, task.end_date, task.year, "success", rows, str(path))
     if task.dataset == "instruments":
@@ -225,7 +224,7 @@ def merge_partition_file(df: pd.DataFrame, path: Path, *, dedupe_keys: list[str]
     return path
 
 
-def _update_prices(run_id: str, task: DailyUpdateTask, source: RQDataSource, *, batch_size: int) -> DailyUpdateResult:
+def _update_prices(run_id: str, task: DailyUpdateTask, source: Any, *, batch_size: int) -> DailyUpdateResult:
     symbols = _load_symbols()
     output_paths = [Path(value) for value in task.output_path.split(";") if value]
     path_by_adjust = {path.parent.name.replace("prices_1d_", ""): path for path in output_paths}
@@ -248,7 +247,7 @@ def _update_prices(run_id: str, task: DailyUpdateTask, source: RQDataSource, *, 
     return DailyUpdateResult(run_id, task.dataset, task.start_date, task.end_date, task.year, "success", total_rows, ";".join(written))
 
 
-def _update_valuation(run_id: str, task: DailyUpdateTask, source: RQDataSource, *, batch_size: int) -> DailyUpdateResult:
+def _update_valuation(run_id: str, task: DailyUpdateTask, source: Any, *, batch_size: int) -> DailyUpdateResult:
     symbols = _load_symbols()
     frames = [
         source.get_valuation_factors(batch, task.start_date, task.end_date)
@@ -260,7 +259,7 @@ def _update_valuation(run_id: str, task: DailyUpdateTask, source: RQDataSource, 
     return DailyUpdateResult(run_id, task.dataset, task.start_date, task.end_date, task.year, "success", len(frame), str(path))
 
 
-def _update_industry(run_id: str, task: DailyUpdateTask, source: RQDataSource) -> DailyUpdateResult:
+def _update_industry(run_id: str, task: DailyUpdateTask, source: Any) -> DailyUpdateResult:
     symbols = _load_symbols()
     frames = [
         source.get_industry_classification(symbols, trade_date=trade_date, source=DEFAULT_INDUSTRY_SOURCE, level=1)
@@ -272,7 +271,7 @@ def _update_industry(run_id: str, task: DailyUpdateTask, source: RQDataSource) -
     return DailyUpdateResult(run_id, task.dataset, task.start_date, task.end_date, task.year, "success", len(frame), str(path))
 
 
-def _update_index_members(run_id: str, task: DailyUpdateTask, source: RQDataSource) -> DailyUpdateResult:
+def _update_index_members(run_id: str, task: DailyUpdateTask, source: Any) -> DailyUpdateResult:
     paths = [Path(value) for value in task.output_path.split(";") if value]
     component_frames: list[pd.DataFrame] = []
     weight_frames: list[pd.DataFrame] = []
@@ -319,6 +318,27 @@ def _batches(items: list[str], batch_size: int) -> list[list[str]]:
     if batch_size <= 0:
         raise ValueError("batch_size must be positive")
     return [items[start : start + batch_size] for start in range(0, len(items), batch_size)]
+
+
+def _new_rqdata_source() -> Any:
+    if RQDataSource is not None:
+        return RQDataSource()
+    from rq_platform.data_sources.rqdata_source import RQDataSource as RuntimeRQDataSource
+
+    return RuntimeRQDataSource()
+
+
+def _merge_trading_calendar_file(df: pd.DataFrame, path: Path, force: bool = False) -> Path:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    output = df.copy()
+    if path.exists() and not force:
+        output = pd.concat([pd.read_parquet(path), output], ignore_index=True)
+    if "trade_date" in output.columns:
+        output["trade_date"] = pd.to_datetime(output["trade_date"], errors="coerce").dt.strftime("%Y-%m-%d")
+        output = output.dropna(subset=["trade_date"])
+        output = output.drop_duplicates(["trade_date"], keep="last").sort_values("trade_date")
+    output.to_parquet(path, index=False)
+    return path
 
 
 def _ensure_non_empty_for_trading_range(task: DailyUpdateTask, frame: pd.DataFrame) -> None:

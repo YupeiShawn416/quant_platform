@@ -7,11 +7,11 @@ from typing import Any
 import pandas as pd
 
 from rq_platform.etl.daily_update_plan import DEFAULT_DAILY_DATASETS
+from rq_platform.etl.daily_update_paths import STATUS_PATH
 from rq_platform.settings import settings
 
 
 CORE_DAILY_DATASETS = {"prices", "index_prices", "tradability", "valuation", "industry", "index_members"}
-STATUS_PATH = settings.data_root_path / "update_logs" / "daily_update_status.csv"
 STATUS_TO_PARQUET_DATASETS = {
     "calendar": ["trading_calendar"],
     "instruments": ["instruments"],
