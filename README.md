@@ -74,6 +74,7 @@ http://39.106.218.30/ui/paper
 handoff/researcher_onboarding_2025/
 handoff/researcher_onboarding_2025/08_AGENT_REPO_MIGRATION_RUNBOOK.md
 docs/RESEARCHER_DATA_API.md
+docs/API_USAGE_MANUAL.md
 docs/PAPER_TRADING_MVP.md
 ```
 
