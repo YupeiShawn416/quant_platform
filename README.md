@@ -56,7 +56,6 @@ handoff/researcher_onboarding_2025/
 - `handoff/researcher_onboarding_2025/02_SIMPLE_USER_MANUAL.md`
 - `handoff/researcher_onboarding_2025/03_AI_AGENT_PROMPT.md`
 - `handoff/researcher_onboarding_2025/08_AGENT_REPO_MIGRATION_RUNBOOK.md`
-- `handoff/researcher_onboarding_2025/09_WINDOWS_QUICKSTART.md`
 
 ## Researcher Quick Links
 
@@ -74,7 +73,6 @@ http://39.106.218.30/ui/paper
 ```text
 handoff/researcher_onboarding_2025/
 handoff/researcher_onboarding_2025/08_AGENT_REPO_MIGRATION_RUNBOOK.md
-handoff/researcher_onboarding_2025/09_WINDOWS_QUICKSTART.md
 docs/RESEARCHER_DATA_API.md
 docs/PAPER_TRADING_MVP.md
 ```

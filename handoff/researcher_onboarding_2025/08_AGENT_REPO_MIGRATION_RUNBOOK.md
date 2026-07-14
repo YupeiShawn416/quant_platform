@@ -38,35 +38,98 @@ INITIAL_CASH=1000000
 BENCHMARK=000300.XSHG
 ```
 
-## 1. Mac / Linux 环境变量
+## 1. 先选择你的系统
 
-Mac / Linux 使用 bash 或 zsh：
+后续大部分步骤完全相同，只有目录、虚拟环境和环境变量命令不同。
+
+### Mac / Linux
+
+使用 bash 或 zsh：
+
+```bash
+mkdir -p ~/quant_research
+cd ~/quant_research
+
+python3 -m venv .venv
+source .venv/bin/activate
+
+pip install pandas requests
+```
+
+设置平台地址和 token：
 
 ```bash
 export QUANT_PLATFORM_API_URL="http://39.106.218.30"
 export QUANT_PLATFORM_API_TOKEN="your_token_here"
 ```
 
+测试：
+
+```bash
+curl "$QUANT_PLATFORM_API_URL/health"
+
+curl -H "X-API-Token: $QUANT_PLATFORM_API_TOKEN" \
+  "$QUANT_PLATFORM_API_URL/data/datasets"
+```
+
 Mac 不要照抄 Windows 的 `$env:`。
 
-## 2. Windows PowerShell 环境变量
+### Windows PowerShell
 
-Windows PowerShell 使用：
+使用 PowerShell：
+
+```powershell
+mkdir C:\Users\$env:USERNAME\quant_research
+cd C:\Users\$env:USERNAME\quant_research
+
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+如果 PowerShell 禁止执行脚本，先运行：
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+```
+
+不要为了这一步随便用管理员权限修改全系统策略。
+
+安装依赖：
+
+```powershell
+pip install pandas requests
+```
+
+设置平台地址和 token：
 
 ```powershell
 $env:QUANT_PLATFORM_API_URL = "http://39.106.218.30"
 $env:QUANT_PLATFORM_API_TOKEN = "your_token_here"
 ```
 
-Windows 不要照抄 Mac 的 `export`。
+测试 health：
 
-完整 Windows 步骤见：
-
-```text
-handoff/researcher_onboarding_2025/09_WINDOWS_QUICKSTART.md
+```powershell
+Invoke-RestMethod "$env:QUANT_PLATFORM_API_URL/health"
 ```
 
-## 3. 主线 1：查看平台页面
+或者：
+
+```powershell
+curl.exe "$env:QUANT_PLATFORM_API_URL/health"
+```
+
+测试 Data API：
+
+```powershell
+Invoke-RestMethod `
+  -Headers @{ "X-API-Token" = $env:QUANT_PLATFORM_API_TOKEN } `
+  "$env:QUANT_PLATFORM_API_URL/data/datasets"
+```
+
+PowerShell 里的 `curl` 可能是 alias，建议写 `curl.exe`。Windows 不要照抄 Mac 的 `export`。
+
+## 2. 主线 1：查看平台页面
 
 - 数据覆盖：http://39.106.218.30/ui/data
 - 回测历史：http://39.106.218.30/ui/backtests/runs
@@ -81,7 +144,7 @@ handoff/researcher_onboarding_2025/09_WINDOWS_QUICKSTART.md
 - `/ui/researchers` 看研究员提交记录。
 - `/ui/paper` 看模拟盘跟踪。
 
-## 4. 主线 2：用 Data API 拉标准数据
+## 3. 主线 2：用 Data API 拉标准数据
 
 研究员通过平台 Data API 拉数据：
 
@@ -134,7 +197,7 @@ Mac / Windows 都运行：
 python data_api_quickstart.py
 ```
 
-## 5. 主线 3：提交策略回测
+## 4. 主线 3：提交策略回测
 
 最短流程：
 
@@ -150,7 +213,7 @@ python data_api_quickstart.py
 - `current` 只是最近一次，会被别人或你的下一次回测覆盖。
 - 如果要发给老板，发 `/ui/backtests/runs/<run_id>`。
 
-## 6. 主线 4：进入 Paper Trading
+## 5. 主线 4：进入 Paper Trading
 
 当策略需要持续跟踪时，可以提交 `target_weights.csv` 到 paper trading。
 
@@ -171,7 +234,7 @@ trade_date,order_book_id,target_weight
 - 老板可以在 `/ui/paper` 查看。
 - 单个账户详情页是 `/ui/paper/<paper_id>`。
 
-## 7. 直接复制给 Agent 的任务
+## 6. 直接复制给 Agent 的任务
 
 把第 0 节信息块填好后，连同下面这段一起发给 Agent：
 
@@ -245,7 +308,7 @@ trade_date, order_book_id, weight
 10. 无法迁移或需要人工确认的地方。
 ```
 
-## 8. Agent 需要跑的命令
+## 7. Agent 需要跑的命令
 
 Agent 应该在标准化项目目录里执行。
 
@@ -292,7 +355,7 @@ RESULT_ZIP=<下载到的 result zip 路径>
 STRATEGY_PACKAGE=<strategy_package.zip 路径>
 ```
 
-## 9. 常见问题
+## 8. 常见问题
 
 Q: 401 Unauthorized 是什么？
 
