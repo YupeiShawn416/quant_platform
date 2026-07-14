@@ -27,4 +27,5 @@ def test_factor_dashboard_pages_open(tmp_path, monkeypatch):
     assert "market_cap" in list_page.text
     assert detail_page.status_code == 200
     assert "Market Cap" in detail_page.text
-
+    assert "latest_data_date" in list_page.text
+    assert "最近可用日" in detail_page.text

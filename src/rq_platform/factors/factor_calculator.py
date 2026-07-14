@@ -53,17 +53,18 @@ class FactorCalculator:
         frame = self._read_partitioned("valuation_1d", start_date, end_date)
         frame["trade_date"] = pd.to_datetime(frame["trade_date"]).dt.strftime("%Y-%m-%d")
         if factor_id == "market_cap":
-            column = _first_existing(frame, ["market_cap", "total_market_cap", "circulating_market_cap"])
+            column = _best_covered_column(frame, ["market_cap", "total_market_cap", "circulating_market_cap"])
             value = pd.to_numeric(frame[column], errors="coerce")
             factor_value = -np.log(value.where(value > 0))
         else:
-            column = _first_existing(frame, ["turnover_rate", "turnover_ratio"])
+            column = _best_covered_column(frame, ["turnover_rate", "turnover_ratio"])
             factor_value = -pd.to_numeric(frame[column], errors="coerce")
         return pd.DataFrame(
             {
                 "trade_date": frame["trade_date"],
                 "order_book_id": frame["order_book_id"].astype(str),
                 "factor_value": factor_value,
+                "source_field": column,
             }
         )
 
@@ -118,8 +119,18 @@ class FactorCalculator:
         return frame[(frame["trade_date"] >= start_date) & (frame["trade_date"] <= end_date)].reset_index(drop=True)
 
 
-def _first_existing(frame: pd.DataFrame, candidates: list[str]) -> str:
-    for column in candidates:
-        if column in frame.columns:
-            return column
+def _best_covered_column(frame: pd.DataFrame, candidates: list[str]) -> str:
+    available = [column for column in candidates if column in frame.columns]
+    if not available:
+        raise ValueError(f"missing required columns, expected one of: {', '.join(candidates)}")
+    coverage = {
+        column: int(pd.to_numeric(frame[column], errors="coerce").notna().sum())
+        for column in available
+    }
+    best = max(available, key=lambda column: coverage[column])
+    if coverage[best] == 0:
+        raise ValueError(
+            f"all candidate columns are empty, expected one of: {', '.join(candidates)}"
+        )
+    return best
     raise ValueError(f"missing required columns, expected one of: {', '.join(candidates)}")

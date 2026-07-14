@@ -107,6 +107,8 @@ def factor_generate_weights(
             max_names=int(payload.get("max_names", 50)),
             rebalance_frequency=payload.get("rebalance_frequency", "daily"),
             weight_method=payload.get("weight_method", "equal"),
+            min_coverage_threshold=float(payload.get("min_coverage_threshold", 0.5)),
+            use_latest_usable_date=bool(payload.get("use_latest_usable_date", False)),
         )
     except (FactorFileNotFound, ValueError) as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -124,4 +126,3 @@ def _analysis_csv(factor_id: str, filename: str) -> dict[str, Any]:
     except FactorFileNotFound as exc:
         raise HTTPException(status_code=404, detail=f"{filename} not found; run factor analysis first") from exc
     return {"count": int(len(frame)), "data": records(frame)}
-

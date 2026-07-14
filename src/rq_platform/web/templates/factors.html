@@ -33,8 +33,10 @@
           <th>factor_id</th>
           <th>category</th>
           <th>universe</th>
-          <th>latest_date</th>
-          <th>coverage</th>
+          <th>latest_data_date</th>
+          <th>latest_usable_date</th>
+          <th>latest coverage</th>
+          <th>usable coverage</th>
           <th>IC mean</th>
           <th>ICIR</th>
           <th>IC&gt;0</th>
@@ -50,8 +52,10 @@
             <td>{{ factor.factor_id }}</td>
             <td>{{ factor.category }}</td>
             <td>{{ factor.universe }}</td>
-            <td>{{ factor.latest_date or "-" }}</td>
+            <td>{{ factor.latest_data_date or factor.latest_date or "-" }}</td>
+            <td>{{ factor.latest_usable_date or "-" }}</td>
             <td>{{ factor.coverage|fmt("percent") }}</td>
+            <td>{{ factor.latest_usable_coverage|fmt("percent") }}</td>
             <td>{{ factor.ic_mean|fmt("ratio") }}</td>
             <td>{{ factor.icir|fmt("ratio") }}</td>
             <td>{{ factor.ic_positive_ratio|fmt("percent") }}</td>

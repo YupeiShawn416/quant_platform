@@ -37,9 +37,10 @@ def test_factor_api_returns_analysis_and_generates_weights(tmp_path, monkeypatch
     client = TestClient(app)
 
     assert client.get("/factors/momentum_20d/ic").json()["count"] > 0
+    detail = client.get("/factors/momentum_20d").json()
+    assert "latest_usable_date" in detail["summary"]
     generated = client.post("/factors/momentum_20d/generate-weights", json={"top_quantile": 0.5, "max_names": 3})
 
     assert generated.status_code == 200
     assert generated.json()["row_count"] > 0
     assert not generated.json()["target_weights"].startswith("/")
-

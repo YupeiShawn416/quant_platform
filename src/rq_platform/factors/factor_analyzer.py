@@ -21,10 +21,16 @@ from rq_platform.settings import settings
 
 
 class FactorAnalyzer:
-    def __init__(self, data_root: str | Path | None = None, store: FactorStore | None = None):
+    def __init__(
+        self,
+        data_root: str | Path | None = None,
+        store: FactorStore | None = None,
+        min_coverage_threshold: float = 0.5,
+    ):
         self.data_root = Path(data_root).resolve() if data_root is not None else settings.data_root_path
         self.store = store or FactorStore()
         self.registry = FactorRegistry()
+        self.min_coverage_threshold = min_coverage_threshold
 
     def analyze(
         self,
@@ -43,16 +49,23 @@ class FactorAnalyzer:
         group_ret = group_returns(merged, groups=groups)
         nav = group_nav(group_ret)
         turnover = top_quantile_turnover(values)
-        latest = str(values["trade_date"].max()) if not values.empty else None
-        top_bottom = self.top_bottom_latest(values)
+        latest_info = _latest_coverage_info(coverage, self.min_coverage_threshold)
+        top_bottom = self.top_bottom_latest(values, trade_date=latest_info["latest_usable_date"])
         summary = {
             "factor_id": factor_id,
             "name": definition.name,
             "category": definition.category,
-            "latest_date": latest,
+            "latest_date": latest_info["latest_data_date"],
+            "latest_data_date": latest_info["latest_data_date"],
+            "latest_coverage": latest_info["latest_coverage"],
+            "latest_usable_date": latest_info["latest_usable_date"],
+            "latest_usable_coverage": latest_info["latest_usable_coverage"],
+            "min_coverage_threshold": self.min_coverage_threshold,
+            "is_latest_date_usable": latest_info["is_latest_date_usable"],
+            "top_bottom_date": latest_info["latest_usable_date"],
             "row_count": int(len(values)),
-            "coverage_latest": _latest_value(coverage, "coverage_rate"),
-            "missing_rate_latest": _latest_value(coverage, "missing_rate"),
+            "coverage_latest": latest_info["latest_coverage"],
+            "missing_rate_latest": latest_info["latest_missing_rate"],
             "extreme_stats": extreme_stats(values),
             "ic_summary": ic_summary(ic),
             "long_short_return": _long_short_return(nav),
@@ -71,10 +84,10 @@ class FactorAnalyzer:
         self.store.write_analysis(factor_id, files)
         return summary
 
-    def top_bottom_latest(self, values: pd.DataFrame, n: int = 20) -> pd.DataFrame:
+    def top_bottom_latest(self, values: pd.DataFrame, n: int = 20, trade_date: str | None = None) -> pd.DataFrame:
         if values.empty:
             return pd.DataFrame(columns=["side", "trade_date", "order_book_id", "factor_value", "factor_score"])
-        latest = str(values["trade_date"].max())
+        latest = trade_date or str(values["trade_date"].max())
         frame = values[values["trade_date"].astype(str) == latest].dropna(subset=["factor_score"])
         top = frame.nlargest(n, "factor_score").copy()
         bottom = frame.nsmallest(n, "factor_score").copy()
@@ -98,6 +111,9 @@ class FactorAnalyzer:
             f"- factor_id: {summary['factor_id']}\n"
             f"- category: {summary['category']}\n"
             f"- latest_date: {summary['latest_date']}\n"
+            f"- latest_usable_date: {summary.get('latest_usable_date')}\n"
+            f"- latest_coverage: {summary.get('latest_coverage')}\n"
+            f"- latest_usable_coverage: {summary.get('latest_usable_coverage')}\n"
             f"- rows: {summary['row_count']}\n"
             f"- IC mean: {summary['ic_summary'].get('ic_mean')}\n"
             f"- ICIR: {summary['ic_summary'].get('icir')}\n"
@@ -111,6 +127,32 @@ def _latest_value(frame: pd.DataFrame, column: str) -> float | None:
     return None if pd.isna(value) else float(value)
 
 
+def _latest_coverage_info(coverage: pd.DataFrame, min_coverage_threshold: float) -> dict[str, Any]:
+    if coverage.empty:
+        return {
+            "latest_data_date": None,
+            "latest_coverage": None,
+            "latest_missing_rate": None,
+            "latest_usable_date": None,
+            "latest_usable_coverage": None,
+            "is_latest_date_usable": False,
+        }
+    ordered = coverage.sort_values("trade_date").copy()
+    latest = ordered.iloc[-1]
+    usable = ordered[pd.to_numeric(ordered["coverage_rate"], errors="coerce") >= min_coverage_threshold]
+    latest_usable = usable.iloc[-1] if not usable.empty else None
+    latest_data_date = str(latest["trade_date"])
+    latest_usable_date = str(latest_usable["trade_date"]) if latest_usable is not None else None
+    return {
+        "latest_data_date": latest_data_date,
+        "latest_coverage": float(latest["coverage_rate"]),
+        "latest_missing_rate": float(latest["missing_rate"]),
+        "latest_usable_date": latest_usable_date,
+        "latest_usable_coverage": float(latest_usable["coverage_rate"]) if latest_usable is not None else None,
+        "is_latest_date_usable": latest_data_date == latest_usable_date,
+    }
+
+
 def _long_short_return(nav: pd.DataFrame) -> float | None:
     if nav.empty:
         return None
@@ -118,4 +160,3 @@ def _long_short_return(nav: pd.DataFrame) -> float | None:
     if ls.empty:
         return None
     return float(ls.iloc[-1]["nav"]) - 1.0
-

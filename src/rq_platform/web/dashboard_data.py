@@ -173,7 +173,10 @@ def load_factors_dashboard_data(
                 "category": item["category"],
                 "universe": item["default_universe"],
                 "latest_date": summary.get("latest_date"),
+                "latest_data_date": summary.get("latest_data_date") or summary.get("latest_date"),
+                "latest_usable_date": summary.get("latest_usable_date"),
                 "coverage": summary.get("coverage_latest"),
+                "latest_usable_coverage": summary.get("latest_usable_coverage"),
                 "ic_mean": ic.get("ic_mean"),
                 "icir": ic.get("icir"),
                 "ic_positive_ratio": ic.get("ic_positive_ratio"),
@@ -519,9 +522,11 @@ def _paper_summary_metrics(account: dict[str, Any]) -> list[dict[str, Any]]:
 def _factor_summary_metrics(summary: dict[str, Any]) -> list[dict[str, Any]]:
     ic = summary.get("ic_summary") or {}
     fields = [
-        ("latest_date", "最新日期", "text", summary.get("latest_date")),
+        ("latest_data_date", "最新数据日", "text", summary.get("latest_data_date") or summary.get("latest_date")),
+        ("latest_usable_date", "最近可用日", "text", summary.get("latest_usable_date")),
         ("row_count", "样本数", "integer", summary.get("row_count")),
         ("coverage_latest", "最新覆盖率", "percent", summary.get("coverage_latest")),
+        ("latest_usable_coverage", "最近可用覆盖率", "percent", summary.get("latest_usable_coverage")),
         ("missing_rate_latest", "最新缺失率", "percent", summary.get("missing_rate_latest")),
         ("ic_mean", "IC 均值", "ratio", ic.get("ic_mean")),
         ("icir", "ICIR", "ratio", ic.get("icir")),
