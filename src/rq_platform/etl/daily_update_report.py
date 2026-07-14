@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from rq_platform.etl.daily_update_plan import DailyUpdatePlan, get_data_lake_latest_date
+from rq_platform.etl.daily_update_reconcile import reconcile_daily_update_coverage
 
 
 def write_daily_update_report(
@@ -36,6 +37,10 @@ def build_daily_update_report(
     issue_dicts = [item.to_dict() if hasattr(item, "to_dict") else dict(item) for item in quality_issues]
     failed = [item for item in result_dicts if item.get("status") == "failed"]
     error_issues = [item for item in issue_dicts if item.get("severity") == "error"]
+    reconcile = reconcile_daily_update_coverage(expected_end_date=plan.end_date)
+    mismatch_datasets = reconcile.get("mismatch_datasets", [])
+    zero_row_suspect_rows = reconcile.get("zero_row_suspect_rows", [])
+    status = "failed" if failed or error_issues or mismatch_datasets or zero_row_suspect_rows else "success"
     return {
         "start_date": plan.start_date,
         "end_date": plan.end_date,
@@ -47,8 +52,11 @@ def build_daily_update_report(
         "quality_error_count": len(error_issues),
         "quality_issues": issue_dicts,
         "failed_datasets": sorted({item.get("dataset") for item in failed if item.get("dataset")}),
-        "status": "failed" if failed or error_issues else "success",
-        "recommend_rsync": not failed and not error_issues and not plan.no_op,
+        "status_mismatch_datasets": mismatch_datasets,
+        "zero_row_suspect_rows": zero_row_suspect_rows,
+        "actual_coverage": reconcile.get("datasets", []),
+        "status": status,
+        "recommend_rsync": status == "success" and not plan.no_op,
     }
 
 
@@ -62,6 +70,8 @@ def render_daily_update_report_markdown(data: dict[str, Any]) -> str:
         f"latest_date_before_update: {data.get('latest_date_before_update') or ''}",
         f"latest_date_after_update: {data.get('latest_date_after_update') or ''}",
         f"quality_issues_count: {data['quality_issues_count']}",
+        f"status_mismatch_datasets: {', '.join(data.get('status_mismatch_datasets') or []) or '-'}",
+        f"zero_row_suspect_count: {len(data.get('zero_row_suspect_rows') or [])}",
         f"recommend_rsync: {data['recommend_rsync']}",
         "",
         "## Dataset Results",
@@ -76,6 +86,22 @@ def render_daily_update_report_markdown(data: dict[str, Any]) -> str:
             f"| {item.get('dataset') or ''} | {item.get('year') or ''} | {item.get('status') or ''} | "
             f"{item.get('row_count') or 0} | {item.get('start_date') or ''} | {item.get('end_date') or ''} | "
             f"{item.get('error') or ''} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Actual Coverage",
+            "",
+            "| dataset | latest status | status end | status rows | actual max date | mismatch | zero-row success |",
+            "| --- | --- | --- | ---: | --- | --- | --- |",
+        ]
+    )
+    for item in data.get("actual_coverage", []):
+        lines.append(
+            f"| {item.get('dataset') or ''} | {item.get('latest_status') or ''} | "
+            f"{item.get('status_end_date') or ''} | {item.get('status_row_count') or 0} | "
+            f"{item.get('actual_max_date') or ''} | {item.get('status_mismatch')} | "
+            f"{item.get('zero_row_success')} |"
         )
     lines.extend(["", "## Quality Issues", ""])
     if not data["quality_issues"]:

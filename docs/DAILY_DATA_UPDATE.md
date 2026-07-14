@@ -36,13 +36,16 @@ Those are separate product surfaces and are intentionally out of scope here.
 
 ## Dry Run
 
-Dry-run does not call RQData.
+Dry-run does not call RQData. Coverage is determined from actual Parquet
+`trade_date` max dates, not only from the status log.
 
 ```bash
 make daily-update-dry-run END_DATE=2026-07-11
 ```
 
-If the data lake already covers the target date, the plan returns no-op.
+If every selected dataset already covers the target date, the plan returns
+no-op. If the status log says success but the Parquet files have not advanced,
+the plan marks the dataset as `repair_needed` or `update_needed`.
 
 ## Real Update
 
@@ -78,9 +81,18 @@ reports/generated/daily_update_report.json
 
 If quality issues are present, treat the update as failed.
 
+Daily update also reconciles status logs with actual Parquet coverage:
+
+```bash
+make reconcile-daily-update
+```
+
+Core datasets must not report `success` with `row_count=0` on a non-empty
+trading date range. Such rows are treated as suspect and block server sync.
+
 ## Server Sync
 
-Only sync after the daily update and quality checks pass.
+Only sync after the daily update, reconciliation, and quality checks pass.
 
 Generate the sync manifest:
 
@@ -89,6 +101,8 @@ make server-sync-manifest
 ```
 
 Then use the administrator-approved rsync command from the manifest.
+Do not rsync when `recommend_rsync=false`, any core dataset has a coverage
+mismatch, or any core dataset has `success` with `row_count=0`.
 
 ## Recovery
 

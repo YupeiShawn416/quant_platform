@@ -222,6 +222,7 @@ make daily-update-dry-run END_DATE=2026-07-11
 ```bash
 make daily-update END_DATE=2026-07-11
 make check-data-2016-present
+make reconcile-daily-update
 ```
 
 每日更新说明见：

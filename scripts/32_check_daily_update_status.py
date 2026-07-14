@@ -7,6 +7,7 @@ from pathlib import Path
 import pandas as pd
 
 from rq_platform.etl.daily_update_core import STATUS_PATH
+from rq_platform.etl.daily_update_reconcile import reconcile_daily_update_coverage
 
 
 def main() -> int:
@@ -32,12 +33,22 @@ def main() -> int:
     if report_path.exists():
         data = json.loads(report_path.read_text(encoding="utf-8"))
         print(f"report_json={report_path}")
-        print(f"report_status={data.get('status')}")
-        print(f"quality_issues_count={data.get('quality_issues_count')}")
-        print(f"recommend_rsync={data.get('recommend_rsync')}")
+        print(f"report_file_status={data.get('status')}")
+        print(f"report_file_quality_issues_count={data.get('quality_issues_count')}")
+        print(f"report_file_status_mismatch_datasets={','.join(data.get('status_mismatch_datasets') or [])}")
+        print(f"report_file_zero_row_suspect_count={len(data.get('zero_row_suspect_rows') or [])}")
+        print(f"report_file_recommend_rsync={data.get('recommend_rsync')}")
     else:
         print(f"report_json={report_path}")
-        print("report_status=missing")
+        print("report_file_status=missing")
+    reconcile = reconcile_daily_update_coverage(status_path=status_path)
+    live_mismatches = reconcile.get("mismatch_datasets") or []
+    live_zero_rows = reconcile.get("zero_row_suspect_rows") or []
+    effective_status = "failed" if live_mismatches or live_zero_rows else "success"
+    print(f"effective_status={effective_status}")
+    print(f"effective_mismatch_datasets={','.join(live_mismatches)}")
+    print(f"effective_zero_row_suspect_count={len(live_zero_rows)}")
+    print(f"effective_recommend_rsync={reconcile.get('recommend_rsync')}")
     return 0
 
 

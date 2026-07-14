@@ -45,7 +45,14 @@ def _plan(no_op=False):
     )
 
 
-def test_daily_update_report_success_recommends_rsync():
+def _clean_reconcile(**overrides):
+    data = {"mismatch_datasets": [], "zero_row_suspect_rows": [], "datasets": []}
+    data.update(overrides)
+    return data
+
+
+def test_daily_update_report_success_recommends_rsync(monkeypatch):
+    monkeypatch.setattr("rq_platform.etl.daily_update_report.reconcile_daily_update_coverage", lambda **kwargs: _clean_reconcile())
     report = build_daily_update_report(
         plan=_plan(),
         results=[_Result("prices", "success", 10)],
@@ -57,7 +64,8 @@ def test_daily_update_report_success_recommends_rsync():
     assert report["quality_issues_count"] == 0
 
 
-def test_daily_update_report_failed_dataset_blocks_rsync():
+def test_daily_update_report_failed_dataset_blocks_rsync(monkeypatch):
+    monkeypatch.setattr("rq_platform.etl.daily_update_report.reconcile_daily_update_coverage", lambda **kwargs: _clean_reconcile())
     report = build_daily_update_report(
         plan=_plan(),
         results=[_Result("prices", "failed", error="boom")],
@@ -69,7 +77,8 @@ def test_daily_update_report_failed_dataset_blocks_rsync():
     assert report["recommend_rsync"] is False
 
 
-def test_daily_update_report_no_op_does_not_recommend_rsync():
+def test_daily_update_report_no_op_does_not_recommend_rsync(monkeypatch):
+    monkeypatch.setattr("rq_platform.etl.daily_update_report.reconcile_daily_update_coverage", lambda **kwargs: _clean_reconcile())
     report = build_daily_update_report(
         plan=_plan(no_op=True),
         results=[],
@@ -80,7 +89,8 @@ def test_daily_update_report_no_op_does_not_recommend_rsync():
     assert report["recommend_rsync"] is False
 
 
-def test_daily_update_report_quality_error_marks_failed():
+def test_daily_update_report_quality_error_marks_failed(monkeypatch):
+    monkeypatch.setattr("rq_platform.etl.daily_update_report.reconcile_daily_update_coverage", lambda **kwargs: _clean_reconcile())
     report = build_daily_update_report(
         plan=_plan(),
         results=[_Result("prices", "success", 10)],
@@ -90,3 +100,20 @@ def test_daily_update_report_quality_error_marks_failed():
     assert report["status"] == "failed"
     assert report["quality_issues_count"] == 1
     assert report["quality_error_count"] == 1
+
+
+def test_daily_update_report_mismatch_blocks_rsync(monkeypatch):
+    monkeypatch.setattr(
+        "rq_platform.etl.daily_update_report.reconcile_daily_update_coverage",
+        lambda **kwargs: _clean_reconcile(mismatch_datasets=["prices"]),
+    )
+
+    report = build_daily_update_report(
+        plan=_plan(),
+        results=[_Result("prices", "success", 10)],
+        quality_issues=[],
+    )
+
+    assert report["status"] == "failed"
+    assert report["recommend_rsync"] is False
+    assert report["status_mismatch_datasets"] == ["prices"]

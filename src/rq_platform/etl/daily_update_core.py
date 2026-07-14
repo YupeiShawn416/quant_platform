@@ -157,6 +157,20 @@ def _run_task(
     *,
     batch_size: int,
 ) -> DailyUpdateResult:
+    if task.dataset in {"prices", "index_prices", "tradability", "valuation", "industry", "index_members"}:
+        trading_dates = _trading_dates(task.start_date, task.end_date)
+        if not trading_dates:
+            return DailyUpdateResult(
+                run_id,
+                task.dataset,
+                task.start_date,
+                task.end_date,
+                task.year,
+                "skipped",
+                0,
+                task.output_path,
+                "no trading days",
+            )
     if task.dataset == "calendar":
         frame = source.get_trading_calendar(task.start_date, task.end_date)
         path = merge_trading_calendar_file(frame, Path(task.output_path), force=task.action == "rebuild")
@@ -168,6 +182,7 @@ def _run_task(
         return DailyUpdateResult(run_id, task.dataset, task.start_date, task.end_date, task.year, "success", len(frame), str(path))
     if task.dataset == "index_prices":
         frame = source.get_index_prices(DEFAULT_INDEX_IDS, task.start_date, task.end_date)
+        _ensure_non_empty_for_trading_range(task, frame)
         path = merge_partition_file(
             frame,
             Path(task.output_path),
@@ -178,6 +193,7 @@ def _run_task(
         return _update_prices(run_id, task, source, batch_size=batch_size)
     if task.dataset == "tradability":
         result = update_tradability_dataset(year=int(task.year), adjust_type="pre")
+        _ensure_positive_rows_for_trading_range(task, int(result["rows"]))
         return DailyUpdateResult(run_id, task.dataset, task.start_date, task.end_date, task.year, "success", result["rows"], result["path"])
     if task.dataset == "valuation":
         return _update_valuation(run_id, task, source, batch_size=batch_size)
@@ -190,9 +206,6 @@ def _run_task(
 
 def merge_partition_file(df: pd.DataFrame, path: Path, *, dedupe_keys: list[str]) -> Path:
     if df.empty:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        if not path.exists():
-            df.to_parquet(path, index=False)
         return path
     path.parent.mkdir(parents=True, exist_ok=True)
     output = df.copy()
@@ -224,6 +237,7 @@ def _update_prices(run_id: str, task: DailyUpdateTask, source: RQDataSource, *, 
             for batch in _batches(symbols, batch_size)
         ]
         frame = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+        _ensure_non_empty_for_trading_range(task, frame)
         path = merge_partition_file(
             frame,
             path_by_adjust[adjust_type],
@@ -241,6 +255,7 @@ def _update_valuation(run_id: str, task: DailyUpdateTask, source: RQDataSource, 
         for batch in _batches(symbols, batch_size)
     ]
     frame = pd.concat([item for item in frames if not item.empty], ignore_index=True) if frames else pd.DataFrame(columns=VALUATION_COLUMNS)
+    _ensure_non_empty_for_trading_range(task, frame)
     path = merge_partition_file(frame, Path(task.output_path), dedupe_keys=["trade_date", "order_book_id"])
     return DailyUpdateResult(run_id, task.dataset, task.start_date, task.end_date, task.year, "success", len(frame), str(path))
 
@@ -252,6 +267,7 @@ def _update_industry(run_id: str, task: DailyUpdateTask, source: RQDataSource) -
         for trade_date in _trading_dates(task.start_date, task.end_date)
     ]
     frame = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+    _ensure_non_empty_for_trading_range(task, frame)
     path = merge_partition_file(frame, Path(task.output_path), dedupe_keys=["trade_date", "order_book_id"])
     return DailyUpdateResult(run_id, task.dataset, task.start_date, task.end_date, task.year, "success", len(frame), str(path))
 
@@ -266,6 +282,8 @@ def _update_index_members(run_id: str, task: DailyUpdateTask, source: RQDataSour
             weight_frames.append(source.get_index_weights(index_id, trade_date))
     components = pd.concat(component_frames, ignore_index=True) if component_frames else pd.DataFrame()
     weights = pd.concat(weight_frames, ignore_index=True) if weight_frames else pd.DataFrame()
+    _ensure_non_empty_for_trading_range(task, components)
+    _ensure_non_empty_for_trading_range(task, weights)
     component_path = merge_partition_file(components, paths[0], dedupe_keys=["trade_date", "index_id", "order_book_id"])
     weight_path = merge_partition_file(weights, paths[1], dedupe_keys=["trade_date", "index_id", "order_book_id"])
     return DailyUpdateResult(
@@ -301,6 +319,16 @@ def _batches(items: list[str], batch_size: int) -> list[list[str]]:
     if batch_size <= 0:
         raise ValueError("batch_size must be positive")
     return [items[start : start + batch_size] for start in range(0, len(items), batch_size)]
+
+
+def _ensure_non_empty_for_trading_range(task: DailyUpdateTask, frame: pd.DataFrame) -> None:
+    if frame.empty and _trading_dates(task.start_date, task.end_date):
+        raise ValueError("zero rows returned for non-empty trading date range")
+
+
+def _ensure_positive_rows_for_trading_range(task: DailyUpdateTask, rows: int) -> None:
+    if rows == 0 and _trading_dates(task.start_date, task.end_date):
+        raise ValueError("zero rows returned for non-empty trading date range")
 
 
 def _append_daily_status(result: DailyUpdateResult) -> None:

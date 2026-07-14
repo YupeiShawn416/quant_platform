@@ -8,6 +8,9 @@ import pandas as pd
 
 from rq_platform.settings import settings
 
+CORE_STATUS_DATASETS = {"prices", "index_prices", "tradability", "valuation", "industry", "index_members"}
+PRICE_DATASETS = ["prices_1d_pre", "prices_1d_none", "index_prices_1d"]
+
 
 @dataclass
 class QualityIssue:
@@ -25,7 +28,10 @@ class QualityIssue:
         }
 
 
-def run_data_quality_checks(data_root: str | Path | None = None) -> list[QualityIssue]:
+def run_data_quality_checks(
+    data_root: str | Path | None = None,
+    expected_end_date: str | None = None,
+) -> list[QualityIssue]:
     root = Path(data_root).resolve() if data_root is not None else settings.data_root_path
     issues: list[QualityIssue] = []
     for path in sorted(root.glob("*/*.parquet")):
@@ -39,6 +45,10 @@ def run_data_quality_checks(data_root: str | Path | None = None) -> list[Quality
         issues.extend(check_ohlc(dataset, frame, path))
         issues.extend(check_non_negative(dataset, frame, path))
     issues.extend(check_cross_dataset_coverage(root))
+    target_end = expected_end_date or _latest_trading_date(root)
+    if target_end:
+        issues.extend(check_expected_end_date_coverage(root, target_end))
+    issues.extend(check_daily_update_status_zero_rows(root))
     return issues
 
 
@@ -86,6 +96,62 @@ def check_cross_dataset_coverage(root: Path) -> list[QualityIssue]:
     none_years = _years(root / "prices_1d_none")
     if pre_years != none_years:
         issues.append(QualityIssue("prices", "warning", f"pre/none year coverage mismatch: pre={sorted(pre_years)} none={sorted(none_years)}"))
+    max_dates = {
+        dataset: _dataset_max_date(root / dataset)
+        for dataset in ["prices_1d_pre", "prices_1d_none", "index_prices_1d", "tradability_1d", "valuation_1d"]
+    }
+    non_empty = {key: value for key, value in max_dates.items() if value}
+    if len(set(non_empty.values())) > 1:
+        issues.append(QualityIssue("coverage", "warning", f"core dataset max_date mismatch: {non_empty}"))
+    return issues
+
+
+def check_expected_end_date_coverage(root: Path, expected_end_date: str) -> list[QualityIssue]:
+    if not _is_trading_day(root, expected_end_date):
+        return []
+    issues: list[QualityIssue] = []
+    for dataset in PRICE_DATASETS:
+        max_date = _dataset_max_date(root / dataset)
+        if max_date is None or max_date < expected_end_date:
+            issues.append(
+                QualityIssue(
+                    dataset,
+                    "error",
+                    f"max_date {max_date or 'missing'} is earlier than expected trading date {expected_end_date}",
+                    str(root / dataset),
+                )
+            )
+    return issues
+
+
+def check_daily_update_status_zero_rows(root: Path) -> list[QualityIssue]:
+    status_path = root / "update_logs" / "daily_update_status.csv"
+    if not status_path.exists():
+        return []
+    try:
+        frame = pd.read_csv(status_path)
+    except Exception as exc:
+        return [QualityIssue("daily_update_status", "warning", f"cannot read status log: {type(exc).__name__}", str(status_path))]
+    if frame.empty or not {"dataset", "status", "row_count"}.issubset(frame.columns):
+        return []
+    rows = frame[
+        frame["dataset"].astype(str).isin(CORE_STATUS_DATASETS)
+        & (frame["status"].astype(str) == "success")
+        & (pd.to_numeric(frame["row_count"], errors="coerce").fillna(0).astype(int) == 0)
+    ]
+    issues: list[QualityIssue] = []
+    for _, row in rows.iterrows():
+        start_date = str(row.get("start_date") or "")
+        end_date = str(row.get("end_date") or "")
+        if _has_trading_days(root, start_date, end_date):
+            issues.append(
+                QualityIssue(
+                    str(row.get("dataset")),
+                    "error",
+                    f"daily update status success with row_count=0 for trading range {start_date} to {end_date}",
+                    str(status_path),
+                )
+            )
     return issues
 
 
@@ -133,3 +199,70 @@ def _years(path: Path) -> set[int]:
         except Exception:
             continue
     return years
+
+
+def _dataset_max_date(path: Path) -> str | None:
+    values = [_file_max_date(file_path) for file_path in sorted(path.glob("*.parquet"))]
+    values = [value for value in values if value]
+    return max(values) if values else None
+
+
+def _file_max_date(path: Path) -> str | None:
+    try:
+        frame = pd.read_parquet(path, columns=["trade_date"])
+    except Exception:
+        return None
+    if frame.empty:
+        return None
+    dates = pd.to_datetime(frame["trade_date"], errors="coerce").dropna()
+    if dates.empty:
+        return None
+    return dates.max().strftime("%Y-%m-%d")
+
+
+def _latest_trading_date(root: Path) -> str | None:
+    calendar_path = root / "trading_calendar" / "trading_calendar.parquet"
+    if not calendar_path.exists():
+        return None
+    try:
+        frame = pd.read_parquet(calendar_path)
+    except Exception:
+        return None
+    frame = _calendar_trade_dates(frame)
+    if frame.empty:
+        return None
+    return frame["trade_date"].max()
+
+
+def _is_trading_day(root: Path, trade_date: str) -> bool:
+    return bool(trade_date and trade_date in _trading_dates(root, trade_date, trade_date))
+
+
+def _has_trading_days(root: Path, start_date: str, end_date: str) -> bool:
+    if not start_date or not end_date:
+        return False
+    return bool(_trading_dates(root, start_date, end_date))
+
+
+def _trading_dates(root: Path, start_date: str, end_date: str) -> list[str]:
+    calendar_path = root / "trading_calendar" / "trading_calendar.parquet"
+    if not calendar_path.exists():
+        return []
+    try:
+        frame = pd.read_parquet(calendar_path)
+    except Exception:
+        return []
+    frame = _calendar_trade_dates(frame)
+    frame = frame[(frame["trade_date"] >= start_date) & (frame["trade_date"] <= end_date)]
+    return frame["trade_date"].tolist()
+
+
+def _calendar_trade_dates(frame: pd.DataFrame) -> pd.DataFrame:
+    if "trade_date" not in frame.columns:
+        return pd.DataFrame(columns=["trade_date"])
+    output = frame.copy()
+    output["trade_date"] = pd.to_datetime(output["trade_date"], errors="coerce").dt.strftime("%Y-%m-%d")
+    output = output.dropna(subset=["trade_date"])
+    if "is_open" in output.columns:
+        output = output[output["is_open"].astype(bool)]
+    return output[["trade_date"]].drop_duplicates().sort_values("trade_date").reset_index(drop=True)
