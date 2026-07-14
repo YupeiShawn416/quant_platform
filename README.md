@@ -38,6 +38,7 @@ Data API -> local research template -> weights package -> platform backtest -> D
 14. Backtest Run Registry + run_id 独立结果查看
 15. 2016 至今数据补全 workflow
 16. 当前平台审计文档：`docs/PLATFORM_AUDIT_CURRENT_STATE.md`
+17. Factor Library MVP：内置因子、因子分析、因子 Dashboard、因子生成 weights
 
 ## Current Stage
 
@@ -66,6 +67,7 @@ http://39.106.218.30/ui/data
 http://39.106.218.30/ui/backtests/runs
 http://39.106.218.30/ui/researchers
 http://39.106.218.30/ui/paper
+http://39.106.218.30/ui/factors
 ```
 
 研究员文档：
@@ -76,6 +78,7 @@ handoff/researcher_onboarding_2025/08_AGENT_REPO_MIGRATION_RUNBOOK.md
 docs/RESEARCHER_DATA_API.md
 docs/API_USAGE_MANUAL.md
 docs/PAPER_TRADING_MVP.md
+docs/FACTOR_LIBRARY_MVP.md
 ```
 
 ## MVP Usage Flow
@@ -275,6 +278,29 @@ make paper-smoke-local
 
 ```text
 docs/PAPER_TRADING_MVP.md
+```
+
+## Factor Library MVP
+
+平台现在支持基础因子库 MVP：内置 5 个基础因子，支持因子计算、覆盖率/IC/分组收益/换手分析、Dashboard 展示，以及生成 long-only target weights。
+
+入口：
+
+```text
+/ui/factors
+/ui/factors/<factor_id>
+```
+
+本地 smoke：
+
+```bash
+make factor-smoke-local
+```
+
+说明见：
+
+```text
+docs/FACTOR_LIBRARY_MVP.md
 ```
 
 ## What Not To Do Yet

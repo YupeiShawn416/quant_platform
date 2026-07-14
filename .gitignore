@@ -7,6 +7,7 @@ __pycache__/
 logs/
 config/researcher_tokens.json
 data/research_data/
+data/factor_library/
 data/rqalpha_bundle/
 *.parquet
 *.db

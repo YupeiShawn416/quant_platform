@@ -11,6 +11,8 @@ from rq_platform.web.dashboard_data import (
     format_value,
     load_current_dashboard_data,
     load_data_catalog_dashboard_data,
+    load_factor_detail_dashboard_data,
+    load_factors_dashboard_data,
     load_paper_account_dashboard_data,
     load_paper_accounts_dashboard_data,
     load_researcher_usage_dashboard_data,
@@ -30,6 +32,7 @@ router = APIRouter()
 NAV_ITEMS = [
     ("runs", "历史 Runs", "/ui/backtests/runs"),
     ("paper", "模拟账户", "/ui/paper"),
+    ("factors", "因子库", "/ui/factors"),
     ("researchers", "研究员", "/ui/researchers"),
     ("data", "数据", "/ui/data"),
     ("overview", "概览", "/ui/backtests/current/overview"),
@@ -176,6 +179,45 @@ def paper_account_detail(request: Request, paper_id: str):
             "table_columns": table_columns,
             "page_label": f"Paper {paper_id}",
             "status_label": "paper ready" if data.get("exists") else "paper unavailable",
+        },
+    )
+
+
+@router.get("/ui/factors")
+def factors(request: Request, category: str | None = None, universe: str | None = None, keyword: str | None = None):
+    data = load_factors_dashboard_data(category=category, universe=universe, keyword=keyword)
+    return templates.TemplateResponse(
+        request,
+        "factors.html",
+        {
+            "request": request,
+            "active": "factors",
+            "nav_items": NAV_ITEMS,
+            "data": data,
+            "table_columns": table_columns,
+            "page_label": "Factor Library",
+            "status_label": "factors",
+        },
+    )
+
+
+@router.get("/ui/factors/{factor_id}")
+def factor_detail(request: Request, factor_id: str):
+    data = load_factor_detail_dashboard_data(factor_id)
+    return templates.TemplateResponse(
+        request,
+        "factor_detail.html",
+        {
+            "request": request,
+            "active": "factors",
+            "nav_items": [
+                ("factors", "因子库", "/ui/factors"),
+                ("factor_detail", "因子详情", f"/ui/factors/{factor_id}"),
+            ],
+            "data": data,
+            "table_columns": table_columns,
+            "page_label": f"Factor {factor_id}",
+            "status_label": "analyzed" if data.get("summary") else "metadata only",
         },
     )
 

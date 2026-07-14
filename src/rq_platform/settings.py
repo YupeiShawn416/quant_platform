@@ -29,6 +29,8 @@ class Settings(BaseSettings):
     data_access_log_path: str = "./runs/data_access/data_access_log.jsonl"
     paper_accounts_dir: str = "./runs/paper_trading/accounts"
     paper_registry_path: str = "./runs/paper_trading/registry/paper_accounts.jsonl"
+    factor_library_dir: str = "./data/factor_library"
+    factor_weights_dir: str = "./runs/factor_weights"
     backtest_image: str = "quant-platform-backtest:latest"
     backtest_cpu_limit: str = "1.0"
     backtest_memory_limit: str = "2g"
@@ -100,6 +102,20 @@ class Settings(BaseSettings):
     @property
     def paper_registry_path_obj(self) -> Path:
         path = Path(self.paper_registry_path)
+        if not path.is_absolute():
+            path = PROJECT_ROOT / path
+        return path.resolve()
+
+    @property
+    def factor_library_dir_path(self) -> Path:
+        path = Path(self.factor_library_dir)
+        if not path.is_absolute():
+            path = PROJECT_ROOT / path
+        return path.resolve()
+
+    @property
+    def factor_weights_dir_path(self) -> Path:
+        path = Path(self.factor_weights_dir)
         if not path.is_absolute():
             path = PROJECT_ROOT / path
         return path.resolve()

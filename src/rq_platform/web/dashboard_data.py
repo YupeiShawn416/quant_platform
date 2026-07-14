@@ -10,6 +10,8 @@ from rq_platform.backtest.run_registry import BacktestRunRegistry
 from rq_platform.backtest.run_store import BacktestRunResultNotFound, BacktestRunStore
 from rq_platform.auth import load_researcher_tokens
 from rq_platform.data.query_service import DataQueryService
+from rq_platform.factors.factor_registry import FactorRegistry
+from rq_platform.factors.factor_store import FactorFileNotFound, FactorStore
 from rq_platform.paper.paper_registry import PaperAccountRegistry
 from rq_platform.paper.paper_store import PaperAccountNotFound, PaperAccountStore
 
@@ -146,6 +148,81 @@ def load_data_catalog_dashboard_data() -> dict[str, Any]:
             "GET /data/schema/prices_1d_pre",
             "GET /data/query/prices_1d_pre?start_date=2025-01-02&end_date=2025-01-31&order_book_id=000001.XSHE&limit=5000",
         ],
+    }
+
+
+def load_factors_dashboard_data(
+    category: str | None = None,
+    universe: str | None = None,
+    keyword: str | None = None,
+) -> dict[str, Any]:
+    store = FactorStore()
+    rows: list[dict[str, Any]] = []
+    for item in FactorRegistry().list_factors(category=category, keyword=keyword):
+        if universe and item.get("default_universe") != universe:
+            continue
+        try:
+            summary = store.read_analysis_json(item["factor_id"])
+        except FactorFileNotFound:
+            summary = {}
+        ic = summary.get("ic_summary") or {}
+        rows.append(
+            {
+                "factor_id": item["factor_id"],
+                "name": item["name"],
+                "category": item["category"],
+                "universe": item["default_universe"],
+                "latest_date": summary.get("latest_date"),
+                "coverage": summary.get("coverage_latest"),
+                "ic_mean": ic.get("ic_mean"),
+                "icir": ic.get("icir"),
+                "ic_positive_ratio": ic.get("ic_positive_ratio"),
+                "long_short_return": summary.get("long_short_return"),
+                "turnover": summary.get("turnover_latest"),
+                "analyzed": bool(summary),
+            }
+        )
+    return {
+        "exists": True,
+        "factors": rows,
+        "download_url": None,
+        "filters": {"category": category or "", "universe": universe or "", "keyword": keyword or ""},
+    }
+
+
+def load_factor_detail_dashboard_data(factor_id: str) -> dict[str, Any]:
+    registry = FactorRegistry()
+    store = FactorStore()
+    try:
+        meta = registry.get(factor_id).to_dict()
+    except KeyError:
+        data = _empty_dashboard()
+        data["missing_message"] = "Factor ID 不存在。"
+        return data
+    try:
+        summary = store.read_analysis_json(factor_id)
+        ic = _factor_csv_records(store, factor_id, "ic_daily.csv")
+        groups = _factor_csv_records(store, factor_id, "group_returns.csv")
+        nav = _factor_csv_records(store, factor_id, "group_nav.csv")
+        turnover = _factor_csv_records(store, factor_id, "turnover.csv")
+        top_bottom = _factor_csv_records(store, factor_id, "top_bottom_latest.csv")
+        coverage = _factor_csv_records(store, factor_id, "coverage.csv")
+    except FactorFileNotFound:
+        summary = {}
+        ic = groups = nav = turnover = top_bottom = coverage = []
+    return {
+        "exists": True,
+        "metadata": meta,
+        "summary": summary,
+        "summary_metrics": _factor_summary_metrics(summary),
+        "ic": ic,
+        "groups": groups,
+        "nav": nav,
+        "turnover": turnover,
+        "top_bottom": top_bottom,
+        "coverage": coverage,
+        "download_url": None,
+        "url_prefix": f"/ui/factors/{factor_id}",
     }
 
 
@@ -390,6 +467,15 @@ def _paper_csv_records(
     return clean.to_dict(orient="records")
 
 
+def _factor_csv_records(store: FactorStore, factor_id: str, filename: str) -> list[dict[str, Any]]:
+    try:
+        frame = store.read_analysis_csv(factor_id, filename)
+    except FactorFileNotFound:
+        return []
+    clean = frame.where(pd.notna(frame), None)
+    return clean.to_dict(orient="records")
+
+
 def _summary_metrics(summary: dict[str, Any]) -> list[dict[str, Any]]:
     benchmark_reliable = bool(summary.get("benchmark_metrics_reliable", True))
     items = []
@@ -427,4 +513,23 @@ def _paper_summary_metrics(account: dict[str, Any]) -> list[dict[str, Any]]:
             "unreliable": False,
         }
         for key, label, kind in fields
+    ]
+
+
+def _factor_summary_metrics(summary: dict[str, Any]) -> list[dict[str, Any]]:
+    ic = summary.get("ic_summary") or {}
+    fields = [
+        ("latest_date", "最新日期", "text", summary.get("latest_date")),
+        ("row_count", "样本数", "integer", summary.get("row_count")),
+        ("coverage_latest", "最新覆盖率", "percent", summary.get("coverage_latest")),
+        ("missing_rate_latest", "最新缺失率", "percent", summary.get("missing_rate_latest")),
+        ("ic_mean", "IC 均值", "ratio", ic.get("ic_mean")),
+        ("icir", "ICIR", "ratio", ic.get("icir")),
+        ("ic_positive_ratio", "IC>0 占比", "percent", ic.get("ic_positive_ratio")),
+        ("long_short_return", "多空收益", "percent", summary.get("long_short_return")),
+        ("turnover_latest", "最新换手", "percent", summary.get("turnover_latest")),
+    ]
+    return [
+        {"key": key, "label": label, "value": format_value(value, kind), "unreliable": False}
+        for key, label, kind, value in fields
     ]

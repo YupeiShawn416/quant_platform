@@ -135,6 +135,7 @@ PowerShell 里的 `curl` 可能是 alias，建议写 `curl.exe`。Windows 不要
 - 回测历史：http://39.106.218.30/ui/backtests/runs
 - 研究员统计：http://39.106.218.30/ui/researchers
 - 模拟盘：http://39.106.218.30/ui/paper
+- 因子库：http://39.106.218.30/ui/factors
 - Health：http://39.106.218.30/health
 
 说明：
@@ -143,6 +144,7 @@ PowerShell 里的 `curl` 可能是 alias，建议写 `curl.exe`。Windows 不要
 - `/ui/backtests/runs` 看历史回测。
 - `/ui/researchers` 看研究员提交记录。
 - `/ui/paper` 看模拟盘跟踪。
+- `/ui/factors` 看平台内置因子表现。
 
 ## 3. 主线 2：用 Data API 拉标准数据
 
@@ -198,6 +200,8 @@ python data_api_quickstart.py
 ```
 
 ## 4. 主线 3：提交策略回测
+
+研究员可以先在 `/ui/factors` 查看平台内置因子的覆盖率、IC、分组收益和换手。也可以用 Data API 自己计算因子，再生成 `target_weights.csv` 或 `strategy_package.zip` 提交回测。
 
 最短流程：
 

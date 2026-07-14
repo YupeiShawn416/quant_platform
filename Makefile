@@ -1,6 +1,8 @@
 BACKFILL_END_DATE ?= $(shell date +%F)
+FACTOR_IDS ?= market_cap,turnover_rate,momentum_20d,reversal_5d,volatility_20d
+UNIVERSE ?= all
 
-.PHONY: install test api api-prod api-smoke client-smoke backtest-api-smoke dashboard-smoke data-api-smoke-local create-demo-paper-account submit-demo-paper-weights run-demo-paper-daily paper-smoke-local create-demo-weights-package submit-demo-weights-package template-smoke check-data audit-data-lake backfill-core-smoke backfill-core-dry-run backfill-core-full check-data-2016-present server-sync-manifest daily-update-dry-run daily-update daily-update-status daily-update-report reconcile-daily-update update-index-2025 check-index-data update-tradability-2025 check-tradability-data update-valuation-2025 check-valuation-data update-industry-2025 check-industry-data update-index-membership-2025 check-index-membership-data vix-q5-exposure-audit vix-q5-build-lagged-package vix-q5-compare-lagged daily-data-update deploy-check query-sample demo-backtest view-demo-backtest demo-daily-backtest view-demo-daily-backtest status clean
+.PHONY: install test api api-prod api-smoke client-smoke backtest-api-smoke dashboard-smoke data-api-smoke-local create-demo-paper-account submit-demo-paper-weights run-demo-paper-daily paper-smoke-local compute-builtin-factors analyze-factor generate-factor-weights factor-smoke-local create-demo-weights-package submit-demo-weights-package template-smoke check-data audit-data-lake backfill-core-smoke backfill-core-dry-run backfill-core-full check-data-2016-present server-sync-manifest daily-update-dry-run daily-update daily-update-status daily-update-report reconcile-daily-update update-index-2025 check-index-data update-tradability-2025 check-tradability-data update-valuation-2025 check-valuation-data update-industry-2025 check-industry-data update-index-membership-2025 check-index-membership-data vix-q5-exposure-audit vix-q5-build-lagged-package vix-q5-compare-lagged daily-data-update deploy-check query-sample demo-backtest view-demo-backtest demo-daily-backtest view-demo-daily-backtest status clean
 
 install:
 	python -m pip install -e .
@@ -40,6 +42,22 @@ run-demo-paper-daily:
 
 paper-smoke-local:
 	PYTHONPATH=src python scripts/38_paper_smoke_local.py
+
+compute-builtin-factors:
+	@test -n "$(START_DATE)" || (echo "START_DATE is required"; exit 2)
+	@test -n "$(END_DATE)" || (echo "END_DATE is required"; exit 2)
+	PYTHONPATH=src python scripts/38_compute_builtin_factors.py --start-date $(START_DATE) --end-date $(END_DATE) --factor-ids $(FACTOR_IDS) --universe $(UNIVERSE) --overwrite
+
+analyze-factor:
+	@test -n "$(FACTOR_ID)" || (echo "FACTOR_ID is required"; exit 2)
+	PYTHONPATH=src python scripts/39_analyze_factor.py --factor-id $(FACTOR_ID) $(if $(START_DATE),--start-date $(START_DATE),) $(if $(END_DATE),--end-date $(END_DATE),)
+
+generate-factor-weights:
+	@test -n "$(FACTOR_ID)" || (echo "FACTOR_ID is required"; exit 2)
+	PYTHONPATH=src python scripts/40_generate_factor_weights.py --factor-id $(FACTOR_ID) $(if $(START_DATE),--start-date $(START_DATE),) $(if $(END_DATE),--end-date $(END_DATE),)
+
+factor-smoke-local:
+	PYTHONPATH=src python scripts/41_factor_library_smoke.py
 
 create-demo-weights-package:
 	PYTHONPATH=src python scripts/18_create_demo_weights_package.py
