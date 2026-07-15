@@ -39,11 +39,15 @@ Data API -> local research template -> weights package -> platform backtest -> D
 15. 2016 至今数据补全 workflow
 16. 当前平台审计文档：`docs/PLATFORM_AUDIT_CURRENT_STATE.md`
 17. Factor Library MVP：内置因子、因子分析、因子 Dashboard、因子生成 weights
+18. Daily data update workflow：本地授权机器增量更新，服务器只读 Parquet
+19. Multi-account Paper Trading MVP：多模拟账户、NAV、持仓、订单、成交、日志
+20. API 使用手册与研究员交付文档
 
 ## Current Stage
 
-Server Deployment MVP 已通过公网验收。下一步是 Researcher Trial：把研究员交付包发给
-1-3 名研究员，用 2025 MVP 数据完成真实试运行。
+服务器部署、研究员 token、Data API、回测 Dashboard、Paper Trading MVP 和 Factor Library
+MVP 已完成。当前主线是让研究员接入平台，并围绕数据 API、标准策略包、因子库和
+paper trading 做协作开发与试运行。
 
 研究员交付包：
 
@@ -233,19 +237,19 @@ docs/MVP_ROLLOUT_PLAN.md
 当前正式数据支持区间：
 
 ```text
-SUPPORTED_DATE_RANGE=2016-01-04 to 2026-07-10
+SUPPORTED_DATE_RANGE=2016-01-04 to latest complete data lake trading date
 ```
 
-Stage 26 增加每日盘后增量更新流程。先运行 dry-run：
+当前服务器已按数据湖覆盖动态识别可用结束日期。每日盘后更新流程先运行 dry-run：
 
 ```bash
-make daily-update-dry-run END_DATE=2026-07-11
+make daily-update-dry-run END_DATE=<next_complete_trade_date>
 ```
 
 确认计划无误后再由本地授权机器执行真实更新：
 
 ```bash
-make daily-update END_DATE=2026-07-11
+make daily-update END_DATE=<next_complete_trade_date>
 make check-data-2016-present
 make reconcile-daily-update
 ```
@@ -307,7 +311,7 @@ docs/FACTOR_LIBRARY_MVP.md
 
 当前不要优先做：
 
-- 完整因子库
+- 复杂全量因子平台
 - 复杂模拟交易 / 真实券商交易
 - 复杂用户系统
 - 服务器大规模直接访问 RQData
@@ -321,8 +325,45 @@ docs/FACTOR_LIBRARY_MVP.md
 
 推荐近期顺序：
 
-1. 每日盘后先 dry-run，再执行单日增量更新。
-2. 更新后运行数据质量检查。
-3. 质量通过后生成同步 manifest 并 rsync 到服务器。
-4. 用长周期回测做数据验收。
-5. 后续再做因子库、权限系统和更完整的模拟交易。
+1. 邀请研究员按 onboarding 文档接入平台。
+2. 围绕 Data API 和 Factor Library 扩展更多标准因子。
+3. 用标准 weights package 做回测验收。
+4. 对值得持续跟踪的策略建立 paper account。
+5. 每日盘后由本地授权机器更新数据，质量通过后再同步服务器。
+
+## How To Invite Contributors
+
+协作者分两类：
+
+1. 研究员：只需要 researcher onboarding、服务器地址和个人 API token。
+2. 平台开发者：需要 GitHub 仓库权限、本地 conda 环境、测试命令和协作边界。
+
+给研究员的入口：
+
+```text
+handoff/researcher_onboarding_2025/00_READ_ME_FIRST.md
+handoff/researcher_onboarding_2025/08_AGENT_REPO_MIGRATION_RUNBOOK.md
+docs/API_USAGE_MANUAL.md
+docs/RESEARCHER_DATA_API.md
+docs/PAPER_TRADING_MVP.md
+docs/FACTOR_LIBRARY_MVP.md
+```
+
+给平台开发者的最小启动命令：
+
+```bash
+git clone <repo-url>
+cd quant_platform
+conda activate quant_platform
+python -m pip install -e .
+make test
+make template-smoke
+```
+
+协作规则：
+
+- 不提交 `.env`、真实 token、`data/`、`runs/`、Parquet、zip 或 `reports/generated/`。
+- 不在服务器直接访问 RQData；数据更新由本地授权机器完成后同步。
+- 新功能先补测试，再提交 PR。
+- 回测、paper trading、factor library 的数据口径必须走平台标准 API 和数据湖。
+- 研究员策略交付优先使用 `target_weights.csv` 或 `strategy_package.zip`。
