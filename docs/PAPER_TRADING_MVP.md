@@ -85,6 +85,20 @@ GET /paper/accounts/{paper_id}/logs
 GET /paper/accounts/{paper_id}/download
 ```
 
+## 每日日终运行
+
+Paper Trading 是日频批处理，不是实时策略引擎。每日数据同步到服务器且质量检查通过后，
+运行所有 active paper accounts：
+
+```bash
+export QUANT_PLATFORM_API_URL="http://39.106.218.30"
+export QUANT_PLATFORM_API_TOKEN="<token>"
+make paper-run-daily-all TRADE_DATE=<latest_complete_trade_date>
+```
+
+动态策略目前由研究员或 Agent 每日生成新的 `target_weights.csv` 并上传到对应
+paper account；平台负责按目标权重撮合模拟订单、更新持仓、NAV、订单、成交和日志。
+
 ## 本地 smoke
 
 不依赖 RQData，不写真实数据湖：

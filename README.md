@@ -330,6 +330,8 @@ docs/FACTOR_LIBRARY_MVP.md
 3. 用标准 weights package 做回测验收。
 4. 对值得持续跟踪的策略建立 paper account。
 5. 每日盘后由本地授权机器更新数据，质量通过后再同步服务器。
+6. 服务器数据同步后运行 `make paper-run-daily-all TRADE_DATE=<latest_complete_trade_date>`，
+   推进所有 active paper accounts。
 
 ## How To Invite Contributors
 
@@ -347,6 +349,7 @@ docs/API_USAGE_MANUAL.md
 docs/RESEARCHER_DATA_API.md
 docs/PAPER_TRADING_MVP.md
 docs/FACTOR_LIBRARY_MVP.md
+docs/DAY_END_OPERATIONS.md
 ```
 
 给平台开发者的最小启动命令：
