@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from rq_platform.data.query_service import SUPPORTED_END_DATE, SUPPORTED_START_DATE
+from rq_platform.data.query_service import DataQueryService, SUPPORTED_END_DATE, SUPPORTED_START_DATE
 from rq_platform.settings import settings
 
 
@@ -31,8 +31,9 @@ def validate_target_weights(frame: pd.DataFrame, data_root: str | Path | None = 
         raise PaperValidationError("target_weight must be numeric")
     if (output["target_weight"] < 0).any():
         raise PaperValidationError("target_weight must be >= 0")
-    if output["trade_date"].min() < SUPPORTED_START_DATE or output["trade_date"].max() > SUPPORTED_END_DATE:
-        raise PaperValidationError(f"trade_date must be between {SUPPORTED_START_DATE} and {SUPPORTED_END_DATE}")
+    supported_start, supported_end = _supported_date_range(data_root)
+    if output["trade_date"].min() < supported_start or output["trade_date"].max() > supported_end:
+        raise PaperValidationError(f"trade_date must be between {supported_start} and {supported_end}")
     duplicated = output.duplicated(["trade_date", "order_book_id"])
     if duplicated.any():
         raise PaperValidationError("duplicate trade_date + order_book_id rows are not allowed")
@@ -54,3 +55,10 @@ def _instrument_ids(data_root: str | Path | None = None) -> set[str]:
         raise PaperValidationError("instruments dataset not found")
     frame = pd.read_parquet(path, columns=["order_book_id"])
     return set(frame["order_book_id"].astype(str))
+
+
+def _supported_date_range(data_root: str | Path | None = None) -> tuple[str, str]:
+    try:
+        return DataQueryService(data_root=data_root).supported_date_range()
+    except Exception:
+        return SUPPORTED_START_DATE, SUPPORTED_END_DATE

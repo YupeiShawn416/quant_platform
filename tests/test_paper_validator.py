@@ -14,6 +14,13 @@ def _write_instruments(root):
     )
 
 
+def _write_core_coverage(root, trade_date="2026-07-14"):
+    rows = [{"trade_date": trade_date, "order_book_id": "600519.XSHG", "close": 1500.0}]
+    for dataset in ["prices_1d_pre", "prices_1d_none", "index_prices_1d", "tradability_1d", "valuation_1d"]:
+        (root / dataset).mkdir(parents=True, exist_ok=True)
+        pd.DataFrame(rows).to_parquet(root / dataset / "year=2026.parquet", index=False)
+
+
 def test_validate_target_weights_success(tmp_path):
     _write_instruments(tmp_path)
     frame = pd.DataFrame(
@@ -50,3 +57,15 @@ def test_validate_target_weights_rejects_unknown_symbol(tmp_path):
 
     with pytest.raises(PaperValidationError, match="unknown"):
         validate_target_weights(frame, data_root=tmp_path)
+
+
+def test_validate_target_weights_uses_dynamic_data_lake_end_date(tmp_path):
+    _write_instruments(tmp_path)
+    _write_core_coverage(tmp_path, trade_date="2026-07-14")
+    frame = pd.DataFrame(
+        [{"trade_date": "2026-07-14", "order_book_id": "600519.XSHG", "target_weight": 1.0}]
+    )
+
+    result = validate_target_weights(frame, data_root=tmp_path)
+
+    assert result["trade_date"].tolist() == ["2026-07-14"]

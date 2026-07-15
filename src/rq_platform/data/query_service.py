@@ -144,9 +144,10 @@ class DataQueryService:
 
     def coverage(self) -> dict[str, Any]:
         datasets = [self.dataset_coverage(spec.dataset) for spec in DATASET_SPECS.values()]
+        supported_start, supported_end = _supported_range_from_coverage(datasets)
         return {
-            "supported_start_date": SUPPORTED_START_DATE,
-            "supported_end_date": SUPPORTED_END_DATE,
+            "supported_start_date": supported_start,
+            "supported_end_date": supported_end,
             "datasets": datasets,
         }
 
@@ -203,9 +204,9 @@ class DataQueryService:
             raise DataQueryError(f"limit must be <= {MAX_QUERY_LIMIT}")
         if offset < 0:
             raise DataQueryError("offset must be >= 0")
-        _validate_supported_date_range(start_date, end_date)
-
         spec = get_dataset_spec(dataset)
+        supported_start, supported_end = self.supported_date_range()
+        _validate_supported_date_range(start_date, end_date, supported_start, supported_end)
         files = self._files_for_query(spec, start_date, end_date)
         if not files:
             raise DatasetNotFoundError(f"dataset not found: {dataset}")
@@ -251,6 +252,10 @@ class DataQueryService:
         except Exception:
             return pd.DataFrame()
 
+    def supported_date_range(self) -> tuple[str, str]:
+        datasets = [self.dataset_coverage(spec.dataset) for spec in DATASET_SPECS.values()]
+        return _supported_range_from_coverage(datasets)
+
 
 def get_dataset_spec(dataset: str) -> DatasetSpec:
     try:
@@ -266,17 +271,22 @@ def parse_csv_list(value: str | None) -> list[str] | None:
     return items or None
 
 
-def _validate_supported_date_range(start_date: str | None, end_date: str | None) -> None:
+def _validate_supported_date_range(
+    start_date: str | None,
+    end_date: str | None,
+    supported_start: str = SUPPORTED_START_DATE,
+    supported_end: str = SUPPORTED_END_DATE,
+) -> None:
     for field_name, value in [("start_date", start_date), ("end_date", end_date)]:
         if value:
             try:
                 date.fromisoformat(value)
             except ValueError as exc:
                 raise DataQueryError(f"{field_name} must be YYYY-MM-DD") from exc
-    if start_date and start_date < SUPPORTED_START_DATE:
-        raise DataQueryError(f"start_date must be >= {SUPPORTED_START_DATE}")
-    if end_date and end_date > SUPPORTED_END_DATE:
-        raise DataQueryError(f"end_date must be <= {SUPPORTED_END_DATE}")
+    if start_date and start_date < supported_start:
+        raise DataQueryError(f"start_date must be >= {supported_start}")
+    if end_date and end_date > supported_end:
+        raise DataQueryError(f"end_date must be <= {supported_end}")
     if start_date and end_date and start_date > end_date:
         raise DataQueryError("start_date must be <= end_date")
 
@@ -337,6 +347,17 @@ def _query_years(start_date: str | None, end_date: str | None) -> set[int]:
     start_year = int((start_date or SUPPORTED_START_DATE)[:4])
     end_year = int((end_date or SUPPORTED_END_DATE)[:4])
     return set(range(start_year, end_year + 1))
+
+
+def _supported_range_from_coverage(datasets: list[dict[str, Any]]) -> tuple[str, str]:
+    by_name = {item.get("dataset"): item for item in datasets}
+    core_names = ["prices_1d_pre", "prices_1d_none", "index_prices_1d", "tradability_1d", "valuation_1d"]
+    core = [by_name[name] for name in core_names if by_name.get(name, {}).get("min_date") and by_name.get(name, {}).get("max_date")]
+    if len(core) < len(core_names):
+        return SUPPORTED_START_DATE, SUPPORTED_END_DATE
+    starts = [str(item["min_date"]) for item in core]
+    ends = [str(item["max_date"]) for item in core]
+    return min(starts), min(ends)
 
 
 def _parse_year(path: Path) -> int | None:

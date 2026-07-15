@@ -73,6 +73,21 @@ def test_query_service_coverage_and_schema(tmp_path, monkeypatch):
     assert {field["name"] for field in schema} >= {"trade_date", "order_book_id", "close"}
 
 
+def test_query_service_supported_end_date_uses_complete_core_coverage(tmp_path, monkeypatch):
+    _patch_data_root(tmp_path, monkeypatch)
+    root = tmp_path / "rqdata"
+    row = [{"trade_date": "2026-07-14", "order_book_id": "600519.XSHG", "close": 1500.0}]
+    for dataset in ["prices_1d_pre", "prices_1d_none", "index_prices_1d", "tradability_1d", "valuation_1d"]:
+        (root / dataset).mkdir(parents=True, exist_ok=True)
+        pd.DataFrame(row).to_parquet(root / dataset / "year=2026.parquet", index=False)
+
+    service = DataQueryService()
+
+    assert service.coverage()["supported_end_date"] == "2026-07-14"
+    frame, _ = service.query("prices_1d_pre", start_date="2026-07-14", end_date="2026-07-14")
+    assert len(frame) == 1
+
+
 def _patch_data_root(tmp_path, monkeypatch):
     monkeypatch.setattr(settings, "data_root", str(tmp_path / "rqdata"))
 
