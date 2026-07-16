@@ -3,7 +3,7 @@
   "credential_source": "environment:RQDATA_HTTP_TOKEN",
   "field_count": 13482,
   "field_enumeration_supported": true,
-  "generated_at": "2026-07-16T14:08:32+08:00",
+  "generated_at": "2026-07-16T22:09:49+08:00",
   "market": "cn",
   "provider": "RQData",
   "rqdatac_version": "3.5.5",

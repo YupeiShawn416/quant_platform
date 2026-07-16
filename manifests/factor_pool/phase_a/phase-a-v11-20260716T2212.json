@@ -1,0 +1,27 @@
+{
+  "asset_counts": {
+    "control_fields": 8,
+    "ingredient_health": 9858,
+    "quarantine_triage": 3040,
+    "vendor_factor_audit": 584
+  },
+  "asset_sha256": {
+    "control_fields": "611fe9c6add9f72025b7f499674d6c95ea2957b1a571fe8c372cc8c98593695a",
+    "ingredient_health": "6ee4e940678c6ba9ce02173214422d25c038691044123b096295357ec370804e",
+    "quarantine_triage": "a727473e23ae890ed7e49105813232d055f53a3829dcde50c1c274ac06f65323",
+    "vendor_factor_audit": "d41c802945e8f700bfd62a7eefd70795fc910bd3dbee12b17e1da1d7fa47ad13"
+  },
+  "auto_eligible_count": 0,
+  "control_field_count": 8,
+  "control_pending_count": 8,
+  "created_at": "2026-07-16T22:12:06+08:00",
+  "ingredient_pending_count": 9858,
+  "quarantine_input_count": 3040,
+  "snapshot_id": "phase-a-v11-20260716T2212",
+  "source_field_count": 13482,
+  "statement_field_count": 9858,
+  "status": "incomplete",
+  "vendor_candidate_count": 584,
+  "vendor_passthrough_recipe_count": 0,
+  "vendor_pit_pending_count": 584
+}

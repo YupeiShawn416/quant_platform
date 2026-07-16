@@ -1,0 +1,39 @@
+{
+  "catalog_sha256": "45d11857ac9cce78946a2a7504ac6ec25cbb70c73764e45cb34ce313b4fbfbe0",
+  "classification_rule_hash": "61d925b5e83fe9ddec37ffd02b2b226a468e7dfe2be61be605c29ad6cf04fe30",
+  "classification_rule_version": "1.0.0",
+  "classification_status_counts": {
+    "candidate_factor": 584,
+    "quarantined": 3040,
+    "source_only": 9858
+  },
+  "created_at": "2026-07-16T22:09:50+08:00",
+  "deviations": [],
+  "field_count": 13482,
+  "market": "cn",
+  "provider": "RQData",
+  "recipe_set_hash": null,
+  "role_counts": {
+    "statement_field": 9858,
+    "unclassified": 3040,
+    "vendor_factor": 584
+  },
+  "rqdatac_version": "3.5.5",
+  "snapshot_id": "rqdata-cn-20260716T220950-45d11857",
+  "status": "matched",
+  "vendor_category_counts": {
+    "alpha101": 101,
+    "balance_sheet": 4836,
+    "cash_flow_indicator": 26,
+    "cash_flow_statement": 2201,
+    "energy_indicator": 36,
+    "eod_indicator": 41,
+    "financial_indicator": 126,
+    "growth_indicator": 33,
+    "income_statement": 2821,
+    "moving_average_indicator": 82,
+    "obos_indicator": 43,
+    "operational_indicator": 96,
+    "other": 3040
+  }
+}
