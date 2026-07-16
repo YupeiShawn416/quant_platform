@@ -1,0 +1,17 @@
+rule_version: "1.1.0"
+financial_categories:
+  - eod_indicator
+  - operational_indicator
+  - cash_flow_indicator
+  - financial_indicator
+  - growth_indicator
+technical_categories:
+  - alpha101
+  - moving_average_indicator
+  - obos_indicator
+  - energy_indicator
+minimum_securities: 5
+minimum_industries: 5
+pre_event_trading_days: 1
+post_event_trading_days: 1
+allowed_pass_status: sample_alignment_passed
