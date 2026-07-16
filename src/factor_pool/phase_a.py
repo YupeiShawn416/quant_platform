@@ -54,6 +54,13 @@ def build_phase_a_assets(
     }
     ingredient_pending = int(health["ingredient_status"].eq("pending_review").sum())
     vendor_pending = int(vendor_audit["pit_status"].isin(["pending", "documentation_passed"]).sum())
+    control_pending = int((~controls["pit_status"].isin(["verified", "not_applicable"])).sum())
+    passthrough_count = int(
+        (
+            vendor_audit["definition_status"].eq("definition_verified")
+            & vendor_audit["pit_status"].isin(["sample_alignment_passed", "verified"])
+        ).sum()
+    )
     manifest: dict[str, object] = {
         "snapshot_id": snapshot_id,
         "created_at": created_at.isoformat(timespec="seconds"),
@@ -64,10 +71,12 @@ def build_phase_a_assets(
         "control_field_count": int(len(controls)),
         "ingredient_pending_count": ingredient_pending,
         "vendor_pit_pending_count": vendor_pending,
+        "control_pending_count": control_pending,
+        "vendor_passthrough_recipe_count": passthrough_count,
         "auto_eligible_count": int(vendor_audit["eligible_for_model"].astype(bool).sum()),
         "asset_counts": {name: int(len(frame)) for name, frame in assets.items()},
         "asset_sha256": {name: _frame_hash(frame) for name, frame in assets.items()},
-        "status": "complete" if ingredient_pending == 0 and vendor_pending == 0 else "incomplete",
+        "status": "complete" if ingredient_pending == 0 and vendor_pending == 0 and control_pending == 0 else "incomplete",
     }
     return assets, manifest
 

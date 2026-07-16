@@ -28,6 +28,8 @@ def test_phase_a_assets_keep_missing_live_audits_pending_and_never_auto_eligible
     assert manifest["status"] == "incomplete"
     assert manifest["ingredient_pending_count"] == 1
     assert manifest["vendor_pit_pending_count"] == 1
+    assert manifest["control_pending_count"] == 8
+    assert manifest["vendor_passthrough_recipe_count"] == 0
     assert assets["ingredient_health"].iloc[0]["ingredient_status"] == "pending_review"
     assert assets["vendor_factor_audit"]["eligible_for_model"].eq(False).all()
     assert assets["quarantine_triage"].iloc[0]["triage_class"] == "financial_period_variant"
