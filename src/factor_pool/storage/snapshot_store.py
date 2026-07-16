@@ -71,6 +71,46 @@ def validate_snapshot(snapshot_dir: Path) -> dict[str, Any]:
     }
 
 
+def persist_phase_a_assets(
+    assets: dict[str, pd.DataFrame],
+    *,
+    manifest: dict[str, Any],
+    output_root: Path,
+    public_manifest_root: Path,
+) -> Path:
+    required = {"ingredient_health", "control_fields", "vendor_factor_audit", "quarantine_triage"}
+    if set(assets) != required:
+        raise ValueError(f"phase A assets must be exactly: {', '.join(sorted(required))}")
+    snapshot_id = str(manifest["snapshot_id"])
+    output_root.mkdir(parents=True, exist_ok=True)
+    final_dir = output_root / snapshot_id
+    if final_dir.exists():
+        raise FileExistsError(f"phase A snapshot already exists: {snapshot_id}")
+    temp_dir = output_root / f".{snapshot_id}.tmp-{uuid.uuid4().hex}"
+    filenames = {
+        "ingredient_health": "ingredient_health.parquet",
+        "control_fields": "control_fields.parquet",
+        "vendor_factor_audit": "vendor_factor_audit.parquet",
+        "quarantine_triage": "quarantine_triage.parquet",
+    }
+    try:
+        temp_dir.mkdir()
+        for name, frame in assets.items():
+            frame.to_parquet(temp_dir / filenames[name], index=False)
+            persisted = pd.read_parquet(temp_dir / filenames[name])
+            if len(persisted) != int(manifest["asset_counts"][name]):
+                raise ValueError(f"phase A asset row count differs: {name}")
+        _write_json(temp_dir / "phase_a_manifest.json", manifest)
+        temp_dir.replace(final_dir)
+    except Exception:
+        if temp_dir.exists():
+            shutil.rmtree(temp_dir)
+        raise
+    public_manifest_root.mkdir(parents=True, exist_ok=True)
+    _atomic_write_json(public_manifest_root / f"{snapshot_id}.json", manifest)
+    return final_dir
+
+
 def _validate_frame(frame: pd.DataFrame, *, snapshot_id: str) -> None:
     missing = set(REQUIRED_COLUMNS) - set(frame.columns)
     if missing:

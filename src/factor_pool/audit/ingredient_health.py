@@ -3,8 +3,12 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import asdict, dataclass
+from pathlib import Path
 
 import pandas as pd
+import yaml
+
+from factor_pool.config import PROJECT_ROOT
 
 
 REQUIRED_COLUMNS = {
@@ -15,6 +19,7 @@ REQUIRED_COLUMNS = {
     "industry_code",
     "universe_member",
 }
+DEFAULT_HEALTH_CONFIG = PROJECT_ROOT / "configs" / "factor_pool" / "ingredient_health.yaml"
 
 
 @dataclass(frozen=True)
@@ -46,6 +51,16 @@ class IngredientHealthConfig:
     def snapshot_id(self) -> str:
         payload = json.dumps(asdict(self), sort_keys=True, separators=(",", ":"))
         return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def load_ingredient_health_config(path: Path | None = None) -> IngredientHealthConfig:
+    raw = yaml.safe_load((path or DEFAULT_HEALTH_CONFIG).read_text(encoding="utf-8"))
+    names = {
+        "rule_version", "preferred_coverage", "specialized_coverage", "sparse_coverage",
+        "annual_coverage", "preferred_years", "specialized_years", "minimum_history_years",
+        "minimum_quarters_per_year", "industry_system", "industry_level",
+    }
+    return IngredientHealthConfig(**{name: raw[name] for name in names})
 
 
 def evaluate_ingredient_health(
