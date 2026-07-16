@@ -1,0 +1,79 @@
+catalog_version: "1.1.0"
+controls:
+  - control_id: industry_citics_2019_l1
+    control_version: "1.0.0"
+    field_role: exposure_field
+    provider: quant_platform
+    source_dataset: industry_classification
+    source_field: industry_code
+    availability_rule: classification_known_on_signal_date
+    definition_status: definition_verified
+    pit_status: documentation_passed
+    metadata: {industry_system: citics_2019, industry_level: 1}
+  - control_id: log_float_market_cap
+    control_version: "1.0.0"
+    field_role: exposure_field
+    provider: quant_platform
+    source_dataset: valuation_1d
+    source_field: float_market_cap
+    availability_rule: value_known_on_signal_date
+    definition_status: definition_verified
+    pit_status: documentation_passed
+    metadata: {transform: log_positive}
+  - control_id: is_st
+    control_version: "1.0.0"
+    field_role: filter_field
+    provider: quant_platform
+    source_dataset: tradability_1d
+    source_field: is_st
+    availability_rule: status_known_on_signal_date
+    definition_status: definition_verified
+    pit_status: documentation_passed
+  - control_id: is_suspended
+    control_version: "1.0.0"
+    field_role: filter_field
+    provider: quant_platform
+    source_dataset: tradability_1d
+    source_field: is_suspended
+    availability_rule: status_known_on_signal_date
+    definition_status: definition_verified
+    pit_status: documentation_passed
+  - control_id: is_limit_up
+    control_version: "1.0.0"
+    field_role: filter_field
+    provider: quant_platform
+    source_dataset: tradability_1d
+    source_field: reason
+    availability_rule: close_and_limit_known_on_signal_date
+    definition_status: definition_verified
+    pit_status: documentation_passed
+    metadata: {reason_token: limit_up}
+  - control_id: is_limit_down
+    control_version: "1.0.0"
+    field_role: filter_field
+    provider: quant_platform
+    source_dataset: tradability_1d
+    source_field: reason
+    availability_rule: close_and_limit_known_on_signal_date
+    definition_status: definition_verified
+    pit_status: documentation_passed
+    metadata: {reason_token: limit_down}
+  - control_id: is_listed
+    control_version: "1.0.0"
+    field_role: filter_field
+    provider: quant_platform
+    source_dataset: tradability_1d
+    source_field: is_listed
+    availability_rule: listing_status_known_on_signal_date
+    definition_status: definition_verified
+    pit_status: documentation_passed
+  - control_id: listed_days
+    control_version: "1.0.0"
+    field_role: filter_field
+    provider: quant_platform
+    source_dataset: instruments
+    source_field: listed_date
+    availability_rule: signal_date_minus_listed_date
+    definition_status: definition_verified
+    pit_status: documentation_passed
+    metadata: {transform: calendar_day_difference}
