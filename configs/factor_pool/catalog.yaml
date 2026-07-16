@@ -1,0 +1,34 @@
+rule_version: "1.0.0"
+market: cn
+output_root: data/1_source_cache/catalog
+manifest_root: manifests/factor_pool
+categories:
+  income_statement:
+    field_role: statement_field
+    classification_status: source_only
+    rule_id: vendor_category.statement
+  balance_sheet:
+    field_role: statement_field
+    classification_status: source_only
+    rule_id: vendor_category.statement
+  cash_flow_statement:
+    field_role: statement_field
+    classification_status: source_only
+    rule_id: vendor_category.statement
+  eod_indicator: &vendor_factor
+    field_role: vendor_factor
+    classification_status: candidate_factor
+    rule_id: vendor_category.candidate_factor
+  operational_indicator: *vendor_factor
+  cash_flow_indicator: *vendor_factor
+  financial_indicator: *vendor_factor
+  growth_indicator: *vendor_factor
+  alpha101: *vendor_factor
+  moving_average_indicator: *vendor_factor
+  obos_indicator: *vendor_factor
+  energy_indicator: *vendor_factor
+  other:
+    field_role: unclassified
+    classification_status: quarantined
+    rule_id: vendor_category.other_quarantine
+

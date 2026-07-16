@@ -8,6 +8,7 @@ logs/
 config/researcher_tokens.json
 data/research_data/
 data/factor_library/
+data/1_source_cache/
 data/rqalpha_bundle/
 *.parquet
 *.db

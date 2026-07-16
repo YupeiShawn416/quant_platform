@@ -1,0 +1,2 @@
+"""Source-field catalog construction."""
+
