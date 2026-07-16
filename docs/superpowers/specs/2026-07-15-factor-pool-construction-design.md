@@ -2,11 +2,11 @@
 
 ## 1. 文档信息
 
-- 文档版本：V1.0
-- 更新日期：2026-07-15
+- 文档版本：V1.1（补充食材质量、控制变量、PIT事件窗与直通配方）
+- 更新日期：2026-07-16
 - 状态：方案已批准，待用户复核书面规格
 - 工作目录：`C:\Users\asus\Desktop\实习\实习任务\多因子模型\quant_pool`
-- 开发分支：`feature/research-factor-pool`
+- 开发分支：`quant_pool`
 - 数据源：米筐 RQData，市场 `cn`
 - 目标平台：相邻仓库 `quant_platform`
 - 本期范围：A阶段——目录、分类、配方框架及小样本烟雾测试
@@ -28,6 +28,10 @@ Research Factor Pool 先在独立 worktree 中构建和验收，再通过 Git �
 5. RQData 只负责数据发现与取值，分类、配方和状态由本项目管理。
 6. 代码、规则、配方、schema、测试和摘要进入 Git；凭证和数据文件不进入 Git。
 7. 现有 `quant_platform` 5因子日频 MVP 保持兼容，不覆盖其定义和数据。
+8. 9,858个财务源字段先经过动态历史中证500范围的元数据体检，再决定是否进入常用配方食材库；完整源目录始终保留。
+9. 行业、市值和可交易性条件进入独立 `control_field_catalog`，不作为选股因子，不计算IC，但必须通过定义、PIT、覆盖率和时点检查。
+10. 供应商成品因子的PIT抽样只能提供反证，不能仅凭抽样通过写成 `verified`。
+11. 通过定义和PIT门禁的供应商因子使用 `identity` 直通配方统一接入，下游不区分供应商成品与自研派生值。
 
 ## 3. 当前平台边界
 
@@ -49,6 +53,8 @@ volatility_20d
 Built-in Factors（保留）
 Research Factor Pool（新增）
 ├─ 源字段目录
+├─ 配方食材质量目录
+├─ 控制变量目录
 ├─ 配方目录
 ├─ 正式因子目录
 ├─ 快照与审计
@@ -97,6 +103,8 @@ quant_pool/
 | 层级 | 定义 | 本期是否构建 |
 |---|---|---:|
 | 源字段 | RQData 可查询字段 | 是 |
+| 配方食材 | 经非收益元数据体检、可供配方引用的源字段 | 是 |
+| 控制变量 | 行业、市值、ST、停牌、涨跌停等基础设施字段 | 是 |
 | 成品因子候选 | 米筐已有公式或指标定义的对象 | 是 |
 | 派生因子 | 本项目用登记配方计算的变量 | 仅框架与样例 |
 | 正式因子 | 通过定义与PIT审查的成品/派生因子 | 仅目录与状态 |
@@ -139,6 +147,14 @@ classification_status
 classification_reason
 discovered_at
 rqdatac_version
+first_available_date
+coverage_rate
+coverage_scope
+usable_year_count
+industry_concentration
+ingredient_status
+applicable_universe
+quality_snapshot_id
 ```
 
 `field_role` 只允许：
@@ -155,7 +171,44 @@ unclassified
 
 无法确认的数据类型、频率、单位或最早可用日期保留为空并标记待审，不得猜测填充。
 
-### 6.2 因子配方目录
+`ingredient_status` 只允许：
+
+```text
+preferred
+specialized
+sparse
+insufficient_history
+pending_review
+not_applicable
+```
+
+质量体检范围固定为历史时点真实的动态中证500成分股。`coverage_rate` 必须同时记录 `coverage_scope` 和 `quality_snapshot_id`；行业专属字段按适用行业单独计算覆盖率，不能因全市场覆盖率低而误判为垃圾字段。质量状态只决定是否推荐给配方研究，不从 `source_field_catalog` 删除字段。
+
+### 6.2 控制变量目录
+
+资产名：`control_field_catalog`
+
+主键：`(control_id, control_version)`。至少包含：
+
+```text
+control_id
+control_version
+field_role
+provider
+source_dataset
+source_field
+definition_status
+pit_status
+coverage_rate
+availability_rule
+applicable_universe
+created_at
+code_hash
+```
+
+`field_role` 仅允许 `exposure_field` 或 `filter_field`。首批控制变量包括中信 `citics_2019` 一级行业、对数流通市值、ST、停牌、涨跌停、上市状态和上市天数。控制变量可以来自独立RQData接口或 `quant_platform` 数据集，不要求属于3,040个 `other` 字段。控制变量不进入 `factor_catalog`，不参加IC、去冗余或模型特征排序；但定义、PIT、覆盖率和历史可用性检查不得豁免。
+
+### 6.3 因子配方目录
 
 资产名：`factor_recipe_catalog`
 
@@ -164,6 +217,7 @@ unclassified
 ```yaml
 factor_id: roe_ttm
 version: "1.0.0"
+factor_kind: derived
 name: ROE TTM
 category: profitability
 inputs:
@@ -179,7 +233,7 @@ availability_rule: latest_published_before_signal_date
 semantic_transform: none
 neutralization_policy: industry_and_size
 missing_policy: preserve_nan
-point_in_time_status: pending
+pit_status: pending
 ```
 
 配方必须是结构化表达式，禁止 `eval`、`exec` 或任意Python字符串。首批白名单函数为：
@@ -195,11 +249,32 @@ lag
 pct_change
 rolling_mean
 rolling_std
+identity
 ```
 
 每个函数必须定义输入类型、空值传播、除零规则、最小历史长度和输出类型。
 
-### 6.3 正式因子目录
+供应商成品因子通过门禁后使用直通配方：
+
+```yaml
+factor_id: rq_pe_ratio_ttm
+version: "1.0.0"
+factor_kind: vendor_pass_through
+inputs:
+  - provider: rqdata
+    field: pe_ratio_ttm
+formula:
+  function: identity
+  arguments: [pe_ratio_ttm]
+availability_rule: provider_value_available_on_signal_date
+definition_status: definition_verified
+pit_status: sample_alignment_passed
+eligible_for_model: false
+```
+
+生成直通配方不等于因子合格；`eligible_for_model` 只能由状态机合法迁移产生。控制变量禁止使用 `vendor_pass_through` 冒充选股因子。
+
+### 6.4 正式因子目录
 
 资产名：`factor_catalog`
 
@@ -227,7 +302,7 @@ code_hash
 
 `value_direction` 保存配方结果的自然方向，不预先翻转为“越高越好”。实际预测方向只能在未来滚动训练窗内判断。
 
-### 6.4 快照清单
+### 6.5 快照清单
 
 资产名：`snapshot_manifest`
 
@@ -256,9 +331,11 @@ classified
     ├─ source_only
     ├─ quarantined
     └─ candidate_factor
-             ↓
+             ↓ definition audit
       definition_verified
-             ↓
+             ↓ deterministic event-window sample
+   sample_alignment_passed
+             ↓ stronger evidence/review
          pit_verified
              ↓
           eligible
@@ -275,6 +352,9 @@ classified
 5. 目录状态和某滚动折是否入模完全分开。
 6. 每次状态变化记录旧状态、新状态、原因、规则版本和时间。
 7. 非法状态跳转立即失败，不允许静默纠正。
+8. `pit_status` 只允许 `pending`、`documentation_passed`、`sample_alignment_passed`、`verified`、`failed`、`not_applicable`。
+9. 事件窗口抽样通过只允许进入 `sample_alignment_passed`；它可以发现穿越，但不能证明所有历史均无穿越。
+10. 任一确定的公告日前数据偷跑证据使状态进入 `failed`，并将对象隔离；不得用其他样本平均结果抵消。
 
 ## 8. RQData 接入
 
@@ -344,12 +424,40 @@ generated_at
 
 分类规则必须确定、可排序、可测试。同一字段命中多条规则时采用显式优先级，并记录最终规则ID。规则变更生成新快照，不回写旧快照。
 
+首轮质量与审计分层：
+
+1. 9,858个财务字段按基础字段与周期变体分组，先做目录级体检，再在固定动态历史中证500样本上计算可用历史和覆盖率。
+2. 584个供应商候选先做定义审查；财务相关候选使用固定证券、固定公告事件和公告日前后交易日进行PIT对齐抽样，技术指标使用仅依赖当日及历史行情的前缀稳定性测试。
+3. 3,040个隔离字段进行确定性二级分类，但不会仅凭名称升级为因子；控制变量还应从平台数据集和独立RQData接口发现。
+4. 所有抽样证券、事件、日期、字段和规则版本必须固定并写入manifest，禁止不可复现的随机抽样。
+
+财务食材体检默认口径如下，全部参数进入版本化配置：
+
+- 时间范围：2016-01-01至运行日前最近完整季度；
+- 观察点：每年3、6、9、12月末最后一个交易日；
+- 股票池：每个观察点当时有效的中证500成分股；
+- `coverage_rate`：非空成员-观察点数除以应有成员-观察点数；
+- `first_available_date`：上述样本中首次出现非空值的信号日，不冒充供应商全市场最早日期；
+- `usable_year_count`：年度至少3个季度有样本且年度覆盖率不低于50%的年份数；
+- `industry_concentration`：有效观察中占比最高的中信一级行业份额；
+- `preferred`：全样本覆盖率不低于80%且可用年份不少于5年；
+- `specialized`：全样本未达80%，但至少一个适用行业覆盖率不低于80%且可用年份不少于3年；
+- `sparse`：全样本及所有适用行业覆盖率均低于20%；
+- `insufficient_history`：可用年份少于3年；
+- 其余字段为 `pending_review`。
+
+当同一字段同时命中多种食材状态时，优先级为 `insufficient_history → preferred → specialized → sparse → pending_review`。体检按字段块和季度块执行并缓存，不允许一次请求全部字段的全历史日频数据。
+
 ## 10. 缓存与存储
 
 ```text
 data/1_source_cache/
 ├─ catalog/<snapshot_id>/
 │  ├─ source_fields.parquet
+│  ├─ ingredient_health.parquet
+│  ├─ control_fields.parquet
+│  ├─ vendor_factor_audit.parquet
+│  ├─ quarantine_triage.parquet
 │  └─ request_manifest.json
 └─ samples/<request_hash>/
    ├─ response.parquet
@@ -365,6 +473,8 @@ data/1_source_cache/
 ### 11.1 配方引擎
 
 本期实现配方schema、白名单解析器、依赖检查、循环依赖检查和小样本计算。不得全量构造13,482个所谓因子，也不进行全历史物化。
+
+自研配方与供应商直通配方使用同一解析、依赖、版本和物化接口。直通配方只允许调用 `identity`，且输入必须是已登记的单一供应商字段；未经定义审查或PIT门禁的候选不得生成可用直通配方。
 
 ### 11.2 预处理
 
@@ -410,6 +520,9 @@ A阶段真实RQData测试包括：
 3. 9,858/584/3,040分类结果复现；
 4. 固定少量证券、日期和字段的小样本取值；
 5. 相同请求二次执行命中缓存。
+6. 固定动态历史中证500样本上的财务字段质量体检；
+7. 固定财报公告事件窗口的供应商财务因子PIT对齐检查；
+8. 控制变量定义、时点和覆盖率检查。
 
 小样本字段覆盖估值、利润表、资产负债表、现金流量表、供应商成品因子和技术指标。不得查询未来收益。
 
@@ -426,6 +539,10 @@ CI不使用真实密钥。固定fixture覆盖：
 - 配方白名单和非法表达式拦截；
 - 请求哈希、缓存命中和原子写入；
 - 状态机合法/非法转换；
+- 食材状态、适用行业覆盖率和历史范围；
+- 控制变量不得流入选股因子目录；
+- PIT事件窗提前变化反例与抽样通过不升级为 `verified`；
+- `identity` 直通配方及其门禁；
 - 日志与异常脱敏。
 
 ### 14.2 RQData测试
@@ -448,7 +565,7 @@ python -m pytest -m rqdata
 - 现有5因子行为不变；
 - 不写入旧 `data/factor_library/values`。
 
-当前平台测试 `tests/test_imports.py` 硬编码 `PROJECT_ROOT.name == "quant_platform"`，在名为 `quant_pool` 的worktree中会失败。实施首步必须把该断言改为验证项目标志文件或包路径，而不是checkout目录名。
+第一轮实施已将 `tests/test_imports.py` 从checkout目录名断言改为包路径和项目标志校验。新版第一阶段重跑必须保留该修复并验证当前worktree实际被导入。
 
 ## 15. A阶段验收标准
 
@@ -467,6 +584,11 @@ python -m pytest -m rqdata
 13. 输出字段目录、分类汇总、隔离清单和快照manifest。
 14. 未读取收益、IC、ICIR或回测表现。
 15. 现有平台5因子、API和回测测试无新增回归。
+16. 9,858个财务字段均有食材质量状态；体检失败不会从源目录删除字段。
+17. 行业专属字段按适用行业评价，不因全市场低覆盖被误杀。
+18. `control_field_catalog` 至少登记行业、市值、ST、停牌、涨跌停和上市状态，且这些对象不会进入因子IC或模型筛选。
+19. 584个候选均有定义/PIT审计状态；抽样通过不会自动写成 `verified` 或 `eligible`。
+20. 合格供应商候选通过 `identity` 直通配方统一接入；未合格候选不得生成可用配方。
 
 ## 16. Git与合并流程
 
@@ -474,7 +596,7 @@ python -m pytest -m rqdata
 
 ```text
 quant_platform/  → main
-quant_pool/      → feature/research-factor-pool
+quant_pool/      → quant_pool
 ```
 
 提交建议：
@@ -501,17 +623,21 @@ docs: add factor pool acceptance report
 3. 实现安全配置加载和RQData能力探测；
 4. 实现字段枚举、规范化、去重、稳定排序和快照哈希；
 5. 实现确定性分类、隔离区和差异报告；
-6. 实现数据契约、状态机和审计事件；
-7. 实现配方schema、白名单解析和小样本计算；
-8. 实现缓存、原子写入和错误分类；
-9. 完成离线测试与RQData小样本烟雾测试；
-10. 生成A阶段验收报告；
-11. 用户复核后再设计B阶段全历史月度面板。
+6. 对财务字段做动态历史中证500范围的食材质量体检；
+7. 建立独立控制变量目录并验证定义、PIT和覆盖率；
+8. 实现供应商候选定义审查与确定性PIT事件窗口框架；
+9. 实现数据契约、状态机和审计事件；
+10. 实现配方schema、`identity`直通配方、白名单解析和小样本计算；
+11. 实现缓存、原子写入和错误分类；
+12. 完成离线测试与RQData小样本烟雾测试；
+13. 生成A阶段验收报告；
+14. 用户复核后再设计B阶段全历史月度面板。
 
 ## 18. 明确不在A阶段实施
 
 - 全历史批量因子下载；
 - 584个候选全部物化；
+- 对9,858个字段逐字段执行全历史全市场下载；
 - 财务派生因子全集；
 - MAD与中性化的全历史运行；
 - Rank IC、ICIR和收益筛选；
