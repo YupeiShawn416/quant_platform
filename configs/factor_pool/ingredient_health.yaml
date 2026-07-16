@@ -1,0 +1,16 @@
+rule_version: "1.1.0"
+start_date: "2016-01-01"
+quarter_months: [3, 6, 9, 12]
+universe: csi500_dynamic
+industry_system: citics_2019
+industry_level: 1
+preferred_coverage: 0.80
+specialized_coverage: 0.80
+sparse_coverage: 0.20
+annual_coverage: 0.50
+preferred_years: 5
+specialized_years: 3
+minimum_history_years: 3
+minimum_quarters_per_year: 3
+field_chunk_size: 25
+date_chunk_size: 4
