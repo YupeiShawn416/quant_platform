@@ -22,6 +22,7 @@ def build_phase_a_assets(
     health_config: IngredientHealthConfig,
     snapshot_id: str,
     created_at: datetime,
+    control_coverage: Mapping[str, float] | None = None,
 ) -> tuple[dict[str, pd.DataFrame], dict[str, object]]:
     if created_at.tzinfo is None:
         raise ValueError("created_at must be timezone-aware")
@@ -38,6 +39,7 @@ def build_phase_a_assets(
     controls = build_control_catalog(
         load_control_definitions(), snapshot_id=snapshot_id, created_at=created_at
     )
+    controls["coverage_rate"] = controls["control_id"].map(control_coverage or {})
     vendor_audit = audit_vendor_candidates(
         candidates,
         definitions=definitions,
@@ -52,9 +54,9 @@ def build_phase_a_assets(
         "vendor_factor_audit": vendor_audit,
         "quarantine_triage": triage,
     }
-    ingredient_pending = int(health["ingredient_status"].eq("pending_review").sum())
-    vendor_pending = int(vendor_audit["pit_status"].isin(["pending", "documentation_passed"]).sum())
-    control_pending = int((~controls["pit_status"].isin(["verified", "not_applicable"])).sum())
+    ingredient_pending = int(health["coverage_rate"].isna().sum()) if "coverage_rate" in health else 0
+    vendor_pending = int(vendor_audit["pit_status"].eq("pending").sum())
+    control_pending = int(controls["coverage_rate"].isna().sum())
     passthrough_count = int(
         (
             vendor_audit["definition_status"].eq("definition_verified")
@@ -71,6 +73,9 @@ def build_phase_a_assets(
         "control_field_count": int(len(controls)),
         "ingredient_pending_count": ingredient_pending,
         "vendor_pit_pending_count": vendor_pending,
+        "vendor_documentation_only_count": int(vendor_audit["pit_status"].eq("documentation_passed").sum()),
+        "vendor_sample_passed_count": int(vendor_audit["pit_status"].eq("sample_alignment_passed").sum()),
+        "vendor_failed_count": int(vendor_audit["pit_status"].eq("failed").sum()),
         "control_pending_count": control_pending,
         "vendor_passthrough_recipe_count": passthrough_count,
         "auto_eligible_count": int(vendor_audit["eligible_for_model"].astype(bool).sum()),

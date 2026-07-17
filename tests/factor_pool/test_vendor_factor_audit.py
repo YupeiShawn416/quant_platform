@@ -36,6 +36,22 @@ def test_one_preannouncement_new_signature_fails_entire_candidate():
     assert result["failure_reason"] == "new report signature observed before announcement"
 
 
+def test_same_day_after_close_source_fails_close_signal_cutoff():
+    observation = _event("debt_to_asset_ratio_lf", "2025-03-29", "2025-03-28", "new", "new")
+    observation["source_available_at"] = "2025-03-28 21:40:59"
+    observation["observation_cutoff"] = "2025-03-28 15:00:00"
+    result = audit_vendor_candidates(
+        _candidates([("debt_to_asset_ratio_lf", "financial_indicator")]),
+        definitions={"debt_to_asset_ratio_lf": "total liabilities / total assets, latest filing"},
+        event_observations=pd.DataFrame([observation]),
+        technical_observations=pd.DataFrame(),
+        config=VendorAuditConfig(rule_version="pit-test"),
+    ).iloc[0]
+
+    assert result["pit_status"] == "failed"
+    assert result["failure_reason"] == "new report signature observed before source availability cutoff"
+
+
 def test_missing_definition_stays_pending_and_technical_prefix_test_is_separate():
     candidates = _candidates([("unknown", "eod_indicator"), ("WorldQuant_alpha001", "alpha101")])
     result = audit_vendor_candidates(

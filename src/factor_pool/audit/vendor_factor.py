@@ -104,6 +104,13 @@ def _audit_financial(factor_id: str, observations: pd.DataFrame) -> tuple[str, i
     part["announcement_date"] = pd.to_datetime(part["announcement_date"], errors="raise")
     part["observation_date"] = pd.to_datetime(part["observation_date"], errors="raise")
     uses_new = part["source_signature"].astype(str) == part["expected_source_signature"].astype(str)
+    timestamp_columns = {"source_available_at", "observation_cutoff"}
+    if timestamp_columns.issubset(part.columns):
+        source_available_at = pd.to_datetime(part["source_available_at"], errors="raise")
+        observation_cutoff = pd.to_datetime(part["observation_cutoff"], errors="raise")
+        unavailable = uses_new & (observation_cutoff < source_available_at)
+        if unavailable.any():
+            return "failed", int(len(part)), "new report signature observed before source availability cutoff"
     early = uses_new & (part["observation_date"] < part["announcement_date"])
     if early.any():
         return "failed", int(len(part)), "new report signature observed before announcement"

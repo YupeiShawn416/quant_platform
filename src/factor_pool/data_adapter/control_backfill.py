@@ -17,6 +17,7 @@ class ControlProvider(Protocol):
     def industry(self, ids: list[str], date: str) -> pd.DataFrame: ...
     def valuation(self, ids: list[str], date: str) -> pd.DataFrame: ...
     def statuses(self, ids: list[str], date: str) -> pd.DataFrame: ...
+    def listing(self, ids: list[str], date: str) -> pd.DataFrame: ...
 
 
 class RQDataControlProvider:
@@ -63,6 +64,22 @@ class RQDataControlProvider:
             price = price.drop(columns=["date"])
         return st.merge(suspended, on="order_book_id", how="outer").merge(price, on="order_book_id", how="outer")
 
+    def listing(self, ids: list[str], date: str) -> pd.DataFrame:
+        signal_date = pd.Timestamp(date)
+        rows = []
+        for instrument in self.sdk.instruments(ids):
+            listed_date = pd.to_datetime(instrument.listed_date, errors="coerce")
+            de_listed_date = pd.to_datetime(instrument.de_listed_date, errors="coerce")
+            is_listed = pd.notna(listed_date) and listed_date <= signal_date
+            if pd.notna(de_listed_date):
+                is_listed = is_listed and signal_date <= de_listed_date
+            rows.append({
+                "order_book_id": str(instrument.order_book_id),
+                "is_listed": bool(is_listed),
+                "listed_days": int((signal_date - listed_date).days) if is_listed else None,
+            })
+        return pd.DataFrame(rows)
+
 
 def build_quarter_control_frame(
     provider: ControlProvider,
@@ -79,6 +96,7 @@ def build_quarter_control_frame(
     frame = base.merge(provider.industry(ids, signal_date), on="order_book_id", how="left")
     frame = frame.merge(provider.valuation(ids, signal_date), on="order_book_id", how="left")
     frame = frame.merge(provider.statuses(ids, signal_date), on="order_book_id", how="left")
+    frame = frame.merge(provider.listing(ids, signal_date), on="order_book_id", how="left")
     frame["signal_date"] = signal_date
     frame["universe_member"] = True
     frame["is_st"] = frame["is_st"].fillna(False).astype(bool)

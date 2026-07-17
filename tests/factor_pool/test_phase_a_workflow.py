@@ -47,6 +47,30 @@ def test_phase_a_assets_keep_missing_live_audits_pending_and_never_auto_eligible
     assert (output / "quarantine_triage.parquet").is_file()
 
 
+def test_phase_a_process_completes_when_every_asset_has_an_audit_outcome():
+    source = pd.DataFrame([
+        _source("pe_ratio_ttm", "eod_indicator", "vendor_factor", "candidate_factor"),
+    ])
+    _, manifest = build_phase_a_assets(
+        source,
+        ingredient_observations=pd.DataFrame(),
+        definitions={"pe_ratio_ttm": "official formula"},
+        event_observations=pd.DataFrame(),
+        technical_observations=pd.DataFrame(),
+        health_config=_health_config(),
+        snapshot_id="phase-a-complete",
+        created_at=datetime(2026, 7, 16, tzinfo=timezone.utc),
+        control_coverage={control_id: 1.0 for control_id in [
+            "industry_citics_2019_l1", "is_limit_down", "is_limit_up", "is_listed",
+            "is_st", "is_suspended", "listed_days", "log_float_market_cap",
+        ]},
+    )
+
+    assert manifest["status"] == "complete"
+    assert manifest["vendor_pit_pending_count"] == 0
+    assert manifest["vendor_documentation_only_count"] == 1
+
+
 def _source(name, category, role, status):
     return {
         "vendor_field_name": name,

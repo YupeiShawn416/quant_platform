@@ -14,4 +14,7 @@ minimum_securities: 5
 minimum_industries: 5
 pre_event_trading_days: 1
 post_event_trading_days: 1
+signal_cutoff_time: "15:00:00"
+require_source_available_at: true
+vendor_financial_default_lag_trading_days: 1
 allowed_pass_status: sample_alignment_passed

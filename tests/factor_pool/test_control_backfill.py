@@ -28,6 +28,13 @@ class FakeProvider:
             "limit_down": [9.0, 18.0],
         })
 
+    def listing(self, ids, date):
+        return pd.DataFrame({
+            "order_book_id": ids,
+            "is_listed": [True, True],
+            "listed_days": [1000, 2000],
+        })
+
 
 def test_build_quarter_control_frame_normalizes_controls():
     frame = build_quarter_control_frame(
@@ -43,6 +50,7 @@ def test_build_quarter_control_frame_normalizes_controls():
     assert keyed.loc["B.X", "float_market_cap"] == 200.0
     assert bool(keyed.loc["B.X", "is_st"]) is True
     assert bool(keyed.loc["B.X", "is_limit_up"]) is True
+    assert keyed.loc["A.X", "listed_days"] == 1000
 
 
 def test_backfill_quarterly_controls_is_resumable(tmp_path):

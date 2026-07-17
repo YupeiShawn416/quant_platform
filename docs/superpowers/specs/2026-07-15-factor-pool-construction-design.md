@@ -633,6 +633,22 @@ docs: add factor pool acceptance report
 13. 生成A阶段验收报告；
 14. 用户复核后再设计B阶段全历史月度面板。
 
+### 17.1 PIT 时间戳补充约束
+
+供应商财务日因子的日期标签不等于该值在当日收盘前已经可用。事件窗证据必须同时保存：
+
+```text
+source_available_at     # 公告或源报表实际可用时间
+observation_cutoff      # 策略信号截止时间，V1 默认为交易日 15:00
+factor_value_date       # 供应商标记的因子日期
+```
+
+若新报告口径出现在 `observation_cutoff < source_available_at` 的因子日期中，该同日可用规则判定失败。未逐因子验证前，供应商财务日因子默认滞后一个交易日；不得使用 `provider_value_available_on_signal_date` 直接接入收盘信号。仅按 `announcement_date` 比较不能识别同日盘后穿越，不再作为充分证据。
+
+### 17.2 流程完成与资产放行分离
+
+`phase_status=complete` 仅表示所有输入对象均已获得可审计结论，包括 `preferred`、`specialized`、`sparse`、`pending_review`、`documentation_passed`、`sample_alignment_passed` 或 `failed`。只有缺失覆盖结果、缺失定义或 `pit_status=pending` 才使流程保持 `incomplete`。资产能否生成直通配方、进入正式目录或参与模型训练，继续由各自门禁和 `eligible_for_model` 控制，禁止用阶段完成状态替代资产资格。
+
 ## 18. 明确不在A阶段实施
 
 - 全历史批量因子下载；
