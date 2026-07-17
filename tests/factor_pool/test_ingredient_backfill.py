@@ -5,7 +5,8 @@ from factor_pool.data_adapter.ingredient_backfill import backfill_ingredient_val
 
 class FakeProvider:
     def values(self, ids, fields, date):
-        return pd.DataFrame([[1.0, None], [2.0, 3.0]], index=ids, columns=fields)
+        values = {"a": [1.0, 2.0], "b": [None, 3.0]}
+        return pd.DataFrame({field: values[field] for field in fields}, index=ids)
 
 
 def test_ingredient_backfill_writes_resumable_field_chunks(tmp_path):
