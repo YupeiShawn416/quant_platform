@@ -194,6 +194,41 @@ class RQDataSource:
         frame = frame.drop_duplicates(["trade_date", "order_book_id"], keep="last")
         return frame.sort_values(["order_book_id", "trade_date"]).reset_index(drop=True)
 
+    def get_intraday_snapshots(
+        self,
+        order_book_ids: list[str],
+        start_date: str,
+        end_date: str,
+        snapshot_times: list[str],
+    ) -> pd.DataFrame:
+        self.init()
+        raw = rqdatac.get_price(
+            list(order_book_ids),
+            start_date=start_date,
+            end_date=end_date,
+            frequency="1m",
+            fields=["close", "volume", "total_turnover"],
+            adjust_type="none",
+            expect_df=True,
+        )
+        frame = pd.DataFrame(raw)
+        if isinstance(frame.index, pd.MultiIndex) or frame.index.name:
+            frame = frame.reset_index()
+        if "datetime" not in frame.columns:
+            datetime_col = next((column for column in ["date", "time", "trading_datetime"] if column in frame.columns), None)
+            if datetime_col:
+                frame = frame.rename(columns={datetime_col: "datetime"})
+        if "order_book_id" not in frame.columns:
+            id_col = next((column for column in ["id", "instrument"] if column in frame.columns), None)
+            if id_col:
+                frame = frame.rename(columns={id_col: "order_book_id"})
+        if "datetime" not in frame.columns or "order_book_id" not in frame.columns:
+            return pd.DataFrame(columns=["datetime", "order_book_id", "close", "volume", "total_turnover"])
+        frame["datetime"] = pd.to_datetime(frame["datetime"], errors="coerce")
+        frame["snapshot_time"] = frame["datetime"].dt.strftime("%H:%M")
+        frame = frame[frame["snapshot_time"].isin(snapshot_times)].copy()
+        return frame.drop(columns=["snapshot_time"]).reset_index(drop=True)
+
     def get_valuation_factors(
         self,
         order_book_ids: list[str],

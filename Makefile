@@ -2,7 +2,7 @@ BACKFILL_END_DATE ?= $(shell date +%F)
 FACTOR_IDS ?= market_cap,turnover_rate,momentum_20d,reversal_5d,volatility_20d
 UNIVERSE ?= all
 
-.PHONY: install test api api-prod api-smoke client-smoke backtest-api-smoke dashboard-smoke data-api-smoke-local create-demo-paper-account submit-demo-paper-weights run-demo-paper-daily paper-run-daily-all paper-smoke-local compute-builtin-factors analyze-factor generate-factor-weights factor-smoke-local audit-valuation-factor-fields create-demo-weights-package submit-demo-weights-package template-smoke check-data audit-data-lake backfill-core-smoke backfill-core-dry-run backfill-core-full check-data-2016-present server-sync-manifest daily-update-dry-run daily-update daily-update-status daily-update-report reconcile-daily-update update-index-2025 check-index-data update-tradability-2025 check-tradability-data update-valuation-2025 check-valuation-data update-industry-2025 check-industry-data update-index-membership-2025 check-index-membership-data vix-q5-exposure-audit vix-q5-build-lagged-package vix-q5-compare-lagged daily-data-update deploy-check query-sample demo-backtest view-demo-backtest demo-daily-backtest view-demo-daily-backtest status clean
+.PHONY: install test api api-prod api-smoke client-smoke backtest-api-smoke dashboard-smoke data-api-smoke-local create-demo-paper-account submit-demo-paper-weights run-demo-paper-daily paper-run-daily-all paper-smoke-local compute-builtin-factors analyze-factor generate-factor-weights factor-smoke-local audit-valuation-factor-fields create-demo-weights-package submit-demo-weights-package template-smoke check-data audit-data-lake backfill-core-smoke backfill-core-dry-run backfill-core-full check-data-2016-present server-sync-manifest daily-update-dry-run daily-update daily-update-status daily-update-report reconcile-daily-update intraday-snapshot-smoke backfill-intraday-snapshots check-intraday-snapshots audit-intraday-snapshots update-index-2025 check-index-data update-tradability-2025 check-tradability-data update-valuation-2025 check-valuation-data update-industry-2025 check-industry-data update-index-membership-2025 check-index-membership-data vix-q5-exposure-audit vix-q5-build-lagged-package vix-q5-compare-lagged daily-data-update deploy-check query-sample demo-backtest view-demo-backtest demo-daily-backtest view-demo-daily-backtest status clean
 
 install:
 	python -m pip install -e .
@@ -112,6 +112,22 @@ daily-update-report:
 
 reconcile-daily-update:
 	PYTHONPATH=src python scripts/37_reconcile_daily_update_coverage.py
+
+intraday-snapshot-smoke:
+	@test -n "$(START_DATE)" || (echo "START_DATE is required, e.g. make intraday-snapshot-smoke START_DATE=2025-01-01 END_DATE=2025-01-10"; exit 2)
+	@test -n "$(END_DATE)" || (echo "END_DATE is required, e.g. make intraday-snapshot-smoke START_DATE=2025-01-01 END_DATE=2025-01-10"; exit 2)
+	PYTHONPATH=src python scripts/43_backfill_intraday_snapshots.py --start-date $(START_DATE) --end-date $(END_DATE) --batch-size 300 --confirm-intraday-snapshot-backfill
+
+backfill-intraday-snapshots:
+	@test -n "$(START_DATE)" || (echo "START_DATE is required"; exit 2)
+	@test -n "$(END_DATE)" || (echo "END_DATE is required"; exit 2)
+	PYTHONPATH=src python scripts/43_backfill_intraday_snapshots.py --start-date $(START_DATE) --end-date $(END_DATE) --batch-size 300 --confirm-intraday-snapshot-backfill
+
+check-intraday-snapshots:
+	PYTHONPATH=src python scripts/44_check_intraday_snapshot_quality.py
+
+audit-intraday-snapshots:
+	PYTHONPATH=src python scripts/45_audit_intraday_snapshot_coverage.py
 
 update-index-2025:
 	PYTHONPATH=src python scripts/22_update_2025_index_prices.py

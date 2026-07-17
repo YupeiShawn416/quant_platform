@@ -42,6 +42,7 @@ Data API -> local research template -> weights package -> platform backtest -> D
 18. Daily data update workflow：本地授权机器增量更新，服务器只读 Parquet
 19. Multi-account Paper Trading MVP：多模拟账户、NAV、持仓、订单、成交、日志
 20. API 使用手册与研究员交付文档
+21. Intraday Snapshot Data workflow：固定 6 个日内快照点，不做全量分钟线
 
 ## Current Stage
 
@@ -350,6 +351,7 @@ docs/RESEARCHER_DATA_API.md
 docs/PAPER_TRADING_MVP.md
 docs/FACTOR_LIBRARY_MVP.md
 docs/DAY_END_OPERATIONS.md
+docs/INTRADAY_SNAPSHOT_DATA.md
 ```
 
 给平台开发者的最小启动命令：
