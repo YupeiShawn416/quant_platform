@@ -1,0 +1,154 @@
+{
+  "status": "success",
+  "symbols": [
+    "600519.XSHG",
+    "000001.XSHE",
+    "300750.XSHE",
+    "688001.XSHG",
+    "000005.XSHE"
+  ],
+  "start_date": "2025-01-02",
+  "end_date": "2025-01-10",
+  "api_capabilities": {
+    "get_price": true,
+    "get_factor": true,
+    "get_all_factor_names": true,
+    "get_financials": false,
+    "query": false,
+    "fundamentals": false,
+    "get_turnover_rate": true,
+    "all_instruments": true
+  },
+  "samples": {
+    "price_none": {
+      "status": "success",
+      "rows": 28,
+      "columns": [
+        "close",
+        "volume",
+        "total_turnover"
+      ],
+      "dtypes": {
+        "close": "float64",
+        "volume": "float64",
+        "total_turnover": "float64"
+      },
+      "head": [
+        {
+          "close": "1488.0",
+          "volume": "5002870.0",
+          "total_turnover": "7490883773.0"
+        },
+        {
+          "close": "1475.0",
+          "volume": "3262836.0",
+          "total_turnover": "4836610288.0"
+        },
+        {
+          "close": "1440.0",
+          "volume": "4425512.0",
+          "total_turnover": "6392479712.0"
+        }
+      ]
+    },
+    "valuation_factor": {
+      "status": "success",
+      "rows": 28,
+      "columns": [
+        "market_cap",
+        "market_cap_2",
+        "pb_ratio",
+        "pe_ratio"
+      ],
+      "dtypes": {
+        "market_cap": "float64",
+        "market_cap_2": "float64",
+        "pb_ratio": "float64",
+        "pe_ratio": "float64"
+      },
+      "head": [
+        {
+          "market_cap": "221809645003.0",
+          "market_cap_2": "221806208345.0",
+          "pb_ratio": "0.5275",
+          "pe_ratio": "4.7651"
+        },
+        {
+          "market_cap": "220839349093.0",
+          "market_cap_2": "220835927469.0",
+          "pb_ratio": "0.5252",
+          "pe_ratio": "4.7442"
+        },
+        {
+          "market_cap": "222003704185.0",
+          "market_cap_2": "222000264520.0",
+          "pb_ratio": "0.5279",
+          "pe_ratio": "4.7692"
+        }
+      ]
+    },
+    "turnover_rate": {
+      "status": "success",
+      "rows": 28,
+      "columns": [
+        "today",
+        "week",
+        "month",
+        "year",
+        "current_year"
+      ],
+      "dtypes": {
+        "today": "float64",
+        "week": "float64",
+        "month": "float64",
+        "year": "float64",
+        "current_year": "float64"
+      },
+      "head": [
+        {
+          "today": "0.9377",
+          "week": "0.7648",
+          "month": "0.6182",
+          "year": "0.7322",
+          "current_year": "0.9377"
+        },
+        {
+          "today": "0.595",
+          "week": "0.7474",
+          "month": "0.6199",
+          "year": "0.7331",
+          "current_year": "0.7663"
+        },
+        {
+          "today": "0.5594",
+          "week": "0.7131",
+          "month": "0.6217",
+          "year": "0.7324",
+          "current_year": "0.6974"
+        }
+      ]
+    },
+    "factor_names_sample": {
+      "status": "success",
+      "rows": 200,
+      "columns": [
+        "factor_name"
+      ],
+      "dtypes": {
+        "factor_name": "object"
+      },
+      "head": [
+        {
+          "factor_name": "ACCER"
+        },
+        {
+          "factor_name": "ADTM"
+        },
+        {
+          "factor_name": "ADX"
+        }
+      ]
+    }
+  },
+  "errors": []
+}

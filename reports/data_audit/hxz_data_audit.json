@@ -1,0 +1,1830 @@
+{
+  "data_root": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata",
+  "generated_at": "2026-07-20T13:48:54.902312+08:00",
+  "datasets": {
+    "instruments": {
+      "dataset": "instruments",
+      "path": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/instruments",
+      "exists": true,
+      "file_count": 1,
+      "rows": 5554,
+      "symbols": 5554,
+      "min_date": "1990-12-01",
+      "max_date": "2026-07-02",
+      "columns": [
+        "order_book_id",
+        "symbol",
+        "abbrev_symbol",
+        "round_lot",
+        "listed_date",
+        "de_listed_date",
+        "type",
+        "exchange",
+        "status",
+        "industry_code",
+        "market_tplus",
+        "special_type",
+        "sector_code_name",
+        "sector_code",
+        "trading_hours",
+        "board_type",
+        "industry_name",
+        "issue_price",
+        "trading_code",
+        "office_address",
+        "province",
+        "purchasedate"
+      ],
+      "dtypes": {
+        "order_book_id": "object",
+        "symbol": "object",
+        "abbrev_symbol": "object",
+        "round_lot": "float64",
+        "listed_date": "object",
+        "de_listed_date": "object",
+        "type": "object",
+        "exchange": "object",
+        "status": "object",
+        "industry_code": "object",
+        "market_tplus": "int64",
+        "special_type": "object",
+        "sector_code_name": "object",
+        "sector_code": "object",
+        "trading_hours": "object",
+        "board_type": "object",
+        "industry_name": "object",
+        "issue_price": "float64",
+        "trading_code": "object",
+        "office_address": "object",
+        "province": "object",
+        "purchasedate": "object"
+      },
+      "key_columns": [
+        "order_book_id"
+      ],
+      "duplicate_keys": 0,
+      "null_rates": {
+        "abbrev_symbol": 0.0,
+        "board_type": 0.0,
+        "de_listed_date": 0.939863,
+        "exchange": 0.0,
+        "industry_code": 0.0,
+        "industry_name": 0.0,
+        "issue_price": 0.00108,
+        "listed_date": 0.003061,
+        "market_tplus": 0.0,
+        "office_address": 0.00072,
+        "order_book_id": 0.0,
+        "province": 0.00072,
+        "purchasedate": 0.761973,
+        "round_lot": 0.0,
+        "sector_code": 0.0,
+        "sector_code_name": 0.0,
+        "special_type": 0.0,
+        "status": 0.0,
+        "symbol": 0.0,
+        "trading_code": 0.0,
+        "trading_hours": 0.0,
+        "type": 0.0
+      },
+      "partitions": [
+        {
+          "year": null,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/instruments/instruments.parquet",
+          "rows": 5554,
+          "symbols": 5554,
+          "min_date": "1990-12-01",
+          "max_date": "2026-07-02",
+          "duplicate_keys": 0
+        }
+      ],
+      "errors": []
+    },
+    "trading_calendar": {
+      "dataset": "trading_calendar",
+      "path": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/trading_calendar",
+      "exists": true,
+      "file_count": 1,
+      "rows": 2556,
+      "symbols": null,
+      "min_date": "2016-01-04",
+      "max_date": "2026-07-14",
+      "columns": [
+        "trade_date",
+        "is_open"
+      ],
+      "dtypes": {
+        "trade_date": "object",
+        "is_open": "bool"
+      },
+      "key_columns": [
+        "trade_date"
+      ],
+      "duplicate_keys": 0,
+      "null_rates": {
+        "is_open": 0.0,
+        "trade_date": 0.0
+      },
+      "partitions": [
+        {
+          "year": null,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/trading_calendar/trading_calendar.parquet",
+          "rows": 2556,
+          "symbols": null,
+          "min_date": "2016-01-04",
+          "max_date": "2026-07-14",
+          "duplicate_keys": 0
+        }
+      ],
+      "errors": []
+    },
+    "prices_1d_none": {
+      "dataset": "prices_1d_none",
+      "path": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/prices_1d_none",
+      "exists": true,
+      "file_count": 11,
+      "rows": 10765635,
+      "symbols": 5449,
+      "min_date": "2016-01-04",
+      "max_date": "2026-07-14",
+      "columns": [
+        "trade_date",
+        "order_book_id",
+        "adjust_type",
+        "open",
+        "high",
+        "low",
+        "close",
+        "volume",
+        "total_turnover",
+        "limit_up",
+        "limit_down",
+        "num_trades"
+      ],
+      "dtypes": {
+        "trade_date": "object",
+        "order_book_id": "object",
+        "adjust_type": "object",
+        "open": "float64",
+        "high": "float64",
+        "low": "float64",
+        "close": "float64",
+        "volume": "float64",
+        "total_turnover": "float64",
+        "limit_up": "float64",
+        "limit_down": "float64",
+        "num_trades": "float64"
+      },
+      "key_columns": [
+        "trade_date",
+        "order_book_id",
+        "adjust_type"
+      ],
+      "duplicate_keys": 0,
+      "null_rates": {
+        "adjust_type": 0.0,
+        "close": 0.0,
+        "high": 0.0,
+        "limit_down": 0.0,
+        "limit_up": 0.0,
+        "low": 0.0,
+        "num_trades": 0.0,
+        "open": 0.0,
+        "order_book_id": 0.0,
+        "total_turnover": 0.0,
+        "trade_date": 0.0,
+        "volume": 0.0
+      },
+      "partitions": [
+        {
+          "year": 2016,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/prices_1d_none/year=2016.parquet",
+          "rows": 705121,
+          "symbols": 3039,
+          "min_date": "2016-01-04",
+          "max_date": "2016-12-30",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2017,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/prices_1d_none/year=2017.parquet",
+          "rows": 800040,
+          "symbols": 3476,
+          "min_date": "2017-01-03",
+          "max_date": "2017-12-29",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2018,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/prices_1d_none/year=2018.parquet",
+          "rows": 857562,
+          "symbols": 3576,
+          "min_date": "2018-01-02",
+          "max_date": "2018-12-28",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2019,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/prices_1d_none/year=2019.parquet",
+          "rows": 890731,
+          "symbols": 3772,
+          "min_date": "2019-01-02",
+          "max_date": "2019-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2020,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/prices_1d_none/year=2020.parquet",
+          "rows": 952229,
+          "symbols": 4157,
+          "min_date": "2020-01-02",
+          "max_date": "2020-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2021,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/prices_1d_none/year=2021.parquet",
+          "rows": 1062613,
+          "symbols": 4624,
+          "min_date": "2021-01-04",
+          "max_date": "2021-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2022,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/prices_1d_none/year=2022.parquet",
+          "rows": 1149461,
+          "symbols": 4949,
+          "min_date": "2022-01-04",
+          "max_date": "2022-12-30",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2023,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/prices_1d_none/year=2023.parquet",
+          "rows": 1212152,
+          "symbols": 5142,
+          "min_date": "2023-01-03",
+          "max_date": "2023-12-29",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2024,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/prices_1d_none/year=2024.parquet",
+          "rows": 1236522,
+          "symbols": 5174,
+          "min_date": "2024-01-02",
+          "max_date": "2024-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2025,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/prices_1d_none/year=2025.parquet",
+          "rows": 1244476,
+          "symbols": 5167,
+          "min_date": "2025-01-02",
+          "max_date": "2025-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2026,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/prices_1d_none/year=2026.parquet",
+          "rows": 654728,
+          "symbols": 5219,
+          "min_date": "2026-01-05",
+          "max_date": "2026-07-14",
+          "duplicate_keys": 0
+        }
+      ],
+      "errors": []
+    },
+    "prices_1d_pre": {
+      "dataset": "prices_1d_pre",
+      "path": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/prices_1d_pre",
+      "exists": true,
+      "file_count": 11,
+      "rows": 10765635,
+      "symbols": 5449,
+      "min_date": "2016-01-04",
+      "max_date": "2026-07-14",
+      "columns": [
+        "trade_date",
+        "order_book_id",
+        "adjust_type",
+        "open",
+        "high",
+        "low",
+        "close",
+        "volume",
+        "total_turnover",
+        "limit_up",
+        "limit_down",
+        "num_trades"
+      ],
+      "dtypes": {
+        "trade_date": "object",
+        "order_book_id": "object",
+        "adjust_type": "object",
+        "open": "float64",
+        "high": "float64",
+        "low": "float64",
+        "close": "float64",
+        "volume": "float64",
+        "total_turnover": "float64",
+        "limit_up": "float64",
+        "limit_down": "float64",
+        "num_trades": "float64"
+      },
+      "key_columns": [
+        "trade_date",
+        "order_book_id",
+        "adjust_type"
+      ],
+      "duplicate_keys": 0,
+      "null_rates": {
+        "adjust_type": 0.0,
+        "close": 0.0,
+        "high": 0.0,
+        "limit_down": 0.0,
+        "limit_up": 0.0,
+        "low": 0.0,
+        "num_trades": 0.0,
+        "open": 0.0,
+        "order_book_id": 0.0,
+        "total_turnover": 0.0,
+        "trade_date": 0.0,
+        "volume": 0.0
+      },
+      "partitions": [
+        {
+          "year": 2016,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/prices_1d_pre/year=2016.parquet",
+          "rows": 705121,
+          "symbols": 3039,
+          "min_date": "2016-01-04",
+          "max_date": "2016-12-30",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2017,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/prices_1d_pre/year=2017.parquet",
+          "rows": 800040,
+          "symbols": 3476,
+          "min_date": "2017-01-03",
+          "max_date": "2017-12-29",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2018,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/prices_1d_pre/year=2018.parquet",
+          "rows": 857562,
+          "symbols": 3576,
+          "min_date": "2018-01-02",
+          "max_date": "2018-12-28",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2019,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/prices_1d_pre/year=2019.parquet",
+          "rows": 890731,
+          "symbols": 3772,
+          "min_date": "2019-01-02",
+          "max_date": "2019-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2020,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/prices_1d_pre/year=2020.parquet",
+          "rows": 952229,
+          "symbols": 4157,
+          "min_date": "2020-01-02",
+          "max_date": "2020-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2021,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/prices_1d_pre/year=2021.parquet",
+          "rows": 1062613,
+          "symbols": 4624,
+          "min_date": "2021-01-04",
+          "max_date": "2021-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2022,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/prices_1d_pre/year=2022.parquet",
+          "rows": 1149461,
+          "symbols": 4949,
+          "min_date": "2022-01-04",
+          "max_date": "2022-12-30",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2023,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/prices_1d_pre/year=2023.parquet",
+          "rows": 1212152,
+          "symbols": 5142,
+          "min_date": "2023-01-03",
+          "max_date": "2023-12-29",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2024,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/prices_1d_pre/year=2024.parquet",
+          "rows": 1236522,
+          "symbols": 5174,
+          "min_date": "2024-01-02",
+          "max_date": "2024-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2025,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/prices_1d_pre/year=2025.parquet",
+          "rows": 1244476,
+          "symbols": 5167,
+          "min_date": "2025-01-02",
+          "max_date": "2025-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2026,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/prices_1d_pre/year=2026.parquet",
+          "rows": 654728,
+          "symbols": 5219,
+          "min_date": "2026-01-05",
+          "max_date": "2026-07-14",
+          "duplicate_keys": 0
+        }
+      ],
+      "errors": []
+    },
+    "index_prices_1d": {
+      "dataset": "index_prices_1d",
+      "path": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_prices_1d",
+      "exists": true,
+      "file_count": 11,
+      "rows": 15336,
+      "symbols": 6,
+      "min_date": "2016-01-04",
+      "max_date": "2026-07-14",
+      "columns": [
+        "trade_date",
+        "order_book_id",
+        "open",
+        "high",
+        "low",
+        "close",
+        "volume",
+        "total_turnover",
+        "num_trades"
+      ],
+      "dtypes": {
+        "trade_date": "object",
+        "order_book_id": "object",
+        "open": "float64",
+        "high": "float64",
+        "low": "float64",
+        "close": "float64",
+        "volume": "float64",
+        "total_turnover": "float64",
+        "num_trades": "float64"
+      },
+      "key_columns": [
+        "trade_date",
+        "order_book_id"
+      ],
+      "duplicate_keys": 0,
+      "null_rates": {
+        "close": 0.0,
+        "high": 0.0,
+        "low": 0.0,
+        "num_trades": 1.0,
+        "open": 0.0,
+        "order_book_id": 0.0,
+        "total_turnover": 0.0,
+        "trade_date": 0.0,
+        "volume": 0.0
+      },
+      "partitions": [
+        {
+          "year": 2016,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_prices_1d/year=2016.parquet",
+          "rows": 1464,
+          "symbols": 6,
+          "min_date": "2016-01-04",
+          "max_date": "2016-12-30",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2017,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_prices_1d/year=2017.parquet",
+          "rows": 1464,
+          "symbols": 6,
+          "min_date": "2017-01-03",
+          "max_date": "2017-12-29",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2018,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_prices_1d/year=2018.parquet",
+          "rows": 1458,
+          "symbols": 6,
+          "min_date": "2018-01-02",
+          "max_date": "2018-12-28",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2019,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_prices_1d/year=2019.parquet",
+          "rows": 1464,
+          "symbols": 6,
+          "min_date": "2019-01-02",
+          "max_date": "2019-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2020,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_prices_1d/year=2020.parquet",
+          "rows": 1458,
+          "symbols": 6,
+          "min_date": "2020-01-02",
+          "max_date": "2020-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2021,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_prices_1d/year=2021.parquet",
+          "rows": 1458,
+          "symbols": 6,
+          "min_date": "2021-01-04",
+          "max_date": "2021-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2022,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_prices_1d/year=2022.parquet",
+          "rows": 1452,
+          "symbols": 6,
+          "min_date": "2022-01-04",
+          "max_date": "2022-12-30",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2023,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_prices_1d/year=2023.parquet",
+          "rows": 1452,
+          "symbols": 6,
+          "min_date": "2023-01-03",
+          "max_date": "2023-12-29",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2024,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_prices_1d/year=2024.parquet",
+          "rows": 1452,
+          "symbols": 6,
+          "min_date": "2024-01-02",
+          "max_date": "2024-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2025,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_prices_1d/year=2025.parquet",
+          "rows": 1458,
+          "symbols": 6,
+          "min_date": "2025-01-02",
+          "max_date": "2025-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2026,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_prices_1d/year=2026.parquet",
+          "rows": 756,
+          "symbols": 6,
+          "min_date": "2026-01-05",
+          "max_date": "2026-07-14",
+          "duplicate_keys": 0
+        }
+      ],
+      "errors": []
+    },
+    "tradability_1d": {
+      "dataset": "tradability_1d",
+      "path": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/tradability_1d",
+      "exists": true,
+      "file_count": 11,
+      "rows": 10816073,
+      "symbols": 5465,
+      "min_date": "2016-01-04",
+      "max_date": "2026-07-14",
+      "columns": [
+        "trade_date",
+        "order_book_id",
+        "is_listed",
+        "is_suspended",
+        "is_st",
+        "can_buy",
+        "can_sell",
+        "reason"
+      ],
+      "dtypes": {
+        "trade_date": "object",
+        "order_book_id": "object",
+        "is_listed": "bool",
+        "is_suspended": "bool",
+        "is_st": "bool",
+        "can_buy": "bool",
+        "can_sell": "bool",
+        "reason": "object"
+      },
+      "key_columns": [
+        "trade_date",
+        "order_book_id"
+      ],
+      "duplicate_keys": 0,
+      "null_rates": {
+        "can_buy": 0.0,
+        "can_sell": 0.0,
+        "is_listed": 0.0,
+        "is_st": 0.0,
+        "is_suspended": 0.0,
+        "order_book_id": 0.0,
+        "reason": 0.0,
+        "trade_date": 0.0
+      },
+      "partitions": [
+        {
+          "year": 2016,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/tradability_1d/year=2016.parquet",
+          "rows": 709269,
+          "symbols": 3056,
+          "min_date": "2016-01-04",
+          "max_date": "2016-12-30",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2017,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/tradability_1d/year=2017.parquet",
+          "rows": 804188,
+          "symbols": 3493,
+          "min_date": "2017-01-03",
+          "max_date": "2017-12-29",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2018,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/tradability_1d/year=2018.parquet",
+          "rows": 861693,
+          "symbols": 3593,
+          "min_date": "2018-01-02",
+          "max_date": "2018-12-28",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2019,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/tradability_1d/year=2019.parquet",
+          "rows": 894876,
+          "symbols": 3789,
+          "min_date": "2019-01-02",
+          "max_date": "2019-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2020,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/tradability_1d/year=2020.parquet",
+          "rows": 956360,
+          "symbols": 4174,
+          "min_date": "2020-01-02",
+          "max_date": "2020-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2021,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/tradability_1d/year=2021.parquet",
+          "rows": 1066744,
+          "symbols": 4641,
+          "min_date": "2021-01-04",
+          "max_date": "2021-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2022,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/tradability_1d/year=2022.parquet",
+          "rows": 1153575,
+          "symbols": 4966,
+          "min_date": "2022-01-04",
+          "max_date": "2022-12-30",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2023,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/tradability_1d/year=2023.parquet",
+          "rows": 1216265,
+          "symbols": 5159,
+          "min_date": "2023-01-03",
+          "max_date": "2023-12-29",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2024,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/tradability_1d/year=2024.parquet",
+          "rows": 1240636,
+          "symbols": 5191,
+          "min_date": "2024-01-02",
+          "max_date": "2024-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2025,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/tradability_1d/year=2025.parquet",
+          "rows": 1255595,
+          "symbols": 5229,
+          "min_date": "2025-01-02",
+          "max_date": "2025-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2026,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/tradability_1d/year=2026.parquet",
+          "rows": 656872,
+          "symbols": 5235,
+          "min_date": "2026-01-05",
+          "max_date": "2026-07-14",
+          "duplicate_keys": 0
+        }
+      ],
+      "errors": []
+    },
+    "valuation_1d": {
+      "dataset": "valuation_1d",
+      "path": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/valuation_1d",
+      "exists": true,
+      "file_count": 11,
+      "rows": 10765631,
+      "symbols": 5449,
+      "min_date": "2016-01-04",
+      "max_date": "2026-07-14",
+      "columns": [
+        "trade_date",
+        "order_book_id",
+        "market_cap",
+        "float_market_cap",
+        "pe_ratio",
+        "pb_ratio",
+        "ps_ratio",
+        "pcf_ratio",
+        "turnover_rate"
+      ],
+      "dtypes": {
+        "trade_date": "object",
+        "order_book_id": "object",
+        "market_cap": "float64",
+        "float_market_cap": "float64",
+        "pe_ratio": "float64",
+        "pb_ratio": "float64",
+        "ps_ratio": "float64",
+        "pcf_ratio": "float64",
+        "turnover_rate": "float64"
+      },
+      "key_columns": [
+        "trade_date",
+        "order_book_id"
+      ],
+      "duplicate_keys": 0,
+      "null_rates": {
+        "float_market_cap": 0.066602,
+        "market_cap": 0.001504,
+        "order_book_id": 0.0,
+        "pb_ratio": 0.001504,
+        "pcf_ratio": 0.001504,
+        "pe_ratio": 0.001504,
+        "ps_ratio": 0.001577,
+        "trade_date": 0.0,
+        "turnover_rate": 0.000967
+      },
+      "partitions": [
+        {
+          "year": 2016,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/valuation_1d/year=2016.parquet",
+          "rows": 705121,
+          "symbols": 3039,
+          "min_date": "2016-01-04",
+          "max_date": "2016-12-30",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2017,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/valuation_1d/year=2017.parquet",
+          "rows": 800040,
+          "symbols": 3476,
+          "min_date": "2017-01-03",
+          "max_date": "2017-12-29",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2018,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/valuation_1d/year=2018.parquet",
+          "rows": 857562,
+          "symbols": 3576,
+          "min_date": "2018-01-02",
+          "max_date": "2018-12-28",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2019,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/valuation_1d/year=2019.parquet",
+          "rows": 890728,
+          "symbols": 3772,
+          "min_date": "2019-01-02",
+          "max_date": "2019-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2020,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/valuation_1d/year=2020.parquet",
+          "rows": 952229,
+          "symbols": 4157,
+          "min_date": "2020-01-02",
+          "max_date": "2020-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2021,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/valuation_1d/year=2021.parquet",
+          "rows": 1062613,
+          "symbols": 4624,
+          "min_date": "2021-01-04",
+          "max_date": "2021-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2022,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/valuation_1d/year=2022.parquet",
+          "rows": 1149461,
+          "symbols": 4949,
+          "min_date": "2022-01-04",
+          "max_date": "2022-12-30",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2023,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/valuation_1d/year=2023.parquet",
+          "rows": 1212151,
+          "symbols": 5142,
+          "min_date": "2023-01-03",
+          "max_date": "2023-12-29",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2024,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/valuation_1d/year=2024.parquet",
+          "rows": 1236522,
+          "symbols": 5174,
+          "min_date": "2024-01-02",
+          "max_date": "2024-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2025,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/valuation_1d/year=2025.parquet",
+          "rows": 1244476,
+          "symbols": 5167,
+          "min_date": "2025-01-02",
+          "max_date": "2025-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2026,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/valuation_1d/year=2026.parquet",
+          "rows": 654728,
+          "symbols": 5219,
+          "min_date": "2026-01-05",
+          "max_date": "2026-07-14",
+          "duplicate_keys": 0
+        }
+      ],
+      "errors": []
+    },
+    "industry_classification": {
+      "dataset": "industry_classification",
+      "path": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/industry_classification",
+      "exists": true,
+      "file_count": 11,
+      "rows": 10753829,
+      "symbols": 5452,
+      "min_date": "2016-01-04",
+      "max_date": "2026-07-14",
+      "columns": [
+        "trade_date",
+        "order_book_id",
+        "industry_system",
+        "industry_level",
+        "industry_code",
+        "industry_name"
+      ],
+      "dtypes": {
+        "trade_date": "object",
+        "order_book_id": "object",
+        "industry_system": "object",
+        "industry_level": "Int64",
+        "industry_code": "string",
+        "industry_name": "string"
+      },
+      "key_columns": [
+        "trade_date",
+        "order_book_id",
+        "industry_system",
+        "industry_level"
+      ],
+      "duplicate_keys": 0,
+      "null_rates": {
+        "industry_code": 0.0,
+        "industry_level": 0.0,
+        "industry_name": 0.0,
+        "industry_system": 0.0,
+        "order_book_id": 0.0,
+        "trade_date": 0.0
+      },
+      "partitions": [
+        {
+          "year": 2016,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/industry_classification/year=2016.parquet",
+          "rows": 696891,
+          "symbols": 2878,
+          "min_date": "2016-01-04",
+          "max_date": "2016-12-30",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2017,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/industry_classification/year=2017.parquet",
+          "rows": 791611,
+          "symbols": 3459,
+          "min_date": "2017-01-03",
+          "max_date": "2017-12-29",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2018,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/industry_classification/year=2018.parquet",
+          "rows": 856999,
+          "symbols": 3576,
+          "min_date": "2018-01-02",
+          "max_date": "2018-12-28",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2019,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/industry_classification/year=2019.parquet",
+          "rows": 890192,
+          "symbols": 3763,
+          "min_date": "2019-01-02",
+          "max_date": "2019-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2020,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/industry_classification/year=2020.parquet",
+          "rows": 951767,
+          "symbols": 4161,
+          "min_date": "2020-01-02",
+          "max_date": "2020-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2021,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/industry_classification/year=2021.parquet",
+          "rows": 1063793,
+          "symbols": 4630,
+          "min_date": "2021-01-04",
+          "max_date": "2021-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2022,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/industry_classification/year=2022.parquet",
+          "rows": 1150913,
+          "symbols": 4955,
+          "min_date": "2022-01-04",
+          "max_date": "2022-12-30",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2023,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/industry_classification/year=2023.parquet",
+          "rows": 1213603,
+          "symbols": 5148,
+          "min_date": "2023-01-03",
+          "max_date": "2023-12-29",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2024,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/industry_classification/year=2024.parquet",
+          "rows": 1237974,
+          "symbols": 5180,
+          "min_date": "2024-01-02",
+          "max_date": "2024-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2025,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/industry_classification/year=2025.parquet",
+          "rows": 1244476,
+          "symbols": 5167,
+          "min_date": "2025-01-02",
+          "max_date": "2025-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2026,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/industry_classification/year=2026.parquet",
+          "rows": 655610,
+          "symbols": 5226,
+          "min_date": "2026-01-05",
+          "max_date": "2026-07-14",
+          "duplicate_keys": 0
+        }
+      ],
+      "errors": []
+    },
+    "index_components": {
+      "dataset": "index_components",
+      "path": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_components",
+      "exists": true,
+      "file_count": 11,
+      "rows": 4600800,
+      "symbols": 3379,
+      "min_date": "2016-01-04",
+      "max_date": "2026-07-14",
+      "columns": [
+        "trade_date",
+        "index_id",
+        "order_book_id"
+      ],
+      "dtypes": {
+        "trade_date": "object",
+        "index_id": "object",
+        "order_book_id": "object"
+      },
+      "key_columns": [
+        "trade_date",
+        "index_id",
+        "order_book_id"
+      ],
+      "duplicate_keys": 0,
+      "null_rates": {
+        "index_id": 0.0,
+        "order_book_id": 0.0,
+        "trade_date": 0.0
+      },
+      "partitions": [
+        {
+          "year": 2016,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_components/year=2016.parquet",
+          "rows": 439200,
+          "symbols": 2037,
+          "min_date": "2016-01-04",
+          "max_date": "2016-12-30",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2017,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_components/year=2017.parquet",
+          "rows": 439200,
+          "symbols": 2063,
+          "min_date": "2017-01-03",
+          "max_date": "2017-12-29",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2018,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_components/year=2018.parquet",
+          "rows": 437400,
+          "symbols": 2045,
+          "min_date": "2018-01-02",
+          "max_date": "2018-12-28",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2019,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_components/year=2019.parquet",
+          "rows": 439200,
+          "symbols": 2017,
+          "min_date": "2019-01-02",
+          "max_date": "2019-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2020,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_components/year=2020.parquet",
+          "rows": 437400,
+          "symbols": 2032,
+          "min_date": "2020-01-02",
+          "max_date": "2020-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2021,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_components/year=2021.parquet",
+          "rows": 437400,
+          "symbols": 2034,
+          "min_date": "2021-01-04",
+          "max_date": "2021-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2022,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_components/year=2022.parquet",
+          "rows": 435600,
+          "symbols": 1995,
+          "min_date": "2022-01-04",
+          "max_date": "2022-12-30",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2023,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_components/year=2023.parquet",
+          "rows": 435600,
+          "symbols": 1989,
+          "min_date": "2023-01-03",
+          "max_date": "2023-12-29",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2024,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_components/year=2024.parquet",
+          "rows": 435600,
+          "symbols": 1976,
+          "min_date": "2024-01-02",
+          "max_date": "2024-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2025,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_components/year=2025.parquet",
+          "rows": 437400,
+          "symbols": 1978,
+          "min_date": "2025-01-02",
+          "max_date": "2025-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2026,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_components/year=2026.parquet",
+          "rows": 226800,
+          "symbols": 1913,
+          "min_date": "2026-01-05",
+          "max_date": "2026-07-14",
+          "duplicate_keys": 0
+        }
+      ],
+      "errors": []
+    },
+    "index_weights": {
+      "dataset": "index_weights",
+      "path": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_weights",
+      "exists": true,
+      "file_count": 11,
+      "rows": 4600800,
+      "symbols": 3379,
+      "min_date": "2016-01-04",
+      "max_date": "2026-07-14",
+      "columns": [
+        "trade_date",
+        "index_id",
+        "order_book_id",
+        "weight"
+      ],
+      "dtypes": {
+        "trade_date": "object",
+        "index_id": "object",
+        "order_book_id": "object",
+        "weight": "float64"
+      },
+      "key_columns": [
+        "trade_date",
+        "index_id",
+        "order_book_id"
+      ],
+      "duplicate_keys": 0,
+      "null_rates": {
+        "index_id": 0.0,
+        "order_book_id": 0.0,
+        "trade_date": 0.0,
+        "weight": 0.0
+      },
+      "partitions": [
+        {
+          "year": 2016,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_weights/year=2016.parquet",
+          "rows": 439200,
+          "symbols": 2037,
+          "min_date": "2016-01-04",
+          "max_date": "2016-12-30",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2017,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_weights/year=2017.parquet",
+          "rows": 439200,
+          "symbols": 2063,
+          "min_date": "2017-01-03",
+          "max_date": "2017-12-29",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2018,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_weights/year=2018.parquet",
+          "rows": 437400,
+          "symbols": 2046,
+          "min_date": "2018-01-02",
+          "max_date": "2018-12-28",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2019,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_weights/year=2019.parquet",
+          "rows": 439200,
+          "symbols": 2017,
+          "min_date": "2019-01-02",
+          "max_date": "2019-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2020,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_weights/year=2020.parquet",
+          "rows": 437400,
+          "symbols": 2032,
+          "min_date": "2020-01-02",
+          "max_date": "2020-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2021,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_weights/year=2021.parquet",
+          "rows": 437400,
+          "symbols": 2034,
+          "min_date": "2021-01-04",
+          "max_date": "2021-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2022,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_weights/year=2022.parquet",
+          "rows": 435600,
+          "symbols": 1995,
+          "min_date": "2022-01-04",
+          "max_date": "2022-12-30",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2023,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_weights/year=2023.parquet",
+          "rows": 435600,
+          "symbols": 1989,
+          "min_date": "2023-01-03",
+          "max_date": "2023-12-29",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2024,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_weights/year=2024.parquet",
+          "rows": 435600,
+          "symbols": 1976,
+          "min_date": "2024-01-02",
+          "max_date": "2024-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2025,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_weights/year=2025.parquet",
+          "rows": 437400,
+          "symbols": 1978,
+          "min_date": "2025-01-02",
+          "max_date": "2025-12-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2026,
+          "month": null,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/index_weights/year=2026.parquet",
+          "rows": 226800,
+          "symbols": 1913,
+          "min_date": "2026-01-05",
+          "max_date": "2026-07-14",
+          "duplicate_keys": 0
+        }
+      ],
+      "errors": []
+    },
+    "intraday_snapshots": {
+      "dataset": "intraday_snapshots",
+      "path": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/intraday_snapshots",
+      "exists": true,
+      "file_count": 8,
+      "rows": 4416972,
+      "symbols": 5174,
+      "min_date": "2025-01-02",
+      "max_date": "2025-08-29",
+      "columns": [
+        "trade_date",
+        "datetime",
+        "snapshot_time",
+        "order_book_id",
+        "close",
+        "volume",
+        "total_turnover"
+      ],
+      "dtypes": {
+        "trade_date": "object",
+        "datetime": "datetime64[ns]",
+        "snapshot_time": "object",
+        "order_book_id": "object",
+        "close": "float64",
+        "volume": "float64",
+        "total_turnover": "float64"
+      },
+      "key_columns": [
+        "trade_date",
+        "snapshot_time",
+        "order_book_id"
+      ],
+      "duplicate_keys": 0,
+      "null_rates": {
+        "close": 0.0,
+        "datetime": 0.0,
+        "order_book_id": 0.0,
+        "snapshot_time": 0.0,
+        "total_turnover": 0.0,
+        "trade_date": 0.0,
+        "volume": 0.0
+      },
+      "partitions": [
+        {
+          "year": 2025,
+          "month": 1,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/intraday_snapshots/year=2025/month=01.parquet",
+          "rows": 553710,
+          "symbols": 5133,
+          "min_date": "2025-01-02",
+          "max_date": "2025-01-27",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2025,
+          "month": 2,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/intraday_snapshots/year=2025/month=02.parquet",
+          "rows": 554214,
+          "symbols": 5133,
+          "min_date": "2025-02-05",
+          "max_date": "2025-02-28",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2025,
+          "month": 3,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/intraday_snapshots/year=2025/month=03.parquet",
+          "rows": 646974,
+          "symbols": 5144,
+          "min_date": "2025-03-03",
+          "max_date": "2025-03-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2025,
+          "month": 4,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/intraday_snapshots/year=2025/month=04.parquet",
+          "rows": 648300,
+          "symbols": 5150,
+          "min_date": "2025-04-01",
+          "max_date": "2025-04-30",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2025,
+          "month": 5,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/intraday_snapshots/year=2025/month=05.parquet",
+          "rows": 586806,
+          "symbols": 5151,
+          "min_date": "2025-05-06",
+          "max_date": "2025-05-30",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2025,
+          "month": 6,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/intraday_snapshots/year=2025/month=06.parquet",
+          "rows": 618090,
+          "symbols": 5153,
+          "min_date": "2025-06-03",
+          "max_date": "2025-06-30",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2025,
+          "month": 7,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/intraday_snapshots/year=2025/month=07.parquet",
+          "rows": 710724,
+          "symbols": 5159,
+          "min_date": "2025-07-01",
+          "max_date": "2025-07-31",
+          "duplicate_keys": 0
+        },
+        {
+          "year": 2025,
+          "month": 8,
+          "file": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/intraday_snapshots/year=2025/month=08.parquet",
+          "rows": 98154,
+          "symbols": 779,
+          "min_date": "2025-08-01",
+          "max_date": "2025-08-29",
+          "duplicate_keys": 0
+        }
+      ],
+      "errors": []
+    }
+  },
+  "cross_checks": [
+    {
+      "name": "prices_vs_valuation",
+      "status": "warning",
+      "details": "left_only=4, right_only=0, overlap=10765631"
+    },
+    {
+      "name": "prices_vs_tradability",
+      "status": "warning",
+      "details": "left_only=4, right_only=50442, overlap=10765631"
+    },
+    {
+      "name": "instrument_financial_and_special_type",
+      "status": "ok",
+      "details": "financial_instruments=119, non_normal_special_type=486"
+    }
+  ],
+  "hxz_field_matrix": [
+    {
+      "requirement": "monthly_total_return",
+      "needed_for": "Rm-Rf / ME / IA / ROE portfolio returns",
+      "local_status": "derivable",
+      "local_dataset": "prices_1d_none",
+      "local_fields": "trade_date, order_book_id, close",
+      "gap": "daily return and monthly total return are not materialized; derive from unadjusted close with corporate-action checks.",
+      "priority": "P0",
+      "evidence": "rows=10765635, symbols=5449, range=2016-01-04 to 2026-07-14"
+    },
+    {
+      "requirement": "previous_month_end_market_cap",
+      "needed_for": "size split and value-weighted portfolio returns",
+      "local_status": "available",
+      "local_dataset": "valuation_1d",
+      "local_fields": "market_cap, float_market_cap",
+      "gap": "share-count provenance and units need RQData confirmation.",
+      "priority": "P0",
+      "evidence": "rows=10765631, symbols=5449, range=2016-01-04 to 2026-07-14"
+    },
+    {
+      "requirement": "annual_total_assets",
+      "needed_for": "investment factor IA",
+      "local_status": "missing",
+      "local_dataset": "",
+      "local_fields": "",
+      "gap": "local parquet missing; RQData get_factor candidates include total_assets, total_assets_lyr_0, and total_assets_mrq_0, but announce-date semantics still need validation.",
+      "priority": "P0",
+      "evidence": ""
+    },
+    {
+      "requirement": "prior_year_total_assets",
+      "needed_for": "investment factor IA",
+      "local_status": "missing",
+      "local_dataset": "",
+      "local_fields": "",
+      "gap": "derive from total_assets_lyr_0 or materialized annual total assets after PIT semantics are validated.",
+      "priority": "P0",
+      "evidence": ""
+    },
+    {
+      "requirement": "single_quarter_profit",
+      "needed_for": "profitability factor ROE",
+      "local_status": "missing",
+      "local_dataset": "",
+      "local_fields": "",
+      "gap": "local parquet missing; RQData get_factor candidates include net_profit_parent_company_mrq_0 and adjusted_net_profit_mrq_0, but quarter convention needs validation.",
+      "priority": "P0",
+      "evidence": ""
+    },
+    {
+      "requirement": "previous_quarter_book_equity",
+      "needed_for": "profitability factor ROE denominator",
+      "local_status": "missing",
+      "local_dataset": "",
+      "local_fields": "",
+      "gap": "local parquet missing; RQData get_factor candidates include equity_parent_company_mrq_0 and total_equity_mrq_0, but announce-date semantics still need validation.",
+      "priority": "P0",
+      "evidence": ""
+    },
+    {
+      "requirement": "real_announcement_date",
+      "needed_for": "point-in-time no-lookahead accounting data",
+      "local_status": "missing",
+      "local_dataset": "",
+      "local_fields": "",
+      "gap": "not found in get_all_factor_names keyword searches for announce, announcement, pub, or report.",
+      "priority": "P0",
+      "evidence": ""
+    },
+    {
+      "requirement": "industry_and_financial_flag",
+      "needed_for": "financial exclusion / industry diagnostics",
+      "local_status": "available",
+      "local_dataset": "industry_classification, instruments",
+      "local_fields": "industry_system, industry_level, industry_code, industry_name, sector_code",
+      "gap": "financial flag can be derived, but HXZ replication rule must choose a canonical industry system.",
+      "priority": "P0",
+      "evidence": "rows=10753829, symbols=5452, range=2016-01-04 to 2026-07-14"
+    },
+    {
+      "requirement": "positive_negative_book_equity",
+      "needed_for": "accounting data filters",
+      "local_status": "missing",
+      "local_dataset": "",
+      "local_fields": "",
+      "gap": "depends on book equity backfill.",
+      "priority": "P0",
+      "evidence": ""
+    },
+    {
+      "requirement": "listing_delisting_status",
+      "needed_for": "universe and survivorship control",
+      "local_status": "partial",
+      "local_dataset": "instruments, tradability_1d",
+      "local_fields": "listed_date, de_listed_date, status, is_listed, is_suspended, is_st",
+      "gap": "static instruments plus daily tradability exist; full status history semantics need probe.",
+      "priority": "P1",
+      "evidence": "rows=5554, symbols=5554, range=1990-12-01 to 2026-07-02"
+    },
+    {
+      "requirement": "a_share_market_return",
+      "needed_for": "market factor Rm-Rf",
+      "local_status": "derivable",
+      "local_dataset": "prices_1d_none, valuation_1d, index_prices_1d",
+      "local_fields": "close, market_cap, index close",
+      "gap": "HXZ all-A value-weighted market return should be materialized and reconciled against broad indices.",
+      "priority": "P0",
+      "evidence": "rows=10765635, symbols=5449, range=2016-01-04 to 2026-07-14"
+    },
+    {
+      "requirement": "rmb_risk_free_rate",
+      "needed_for": "excess return factors",
+      "local_status": "missing",
+      "local_dataset": "",
+      "local_fields": "",
+      "gap": "not found in get_all_factor_names keyword searches for risk_free, rf, shibor, or treasury-rate style names.",
+      "priority": "P0",
+      "evidence": ""
+    }
+  ],
+  "local_readiness": {
+    "ready_for_full_hxz_replication": false,
+    "missing_count": 7,
+    "partial_or_derivable_count": 3,
+    "summary": "Local A-share daily market data is strong enough for returns, market-cap sorts, tradability filters, and industry diagnostics, but it is not yet sufficient for a credible China HXZ four-factor replication because PIT financial statement fields, announcement dates, book equity, quarterly profit, and RMB risk-free rate are missing."
+  },
+  "backfill_plan": {
+    "plan_status": "draft_after_local_audit",
+    "rqdata_probe_required_before_backfill": true,
+    "items": [
+      {
+        "dataset": "financial_balance_sheet_pit",
+        "priority": "P0",
+        "reason": "annual total assets, prior-year total assets, book equity / parent equity, announce date",
+        "target_fields": [
+          "total_assets",
+          "total_assets_lyr_0",
+          "total_assets_mrq_0",
+          "total_equity_mrq_0",
+          "equity_parent_company_mrq_0",
+          "equity_parent_company_lyr_0",
+          "announce_date_unresolved"
+        ],
+        "write_mode": "year partition, incremental append + deduplicate, no overwrite unless explicit"
+      },
+      {
+        "dataset": "financial_income_statement_pit",
+        "priority": "P0",
+        "reason": "single-quarter profit and parent net profit for ROE",
+        "target_fields": [
+          "net_profit_parent_company_mrq_0",
+          "net_profit_parent_company_lyr_0",
+          "adjusted_net_profit_mrq_0",
+          "adjusted_net_profit_lyr_0",
+          "announce_date_unresolved"
+        ],
+        "write_mode": "year partition, cumulative-to-quarterly conversion audited separately"
+      },
+      {
+        "dataset": "risk_free_rate",
+        "priority": "P0",
+        "reason": "RMB risk-free rate for excess returns",
+        "target_fields": [
+          "trade_date",
+          "rate",
+          "rate_type",
+          "source"
+        ],
+        "write_mode": "single or yearly parquet after source convention is confirmed"
+      },
+      {
+        "dataset": "monthly_hxz_inputs",
+        "priority": "P0",
+        "reason": "materialized monthly returns, previous month-end ME, accounting lags, and filters",
+        "target_fields": [
+          "month",
+          "order_book_id",
+          "ret",
+          "me_lag",
+          "roe",
+          "ia",
+          "rf",
+          "is_financial"
+        ],
+        "write_mode": "derived local dataset after raw fields pass validation"
+      },
+      {
+        "dataset": "security_status_history",
+        "priority": "P1",
+        "reason": "survivorship and ST/listing/delisting status reconciliation",
+        "target_fields": [
+          "trade_date",
+          "order_book_id",
+          "status",
+          "special_type",
+          "is_st",
+          "is_listed"
+        ],
+        "write_mode": "derive from instruments/tradability and probe RQData status history if available"
+      }
+    ],
+    "field_matrix_missing": [
+      {
+        "requirement": "annual_total_assets",
+        "needed_for": "investment factor IA",
+        "local_status": "missing",
+        "local_dataset": "",
+        "local_fields": "",
+        "gap": "local parquet missing; RQData get_factor candidates include total_assets, total_assets_lyr_0, and total_assets_mrq_0, but announce-date semantics still need validation.",
+        "priority": "P0",
+        "evidence": ""
+      },
+      {
+        "requirement": "prior_year_total_assets",
+        "needed_for": "investment factor IA",
+        "local_status": "missing",
+        "local_dataset": "",
+        "local_fields": "",
+        "gap": "derive from total_assets_lyr_0 or materialized annual total assets after PIT semantics are validated.",
+        "priority": "P0",
+        "evidence": ""
+      },
+      {
+        "requirement": "single_quarter_profit",
+        "needed_for": "profitability factor ROE",
+        "local_status": "missing",
+        "local_dataset": "",
+        "local_fields": "",
+        "gap": "local parquet missing; RQData get_factor candidates include net_profit_parent_company_mrq_0 and adjusted_net_profit_mrq_0, but quarter convention needs validation.",
+        "priority": "P0",
+        "evidence": ""
+      },
+      {
+        "requirement": "previous_quarter_book_equity",
+        "needed_for": "profitability factor ROE denominator",
+        "local_status": "missing",
+        "local_dataset": "",
+        "local_fields": "",
+        "gap": "local parquet missing; RQData get_factor candidates include equity_parent_company_mrq_0 and total_equity_mrq_0, but announce-date semantics still need validation.",
+        "priority": "P0",
+        "evidence": ""
+      },
+      {
+        "requirement": "real_announcement_date",
+        "needed_for": "point-in-time no-lookahead accounting data",
+        "local_status": "missing",
+        "local_dataset": "",
+        "local_fields": "",
+        "gap": "not found in get_all_factor_names keyword searches for announce, announcement, pub, or report.",
+        "priority": "P0",
+        "evidence": ""
+      },
+      {
+        "requirement": "positive_negative_book_equity",
+        "needed_for": "accounting data filters",
+        "local_status": "missing",
+        "local_dataset": "",
+        "local_fields": "",
+        "gap": "depends on book equity backfill.",
+        "priority": "P0",
+        "evidence": ""
+      },
+      {
+        "requirement": "rmb_risk_free_rate",
+        "needed_for": "excess return factors",
+        "local_status": "missing",
+        "local_dataset": "",
+        "local_fields": "",
+        "gap": "not found in get_all_factor_names keyword searches for risk_free, rf, shibor, or treasury-rate style names.",
+        "priority": "P0",
+        "evidence": ""
+      }
+    ]
+  }
+}

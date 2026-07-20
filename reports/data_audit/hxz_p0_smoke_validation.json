@@ -1,0 +1,296 @@
+{
+  "status": "success",
+  "created_at": "2026-07-20T15:08:03",
+  "symbols": [
+    "600519.XSHG",
+    "000001.XSHE",
+    "300750.XSHE",
+    "688001.XSHG"
+  ],
+  "rqdata_calls": 8,
+  "datasets": {
+    "financial_factor_daily_pit": {
+      "rows": 28,
+      "columns": [
+        "order_book_id",
+        "trade_date",
+        "total_assets_mrq_0",
+        "total_assets_lyr_0",
+        "equity_parent_company_mrq_0",
+        "equity_parent_company_lyr_0",
+        "total_equity_mrq_0",
+        "net_profit_parent_company_mrq_0",
+        "net_profit_parent_company_lyr_0",
+        "adjusted_net_profit_mrq_0",
+        "adjusted_net_profit_lyr_0"
+      ],
+      "duplicate_keys": 0,
+      "null_rates": {
+        "total_assets_mrq_0": 0.0,
+        "total_assets_lyr_0": 0.0,
+        "equity_parent_company_mrq_0": 0.0,
+        "equity_parent_company_lyr_0": 0.0,
+        "total_equity_mrq_0": 0.0,
+        "net_profit_parent_company_mrq_0": 0.0,
+        "net_profit_parent_company_lyr_0": 0.0,
+        "adjusted_net_profit_mrq_0": 0.25,
+        "adjusted_net_profit_lyr_0": 0.25
+      },
+      "dtypes": {
+        "order_book_id": "object",
+        "trade_date": "datetime64[ns]",
+        "total_assets_mrq_0": "float64",
+        "total_assets_lyr_0": "float64",
+        "equity_parent_company_mrq_0": "float64",
+        "equity_parent_company_lyr_0": "float64",
+        "total_equity_mrq_0": "float64",
+        "net_profit_parent_company_mrq_0": "float64",
+        "net_profit_parent_company_lyr_0": "float64",
+        "adjusted_net_profit_mrq_0": "float64",
+        "adjusted_net_profit_lyr_0": "float64"
+      },
+      "head": [
+        {
+          "order_book_id": "600519.XSHG",
+          "trade_date": "2025-01-02",
+          "total_assets_mrq_0": "286770722957.69",
+          "total_assets_lyr_0": "272699660092.25",
+          "equity_parent_company_mrq_0": "237709455000.28",
+          "equity_parent_company_lyr_0": "215668571607.43",
+          "total_equity_mrq_0": "247688164238.17",
+          "net_profit_parent_company_mrq_0": "19131941135.14",
+          "net_profit_parent_company_lyr_0": "74734071550.75",
+          "adjusted_net_profit_mrq_0": "19108543634.770004",
+          "adjusted_net_profit_lyr_0": "74752564425.52"
+        },
+        {
+          "order_book_id": "600519.XSHG",
+          "trade_date": "2025-01-03",
+          "total_assets_mrq_0": "286770722957.69",
+          "total_assets_lyr_0": "272699660092.25",
+          "equity_parent_company_mrq_0": "237709455000.28",
+          "equity_parent_company_lyr_0": "215668571607.43",
+          "total_equity_mrq_0": "247688164238.17",
+          "net_profit_parent_company_mrq_0": "19131941135.14",
+          "net_profit_parent_company_lyr_0": "74734071550.75",
+          "adjusted_net_profit_mrq_0": "19108543634.770004",
+          "adjusted_net_profit_lyr_0": "74752564425.52"
+        },
+        {
+          "order_book_id": "600519.XSHG",
+          "trade_date": "2025-01-06",
+          "total_assets_mrq_0": "286770722957.69",
+          "total_assets_lyr_0": "272699660092.25",
+          "equity_parent_company_mrq_0": "237709455000.28",
+          "equity_parent_company_lyr_0": "215668571607.43",
+          "total_equity_mrq_0": "247688164238.17",
+          "net_profit_parent_company_mrq_0": "19131941135.14",
+          "net_profit_parent_company_lyr_0": "74734071550.75",
+          "adjusted_net_profit_mrq_0": "19108543634.770004",
+          "adjusted_net_profit_lyr_0": "74752564425.52"
+        },
+        {
+          "order_book_id": "600519.XSHG",
+          "trade_date": "2025-01-07",
+          "total_assets_mrq_0": "286770722957.69",
+          "total_assets_lyr_0": "272699660092.25",
+          "equity_parent_company_mrq_0": "237709455000.28",
+          "equity_parent_company_lyr_0": "215668571607.43",
+          "total_equity_mrq_0": "247688164238.17",
+          "net_profit_parent_company_mrq_0": "19131941135.14",
+          "net_profit_parent_company_lyr_0": "74734071550.75",
+          "adjusted_net_profit_mrq_0": "19108543634.770004",
+          "adjusted_net_profit_lyr_0": "74752564425.52"
+        },
+        {
+          "order_book_id": "600519.XSHG",
+          "trade_date": "2025-01-08",
+          "total_assets_mrq_0": "286770722957.69",
+          "total_assets_lyr_0": "272699660092.25",
+          "equity_parent_company_mrq_0": "237709455000.28",
+          "equity_parent_company_lyr_0": "215668571607.43",
+          "total_equity_mrq_0": "247688164238.17",
+          "net_profit_parent_company_mrq_0": "19131941135.14",
+          "net_profit_parent_company_lyr_0": "74734071550.75",
+          "adjusted_net_profit_mrq_0": "19108543634.770004",
+          "adjusted_net_profit_lyr_0": "74752564425.52"
+        }
+      ],
+      "quality_issues": []
+    },
+    "financial_pit_quarterly": {
+      "rows": 4,
+      "columns": [
+        "order_book_id",
+        "quarter",
+        "info_date",
+        "net_profit_parent_company",
+        "equity_parent_company",
+        "rice_create_tm",
+        "total_equity",
+        "total_assets",
+        "if_adjusted"
+      ],
+      "duplicate_keys": 0,
+      "null_rates": {
+        "info_date": 0.0,
+        "rice_create_tm": 0.0,
+        "if_adjusted": 0.0,
+        "total_assets": 0.0,
+        "equity_parent_company": 0.0,
+        "total_equity": 0.0,
+        "net_profit_parent_company": 0.0
+      },
+      "dtypes": {
+        "order_book_id": "object",
+        "quarter": "object",
+        "info_date": "datetime64[ns]",
+        "net_profit_parent_company": "float64",
+        "equity_parent_company": "float64",
+        "rice_create_tm": "datetime64[ns]",
+        "total_equity": "float64",
+        "total_assets": "float64",
+        "if_adjusted": "int64"
+      },
+      "head": [
+        {
+          "order_book_id": "000001.XSHE",
+          "quarter": "2024q3",
+          "info_date": "2024-10-19 00:00:00",
+          "net_profit_parent_company": "39729000000.0",
+          "equity_parent_company": "490469000000.0",
+          "rice_create_tm": "2024-10-18 20:11:59",
+          "total_equity": "490469000000.0",
+          "total_assets": "5745988000000.0",
+          "if_adjusted": "0"
+        },
+        {
+          "order_book_id": "300750.XSHE",
+          "quarter": "2024q3",
+          "info_date": "2024-10-19 00:00:00",
+          "net_profit_parent_company": "36001073800.0",
+          "equity_parent_company": "236956231200.0",
+          "rice_create_tm": "2024-10-18 20:12:29",
+          "total_equity": "263300643400.0",
+          "total_assets": "738235004400.0",
+          "if_adjusted": "0"
+        },
+        {
+          "order_book_id": "600519.XSHG",
+          "quarter": "2024q3",
+          "info_date": "2024-10-26 00:00:00",
+          "net_profit_parent_company": "60827552118.51",
+          "equity_parent_company": "237709455000.28",
+          "rice_create_tm": "2024-10-25 20:16:17",
+          "total_equity": "247688164238.17",
+          "total_assets": "286770722957.69",
+          "if_adjusted": "0"
+        },
+        {
+          "order_book_id": "688001.XSHG",
+          "quarter": "2024q3",
+          "info_date": "2024-10-31 00:00:00",
+          "net_profit_parent_company": "-51128553.95",
+          "equity_parent_company": "3788390242.7",
+          "rice_create_tm": "2024-10-30 20:22:54",
+          "total_equity": "3788390242.7",
+          "total_assets": "5520537346.64",
+          "if_adjusted": "0"
+        }
+      ],
+      "quality_issues": [],
+      "version_policy": {
+        "status": "success",
+        "actual_calls": 1,
+        "rows": 2,
+        "multi_version_rows": 0,
+        "recommended_raw_key": [
+          "order_book_id",
+          "quarter",
+          "info_date",
+          "rice_create_tm",
+          "if_adjusted"
+        ],
+        "conclusion": "retain version metadata; use latest for as-of snapshots and all for revision audit when available"
+      }
+    },
+    "risk_free_rate": {
+      "rows": 7,
+      "columns": [
+        "trade_date",
+        "0S",
+        "1M",
+        "3M",
+        "1Y"
+      ],
+      "duplicate_keys": 0,
+      "null_rates": {
+        "0S": 0.0,
+        "1M": 0.0,
+        "3M": 0.0,
+        "1Y": 0.0
+      },
+      "dtypes": {
+        "trade_date": "datetime64[ns]",
+        "0S": "float64",
+        "1M": "float64",
+        "3M": "float64",
+        "1Y": "float64"
+      },
+      "head": [
+        {
+          "trade_date": "2025-01-02",
+          "0S": "0.005374",
+          "1M": "0.006845",
+          "3M": "0.009538999999999999",
+          "1Y": "0.010693"
+        },
+        {
+          "trade_date": "2025-01-03",
+          "0S": "0.005472",
+          "1M": "0.0072440000000000004",
+          "3M": "0.010014",
+          "1Y": "0.010177"
+        },
+        {
+          "trade_date": "2025-01-06",
+          "0S": "0.0055720000000000006",
+          "1M": "0.007644",
+          "3M": "0.010227",
+          "1Y": "0.010391"
+        },
+        {
+          "trade_date": "2025-01-07",
+          "0S": "0.006634999999999999",
+          "1M": "0.008811",
+          "3M": "0.0108",
+          "1Y": "0.0108"
+        },
+        {
+          "trade_date": "2025-01-08",
+          "0S": "0.007161",
+          "1M": "0.009510999999999999",
+          "3M": "0.011000000000000001",
+          "1Y": "0.011200000000000002"
+        }
+      ],
+      "unit_conclusion": "decimal annual rate",
+      "quality_issues": []
+    },
+    "pit_cross_validation": {
+      "status": "success",
+      "actual_calls": 4,
+      "symbol": "600519.XSHG",
+      "quarter": "2024q3",
+      "info_date": "2024-10-26",
+      "before_query_date": "2024-10-25",
+      "after_query_date": "2024-10-26",
+      "before_pit_rows": 0,
+      "after_pit_rows": 1,
+      "factor_rows": 1,
+      "announcement_before_visible": false,
+      "announcement_after_visible": true,
+      "conclusion": "announcement visibility validated if before_pit_rows is 0 and after_pit_rows > 0; if not, inspect non-trading day and revision behavior before production backfill"
+    }
+  }
+}

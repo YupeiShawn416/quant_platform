@@ -171,3 +171,57 @@ market_cap
 ## Signal/weight store
 
 保存交易信号和目标权重。研究员应通过数据中台拿标准数据，不要每个人重复定义数据口径。
+
+## China HXZ replication audit
+
+HXZ 四因子复现需要比普通因子研究更严格的数据口径，尤其是财报的 point-in-time
+可得性和公告日期。当前本地数据湖已经支持：
+
+```text
+daily unadjusted / pre-adjusted prices
+daily market_cap / float_market_cap
+daily tradability / ST / suspension flags
+industry classification
+listing / delisting fields from instruments
+index prices and index membership
+```
+
+当前本地数据湖仍缺少：
+
+```text
+PIT annual total assets
+PIT quarterly profit
+PIT book equity / parent equity
+real financial statement announcement date
+RMB risk-free rate
+materialized monthly HXZ input panel
+```
+
+运行以下命令可生成本地审计报告和字段矩阵：
+
+```bash
+make hxz-data-audit
+```
+
+如需探测 RQData 财报/因子接口，先在当前 shell 设置 `RQDATAC_KEY`，再运行：
+
+```bash
+make hxz-rqdata-probe
+```
+
+探针只做小样本接口确认，不会批量下载全量财务字段。
+
+HXZ P0 原始数据回填 dry-run 使用三个目标数据集：
+
+```text
+financial_pit_quarterly
+financial_factor_daily_pit
+risk_free_rate
+```
+
+其中 `financial_pit_quarterly` 来自 `rqdatac.get_pit_financials_ex`，必须保留
+`quarter`、`info_date`、`rice_create_tm`、`if_adjusted` 等 PIT 和版本字段。
+`financial_factor_daily_pit` 来自 `rqdatac.get_factor` 的 `_mrq_0` / `_lyr_0`
+字段，用于日频可见值面板。`risk_free_rate` 来自 `rqdatac.get_yield_curve`。
+
+`monthly_hxz_inputs` 是后续派生层，不属于 P0 原始回填。

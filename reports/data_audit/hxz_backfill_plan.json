@@ -1,0 +1,252 @@
+{
+  "plan_status": "dry_run_validated",
+  "rqdata_probe_required_before_backfill": false,
+  "updated_at": "2026-07-20T15:06:23",
+  "stage": "HXZ-P0 Backfill Dry Run",
+  "items": [
+    {
+      "dataset": "financial_pit_quarterly",
+      "source_api": "rqdatac.get_pit_financials_ex",
+      "target_path": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/financial_pit_quarterly",
+      "requested_fields": [
+        "order_book_id",
+        "quarter",
+        "info_date",
+        "rice_create_tm",
+        "if_adjusted",
+        "total_assets",
+        "equity_parent_company",
+        "total_equity",
+        "net_profit_parent_company"
+      ],
+      "start_date": null,
+      "end_date": null,
+      "start_quarter": "2015q4",
+      "end_quarter": "2026q3",
+      "total_symbols": 5554,
+      "symbol_batch_size": 200,
+      "date_or_quarter_chunk_size": 4,
+      "estimated_chunks": 308,
+      "estimated_api_calls": 308,
+      "estimated_rows": 293251,
+      "rough_disk_size": "30.2 MB",
+      "existing_partitions": [],
+      "missing_partitions": [
+        "year=2016.parquet",
+        "year=2017.parquet",
+        "year=2018.parquet",
+        "year=2019.parquet",
+        "year=2020.parquet",
+        "year=2021.parquet",
+        "year=2022.parquet",
+        "year=2023.parquet",
+        "year=2024.parquet",
+        "year=2025.parquet",
+        "year=2026.parquet"
+      ],
+      "write_mode": "dry-run only; future year partition by info_date, append + deduplicate after key validation",
+      "resume_key": "dataset + symbol_batch + quarter_chunk + statements_mode",
+      "quality_checks": [
+        "required columns exist",
+        "quarter format matches YYYYq[1-4]",
+        "info_date is parseable and not earlier than quarter end without reason",
+        "candidate primary keys are unique or version columns are retained",
+        "multi-version rows are detected",
+        "if_adjusted distribution is recorded",
+        "numeric accounting fields are numeric",
+        "total_assets is positive where present",
+        "equity and profit coverage are reported"
+      ],
+      "status": "planned",
+      "blocked_reason": "formal production write not enabled in this stage"
+    },
+    {
+      "dataset": "financial_factor_daily_pit",
+      "source_api": "rqdatac.get_factor",
+      "target_path": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/financial_factor_daily_pit",
+      "requested_fields": [
+        "trade_date",
+        "order_book_id",
+        "total_assets_mrq_0",
+        "total_assets_lyr_0",
+        "equity_parent_company_mrq_0",
+        "equity_parent_company_lyr_0",
+        "total_equity_mrq_0",
+        "net_profit_parent_company_mrq_0",
+        "net_profit_parent_company_lyr_0"
+      ],
+      "start_date": "2016-01-04",
+      "end_date": "2026-07-14",
+      "start_quarter": null,
+      "end_quarter": null,
+      "total_symbols": 5554,
+      "symbol_batch_size": 200,
+      "date_or_quarter_chunk_size": 252,
+      "estimated_chunks": 308,
+      "estimated_api_calls": 308,
+      "estimated_rows": 14196024,
+      "rough_disk_size": "1462.1 MB",
+      "existing_partitions": [],
+      "missing_partitions": [
+        "year=2016.parquet",
+        "year=2017.parquet",
+        "year=2018.parquet",
+        "year=2019.parquet",
+        "year=2020.parquet",
+        "year=2021.parquet",
+        "year=2022.parquet",
+        "year=2023.parquet",
+        "year=2024.parquet",
+        "year=2025.parquet",
+        "year=2026.parquet"
+      ],
+      "write_mode": "dry-run only; future year partition by trade_date, append + deduplicate",
+      "resume_key": "dataset + symbol_batch + date_chunk",
+      "quality_checks": [
+        "trade_date + order_book_id unique",
+        "required fields exist",
+        "primary field coverage is above smoke threshold",
+        "dates are ordered per symbol",
+        "PIT step-change counts are reported",
+        "extreme values are flagged",
+        "sample rows reconcile against quarterly PIT values",
+        "new quarter values do not appear before info_date"
+      ],
+      "status": "planned",
+      "blocked_reason": "formal production write not enabled in this stage"
+    },
+    {
+      "dataset": "risk_free_rate",
+      "source_api": "rqdatac.get_yield_curve",
+      "target_path": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/risk_free_rate",
+      "requested_fields": [
+        "trade_date",
+        "0S",
+        "1M",
+        "3M",
+        "1Y",
+        "source",
+        "fetched_at"
+      ],
+      "start_date": "2016-01-04",
+      "end_date": "2026-07-14",
+      "start_quarter": null,
+      "end_quarter": null,
+      "total_symbols": 0,
+      "symbol_batch_size": 0,
+      "date_or_quarter_chunk_size": 252,
+      "estimated_chunks": 11,
+      "estimated_api_calls": 11,
+      "estimated_rows": 2556,
+      "rough_disk_size": "209.7 KB",
+      "existing_partitions": [],
+      "missing_partitions": [
+        "year=2016.parquet",
+        "year=2017.parquet",
+        "year=2018.parquet",
+        "year=2019.parquet",
+        "year=2020.parquet",
+        "year=2021.parquet",
+        "year=2022.parquet",
+        "year=2023.parquet",
+        "year=2024.parquet",
+        "year=2025.parquet",
+        "year=2026.parquet"
+      ],
+      "write_mode": "dry-run only; future year partition by trade_date, append + deduplicate",
+      "resume_key": "dataset + date_chunk",
+      "quality_checks": [
+        "trade_date unique",
+        "tenor fields exist",
+        "unit is inferred and recorded",
+        "values are in a reasonable rate range",
+        "missing dates are reported",
+        "term-structure anomalies are warned"
+      ],
+      "status": "planned",
+      "blocked_reason": "formal production write not enabled in this stage"
+    }
+  ],
+  "future_derived_stage": {
+    "dataset": "monthly_hxz_inputs",
+    "status": "deferred",
+    "reason": "derived factor construction is out of scope for P0 raw backfill dry-run"
+  },
+  "smoke_result": {
+    "status": "success",
+    "rqdata_calls": 8,
+    "financial_factor_daily_pit_rows": 28,
+    "financial_pit_quarterly_rows": 4,
+    "risk_free_rate_rows": 7,
+    "pit_cross_validation": {
+      "status": "success",
+      "actual_calls": 4,
+      "symbol": "600519.XSHG",
+      "quarter": "2024q3",
+      "info_date": "2024-10-26",
+      "before_query_date": "2024-10-25",
+      "after_query_date": "2024-10-26",
+      "before_pit_rows": 0,
+      "after_pit_rows": 1,
+      "factor_rows": 1,
+      "announcement_before_visible": false,
+      "announcement_after_visible": true,
+      "conclusion": "announcement visibility validated if before_pit_rows is 0 and after_pit_rows > 0; if not, inspect non-trading day and revision behavior before production backfill"
+    }
+  },
+  "blockers": [
+    "formal full backfill not approved in this stage",
+    "PIT cross-validation must pass on smoke before production writes"
+  ],
+  "readiness_gate": {
+    "status": "CONDITIONAL GO",
+    "recommended_scheme": "B",
+    "version_key": "order_book_id+quarter+info_date",
+    "pit_timing_events": 20,
+    "pit_timing_pass_rate": 0.5,
+    "quota": {
+      "verified_quota_api": null,
+      "quota_status": "no documented SDK quota endpoint used; only successful limited calls and prior RQData errors are available",
+      "readiness_gate_calls_used": 21,
+      "plan": [
+        {
+          "dataset": "financial_pit_quarterly",
+          "api_calls": 308,
+          "estimated_rows": 293251,
+          "max_batch_rows": 1600,
+          "estimated_runtime_minutes": 46,
+          "safe_stop_threshold": 30
+        },
+        {
+          "dataset": "financial_factor_daily_pit",
+          "api_calls": 308,
+          "estimated_rows": 14196024,
+          "max_batch_rows": 50400,
+          "estimated_runtime_minutes": 46,
+          "safe_stop_threshold": 30
+        },
+        {
+          "dataset": "risk_free_rate",
+          "api_calls": 11,
+          "estimated_rows": 2556,
+          "max_batch_rows": 252,
+          "estimated_runtime_minutes": 1,
+          "safe_stop_threshold": 5
+        }
+      ],
+      "scheme_a": {
+        "api_calls": 627,
+        "estimated_rows": 14491831,
+        "disk": "about 1.5 GB plus parquet overhead",
+        "impact": "maximizes data lake reuse and daily PIT research convenience"
+      },
+      "scheme_b": {
+        "api_calls": 330,
+        "estimated_rows": 962287,
+        "disk": "roughly 100 MB plus monthly snapshot overhead",
+        "impact": "sufficient for HXZ monthly replication; delays reusable daily financial PIT panel"
+      }
+    },
+    "formal_backfill_executed": false
+  }
+}

@@ -2,7 +2,7 @@ BACKFILL_END_DATE ?= $(shell date +%F)
 FACTOR_IDS ?= market_cap,turnover_rate,momentum_20d,reversal_5d,volatility_20d
 UNIVERSE ?= all
 
-.PHONY: install test api api-prod api-smoke client-smoke backtest-api-smoke dashboard-smoke data-api-smoke-local create-demo-paper-account submit-demo-paper-weights run-demo-paper-daily paper-run-daily-all paper-smoke-local compute-builtin-factors analyze-factor generate-factor-weights factor-smoke-local audit-valuation-factor-fields create-demo-weights-package submit-demo-weights-package template-smoke check-data audit-data-lake backfill-core-smoke backfill-core-dry-run backfill-core-full check-data-2016-present server-sync-manifest daily-update-dry-run daily-update daily-update-status daily-update-report reconcile-daily-update intraday-snapshot-smoke backfill-intraday-snapshots check-intraday-snapshots audit-intraday-snapshots update-index-2025 check-index-data update-tradability-2025 check-tradability-data update-valuation-2025 check-valuation-data update-industry-2025 check-industry-data update-index-membership-2025 check-index-membership-data vix-q5-exposure-audit vix-q5-build-lagged-package vix-q5-compare-lagged daily-data-update deploy-check query-sample demo-backtest view-demo-backtest demo-daily-backtest view-demo-daily-backtest status clean
+.PHONY: install test api api-prod api-smoke client-smoke backtest-api-smoke dashboard-smoke data-api-smoke-local create-demo-paper-account submit-demo-paper-weights run-demo-paper-daily paper-run-daily-all paper-smoke-local compute-builtin-factors analyze-factor generate-factor-weights factor-smoke-local audit-valuation-factor-fields hxz-data-audit hxz-rqdata-probe hxz-p0-dry-run hxz-p0-smoke hxz-p0b-dry-run hxz-p0b-backfill create-demo-weights-package submit-demo-weights-package template-smoke check-data audit-data-lake backfill-core-smoke backfill-core-dry-run backfill-core-full check-data-2016-present server-sync-manifest daily-update-dry-run daily-update daily-update-status daily-update-report reconcile-daily-update intraday-snapshot-smoke backfill-intraday-snapshots check-intraday-snapshots audit-intraday-snapshots update-index-2025 check-index-data update-tradability-2025 check-tradability-data update-valuation-2025 check-valuation-data update-industry-2025 check-industry-data update-index-membership-2025 check-index-membership-data vix-q5-exposure-audit vix-q5-build-lagged-package vix-q5-compare-lagged daily-data-update deploy-check query-sample demo-backtest view-demo-backtest demo-daily-backtest view-demo-daily-backtest status clean
 
 install:
 	python -m pip install -e .
@@ -65,6 +65,24 @@ factor-smoke-local:
 
 audit-valuation-factor-fields:
 	PYTHONPATH=src python scripts/42_audit_valuation_factor_fields.py
+
+hxz-data-audit:
+	PYTHONPATH=src python scripts/46_audit_hxz_data.py
+
+hxz-rqdata-probe:
+	PYTHONPATH=src python scripts/47_probe_rqdata_hxz_fields.py
+
+hxz-p0-dry-run:
+	PYTHONPATH=src python scripts/48_hxz_p0_backfill.py --dataset all --dry-run
+
+hxz-p0-smoke:
+	PYTHONPATH=src python scripts/48_hxz_p0_backfill.py --dataset all --smoke --validate
+
+hxz-p0b-dry-run:
+	PYTHONPATH=src python scripts/50_hxz_p0b_formal_backfill.py --dataset all --dry-run
+
+hxz-p0b-backfill:
+	PYTHONPATH=src python scripts/50_hxz_p0b_formal_backfill.py --dataset all --confirm-hxz-p0b-backfill
 
 create-demo-weights-package:
 	PYTHONPATH=src python scripts/18_create_demo_weights_package.py
