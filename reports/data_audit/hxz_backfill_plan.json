@@ -248,5 +248,195 @@
       }
     },
     "formal_backfill_executed": false
+  },
+  "p0b_formal_backfill": {
+    "status": "success",
+    "rqdata_calls": 347,
+    "datasets": {
+      "risk_free_rate": {
+        "path": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/risk_free_rate",
+        "files": [
+          "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/risk_free_rate/year=2016.parquet",
+          "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/risk_free_rate/year=2017.parquet",
+          "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/risk_free_rate/year=2018.parquet",
+          "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/risk_free_rate/year=2019.parquet",
+          "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/risk_free_rate/year=2020.parquet",
+          "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/risk_free_rate/year=2021.parquet",
+          "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/risk_free_rate/year=2022.parquet",
+          "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/risk_free_rate/year=2023.parquet",
+          "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/risk_free_rate/year=2024.parquet",
+          "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/risk_free_rate/year=2025.parquet",
+          "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/risk_free_rate/year=2026.parquet"
+        ],
+        "rows": 2632,
+        "min_date": "2016-01-04",
+        "max_date": "2026-07-14",
+        "disk_bytes": 149875,
+        "checksum": "1255ea3036565bc982661601658eff24e0c286dc2b8979e33189411cd8625e37",
+        "null_rates": {
+          "0S": 0.0,
+          "1M": 0.0,
+          "3M": 0.0,
+          "1Y": 0.0
+        }
+      },
+      "financial_pit_quarterly": {
+        "path": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/financial_pit_quarterly",
+        "files": [
+          "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/financial_pit_quarterly/year=2015.parquet",
+          "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/financial_pit_quarterly/year=2016.parquet",
+          "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/financial_pit_quarterly/year=2017.parquet",
+          "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/financial_pit_quarterly/year=2018.parquet",
+          "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/financial_pit_quarterly/year=2019.parquet",
+          "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/financial_pit_quarterly/year=2020.parquet",
+          "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/financial_pit_quarterly/year=2021.parquet",
+          "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/financial_pit_quarterly/year=2022.parquet",
+          "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/financial_pit_quarterly/year=2023.parquet",
+          "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/financial_pit_quarterly/year=2024.parquet",
+          "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/financial_pit_quarterly/year=2025.parquet",
+          "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/financial_pit_quarterly/year=2026.parquet"
+        ],
+        "rows": 641428,
+        "min_date": "2015-01-15",
+        "max_date": "2026-07-14",
+        "disk_bytes": 21866754,
+        "checksum": "4d24e720b7c734ffac27bf2812eb148d5e8ec6ced26443efeac12a842a985d25",
+        "symbols": 5498,
+        "quarters": 46,
+        "multi_version_stock_quarters": 190905,
+        "if_adjusted_distribution": {
+          "1": 369345,
+          "0": 272083
+        },
+        "null_rates": {
+          "total_assets": 0.012949,
+          "equity_parent_company": 0.015016,
+          "total_equity": 0.013135,
+          "net_profit_parent_company": 0.001819
+        }
+      }
+    },
+    "financial_factor_daily_pit_full_backfill": false
+  },
+  "p0b_quality": {
+    "risk_free_rate": {
+      "path": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/risk_free_rate",
+      "files": [
+        "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/risk_free_rate/year=2016.parquet",
+        "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/risk_free_rate/year=2017.parquet",
+        "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/risk_free_rate/year=2018.parquet",
+        "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/risk_free_rate/year=2019.parquet",
+        "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/risk_free_rate/year=2020.parquet",
+        "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/risk_free_rate/year=2021.parquet",
+        "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/risk_free_rate/year=2022.parquet",
+        "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/risk_free_rate/year=2023.parquet",
+        "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/risk_free_rate/year=2024.parquet",
+        "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/risk_free_rate/year=2025.parquet",
+        "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/risk_free_rate/year=2026.parquet"
+      ],
+      "file_count": 11,
+      "disk_bytes": 149875,
+      "checksum": "1255ea3036565bc982661601658eff24e0c286dc2b8979e33189411cd8625e37",
+      "rows": 2632,
+      "min_date": "2016-01-04",
+      "max_date": "2026-07-14",
+      "duplicate_trade_date": 0,
+      "null_rates": {
+        "0S": 0.0,
+        "1M": 0.0,
+        "3M": 0.0,
+        "1Y": 0.0
+      },
+      "unit": "decimal annual rate",
+      "calendar_dates_missing_in_rf": 0,
+      "rf_dates_not_in_calendar": 76,
+      "rf_dates_not_in_calendar_sample": [
+        "2016-02-06",
+        "2016-02-14",
+        "2016-06-12",
+        "2016-09-18",
+        "2016-10-08",
+        "2016-10-09",
+        "2016-12-31",
+        "2017-01-22",
+        "2017-02-04",
+        "2017-04-01",
+        "2017-05-27",
+        "2017-09-30",
+        "2017-12-30",
+        "2017-12-31",
+        "2018-02-11",
+        "2018-02-24",
+        "2018-04-08",
+        "2018-04-28",
+        "2018-09-29",
+        "2018-09-30"
+      ],
+      "quality_issues": []
+    },
+    "financial_pit_quarterly": {
+      "path": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/financial_pit_quarterly",
+      "files": [
+        "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/financial_pit_quarterly/year=2015.parquet",
+        "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/financial_pit_quarterly/year=2016.parquet",
+        "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/financial_pit_quarterly/year=2017.parquet",
+        "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/financial_pit_quarterly/year=2018.parquet",
+        "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/financial_pit_quarterly/year=2019.parquet",
+        "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/financial_pit_quarterly/year=2020.parquet",
+        "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/financial_pit_quarterly/year=2021.parquet",
+        "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/financial_pit_quarterly/year=2022.parquet",
+        "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/financial_pit_quarterly/year=2023.parquet",
+        "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/financial_pit_quarterly/year=2024.parquet",
+        "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/financial_pit_quarterly/year=2025.parquet",
+        "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/financial_pit_quarterly/year=2026.parquet"
+      ],
+      "file_count": 12,
+      "disk_bytes": 21866754,
+      "checksum": "4d24e720b7c734ffac27bf2812eb148d5e8ec6ced26443efeac12a842a985d25",
+      "rows": 641428,
+      "symbols": 5498,
+      "quarters": 46,
+      "min_info_date": "2015-01-15",
+      "max_info_date": "2026-07-14",
+      "key_duplicate_order_book_id_quarter_info_date": 0,
+      "full_version_key_duplicates": 0,
+      "multi_version_stock_quarters": 190905,
+      "value_changed_stock_quarters": 39085,
+      "if_adjusted_distribution": {
+        "1": 369345,
+        "0": 272083
+      },
+      "null_rates": {
+        "total_assets": 0.012949,
+        "equity_parent_company": 0.015016,
+        "total_equity": 0.013135,
+        "net_profit_parent_company": 0.001819
+      },
+      "info_date_earlier_than_quarter_end": 0,
+      "financial_symbols": 119,
+      "non_financial_symbols": 5379,
+      "board_type_symbols": {
+        "GEM": 1444,
+        "KSH": 615,
+        "MainBoard": 3439
+      },
+      "special_type_symbols": {
+        "*ST": 1,
+        "Normal": 5027,
+        "Other": 203,
+        "PT": 5,
+        "ST": 107,
+        "StarST": 155
+      },
+      "quality_issues": [
+        {
+          "dataset": "financial_pit_quarterly",
+          "severity": "warning",
+          "check": "multi_version",
+          "message": "multiple PIT versions detected and should be retained",
+          "count": 615979
+        }
+      ]
+    }
   }
 }

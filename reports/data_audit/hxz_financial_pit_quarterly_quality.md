@@ -1,0 +1,23 @@
+# HXZ Financial PIT Quarterly Quality
+
+- path: /Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/financial_pit_quarterly
+- file_count: 12
+- disk_bytes: 21866754
+- checksum: 4d24e720b7c734ffac27bf2812eb148d5e8ec6ced26443efeac12a842a985d25
+- rows: 641428
+- symbols: 5498
+- quarters: 46
+- min_info_date: 2015-01-15
+- max_info_date: 2026-07-14
+- key_duplicate_order_book_id_quarter_info_date: 0
+- full_version_key_duplicates: 0
+- multi_version_stock_quarters: 190905
+- value_changed_stock_quarters: 39085
+- if_adjusted_distribution: {'1': 369345, '0': 272083}
+- null_rates: {'total_assets': 0.012949, 'equity_parent_company': 0.015016, 'total_equity': 0.013135, 'net_profit_parent_company': 0.001819}
+- info_date_earlier_than_quarter_end: 0
+- financial_symbols: 119
+- non_financial_symbols: 5379
+- board_type_symbols: {'GEM': 1444, 'KSH': 615, 'MainBoard': 3439}
+- special_type_symbols: {'*ST': 1, 'Normal': 5027, 'Other': 203, 'PT': 5, 'ST': 107, 'StarST': 155}
+- quality_issues: [{'dataset': 'financial_pit_quarterly', 'severity': 'warning', 'check': 'multi_version', 'message': 'multiple PIT versions detected and should be retained', 'count': 615979}]
