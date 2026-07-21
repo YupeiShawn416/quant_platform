@@ -1,0 +1,114 @@
+{
+  "status": "success",
+  "created_at": "2026-07-21T12:05:14",
+  "conclusion": {
+    "hxz_vs_ff3": "HXZ has stronger explanatory power if lower alpha and higher adjusted R2; see model_comparison.",
+    "can_be_platform_strict_benchmark": true,
+    "most_effective_factor": "R_ROE",
+    "weakest_factor": "R_IA",
+    "limitations": [
+      "sample starts 2016-07",
+      "CN-HXZ is experimental not production",
+      "VIX-beta test asset missing compatible monthly cross-section"
+    ]
+  },
+  "recompute": {
+    "portfolio_max_abs_diff": 0.0,
+    "factor_max_abs_diff": {
+      "R_ME": 2.7755575615628914e-17,
+      "R_IA": 2.7755575615628914e-17,
+      "R_ROE": 2.7755575615628914e-17
+    },
+    "mkt_max_abs_diff": 0.0,
+    "weight_sum_error_count": 0,
+    "assignment_duplicate_key": 0,
+    "portfolio_month_rows": 2178,
+    "expected_portfolio_month_rows": 2178,
+    "no_lookahead_violations": 0,
+    "p2_recompute_pass": true
+  },
+  "test_assets": {
+    "asset_count": 105,
+    "vix_beta_status": "missing_compatible_monthly_cross_section"
+  },
+  "model_comparison_all": {
+    "CAPM": {
+      "asset_group": "ALL",
+      "portfolio_count": 105,
+      "mean_abs_alpha": 0.0029382051807445354,
+      "median_abs_alpha": 0.0021515173846171813,
+      "significant_alpha_count": 12,
+      "significant_alpha_ratio": 0.11428571428571428,
+      "avg_adj_r2": 0.7436858334217814,
+      "median_adj_r2": 0.7800711455103604
+    },
+    "FF3": {
+      "asset_group": "ALL",
+      "portfolio_count": 105,
+      "mean_abs_alpha": 0.002929226472870216,
+      "median_abs_alpha": 0.0023964027657534664,
+      "significant_alpha_count": 34,
+      "significant_alpha_ratio": 0.3238095238095238,
+      "avg_adj_r2": 0.8874663189594053,
+      "median_adj_r2": 0.8914734383409588
+    },
+    "HXZ": {
+      "asset_group": "ALL",
+      "portfolio_count": 105,
+      "mean_abs_alpha": 0.0025045041768769994,
+      "median_abs_alpha": 0.0020020504587197094,
+      "significant_alpha_count": 21,
+      "significant_alpha_ratio": 0.2,
+      "avg_adj_r2": 0.8650131895655193,
+      "median_adj_r2": 0.8842903281716845
+    }
+  },
+  "spanning_key": {
+    "HML_on_HXZ": {
+      "test": "HML_on_HXZ",
+      "lhs": "HML",
+      "rhs": "MKT,R_ME,R_IA,R_ROE",
+      "alpha": 0.0052121045262324165,
+      "alpha_nw_t": 1.8746535989591204,
+      "adj_r2": 0.6018835523874577
+    }
+  },
+  "integration": {
+    "registered_as_experimental_benchmark": true,
+    "hxz_better_than_ff3_primary": false,
+    "recommended_benchmark_stack": [
+      "market_index_or_all_a_market",
+      "CAPM",
+      "CN_FF3",
+      "CN_HXZ",
+      "robustness_equal_weight_ex_small30_float_weight"
+    ],
+    "status": "experimental",
+    "capm_mean_abs_alpha": 0.0029382051807445354,
+    "ff3_mean_abs_alpha": 0.002929226472870216,
+    "hxz_mean_abs_alpha": 0.0025045041768769994
+  },
+  "outputs": {
+    "ff3_factors": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/derived/cn_ff3/cn_ff3_factors_monthly.parquet",
+    "ff3_assignments": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/derived/cn_ff3/cn_ff3_assignments.parquet",
+    "ff3_portfolios": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/derived/cn_ff3/cn_ff3_portfolio_returns.parquet",
+    "ff3_breakpoints": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/derived/cn_ff3/cn_ff3_breakpoints.parquet",
+    "test_assets": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/derived/hxz_validation/test_asset_returns.parquet",
+    "combined_factors": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/derived/hxz_validation/combined_factors.parquet",
+    "asset_pricing_regressions": "reports/03_hxz_integrated_validation/asset_pricing_regressions.csv",
+    "model_comparison": "reports/03_hxz_integrated_validation/model_comparison.csv",
+    "hxz_vs_ff3_summary": "reports/03_hxz_integrated_validation/hxz_vs_ff3_summary.csv",
+    "grs_tests": "reports/03_hxz_integrated_validation/grs_tests.csv",
+    "factor_spanning_tests": "reports/03_hxz_integrated_validation/factor_spanning_tests.csv",
+    "subperiod_results": "reports/03_hxz_integrated_validation/subperiod_results.csv",
+    "market_segment_results": "reports/03_hxz_integrated_validation/market_segment_results.csv",
+    "rolling_statistics": "reports/03_hxz_integrated_validation/rolling_statistics.csv",
+    "benchmark_integration": "reports/03_hxz_integrated_validation/benchmark_integration.md",
+    "factor_nav_plot": "reports/03_hxz_integrated_validation/factor_cumulative_nav.png",
+    "hxz_vs_ff3_adj_r2": "reports/03_hxz_integrated_validation/hxz_vs_ff3_adj_r2.png",
+    "mean_abs_alpha": "reports/03_hxz_integrated_validation/mean_abs_alpha.png",
+    "significant_alpha_ratio": "reports/03_hxz_integrated_validation/significant_alpha_ratio.png",
+    "rolling_factor_mean_plot": "reports/03_hxz_integrated_validation/rolling_factor_mean.png",
+    "factor_corr_heatmap": "reports/03_hxz_integrated_validation/factor_correlation_heatmap.png"
+  }
+}

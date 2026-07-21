@@ -115,6 +115,24 @@ DATASET_SPECS: dict[str, DatasetSpec] = {
         date_column="trade_date",
         primary_keys=("trade_date", "index_id", "order_book_id"),
     ),
+    "cn_hxz_4_factors_monthly": DatasetSpec(
+        dataset="cn_hxz_4_factors_monthly",
+        description="Experimental CN-HXZ four factors, monthly.",
+        storage_name="derived/hxz_factors",
+        date_column=None,
+        primary_keys=("month",),
+        partitioned=False,
+        filename="cn_hxz_4_factors_monthly.parquet",
+    ),
+    "cn_ff3_factors_monthly": DatasetSpec(
+        dataset="cn_ff3_factors_monthly",
+        description="Experimental China FF3 factors, monthly.",
+        storage_name="derived/cn_ff3",
+        date_column=None,
+        primary_keys=("month",),
+        partitioned=False,
+        filename="cn_ff3_factors_monthly.parquet",
+    ),
 }
 
 
