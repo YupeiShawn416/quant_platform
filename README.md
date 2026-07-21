@@ -43,6 +43,7 @@ Data API -> local research template -> weights package -> platform backtest -> D
 19. Multi-account Paper Trading MVP：多模拟账户、NAV、持仓、订单、成交、日志
 20. API 使用手册与研究员交付文档
 21. Intraday Snapshot Data workflow：固定 6 个日内快照点，不做全量分钟线
+22. Research report data availability probe：研报字段可得性审计与回填优先级矩阵
 
 ## Current Stage
 
@@ -84,6 +85,7 @@ docs/RESEARCHER_DATA_API.md
 docs/API_USAGE_MANUAL.md
 docs/PAPER_TRADING_MVP.md
 docs/FACTOR_LIBRARY_MVP.md
+docs/RESEARCH_REPORT_DATA_AVAILABILITY_PROBE.md
 ```
 
 ## MVP Usage Flow
