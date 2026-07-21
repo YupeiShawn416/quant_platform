@@ -237,10 +237,10 @@ def is_rqdata_probe_enabled(environ: dict[str, str] | None = None) -> bool:
 
 
 def classify_probe_exception(exc: Exception) -> str:
-    text = str(exc).lower()
+    text = f"{type(exc).__name__}: {exc}".lower()
     if any(token in text for token in ("permission", "not permitted", "unauthorized", "license", "auth")):
         return "permission_required"
-    if "quota" in text or "limit" in text:
+    if "quota" in text or "limit" in text or "login machine num exceeds" in text:
         return "quota_limited"
     return "error"
 
