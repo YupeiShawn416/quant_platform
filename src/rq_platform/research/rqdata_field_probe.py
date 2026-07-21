@@ -253,7 +253,7 @@ def build_after_probe_plan(probe_rows: list[dict[str, Any]], derived_rows: list[
                 "canonical_field",
             ]
         )
-        unlocked = _unlocked_derived_fields(pack, probe_df, derived_df)
+        unlocked = _unlocked_derived_fields(pack, pack_df, derived_df)
         storage = _storage_level(pack)
         permission_risk = _permission_risk(pack_df)
         go = _go_or_no_go(pack_df)
