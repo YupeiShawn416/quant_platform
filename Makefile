@@ -2,7 +2,7 @@ BACKFILL_END_DATE ?= $(shell date +%F)
 FACTOR_IDS ?= market_cap,turnover_rate,momentum_20d,reversal_5d,volatility_20d
 UNIVERSE ?= all
 
-.PHONY: install test api api-prod api-smoke client-smoke backtest-api-smoke dashboard-smoke data-api-smoke-local create-demo-paper-account submit-demo-paper-weights run-demo-paper-daily paper-run-daily-all paper-smoke-local compute-builtin-factors analyze-factor generate-factor-weights factor-smoke-local audit-valuation-factor-fields hxz-data-audit hxz-rqdata-probe probe-research-report-data-availability probe-p0-rqdata-availability hxz-p0-dry-run hxz-p0-smoke hxz-p0b-dry-run hxz-p0b-backfill hxz-p1-monthly-panel hxz-p2-factors hxz-p3-validation create-demo-weights-package submit-demo-weights-package template-smoke check-data audit-data-lake backfill-core-smoke backfill-core-dry-run backfill-core-full check-data-2016-present server-sync-manifest daily-update-dry-run daily-update daily-update-status daily-update-report reconcile-daily-update intraday-snapshot-smoke backfill-intraday-snapshots check-intraday-snapshots audit-intraday-snapshots update-index-2025 check-index-data update-tradability-2025 check-tradability-data update-valuation-2025 check-valuation-data update-industry-2025 check-industry-data update-index-membership-2025 check-index-membership-data vix-q5-exposure-audit vix-q5-build-lagged-package vix-q5-compare-lagged daily-data-update deploy-check query-sample demo-backtest view-demo-backtest demo-daily-backtest view-demo-daily-backtest status clean
+.PHONY: install test api api-prod api-smoke client-smoke backtest-api-smoke dashboard-smoke data-api-smoke-local create-demo-paper-account submit-demo-paper-weights run-demo-paper-daily paper-run-daily-all paper-smoke-local compute-builtin-factors analyze-factor generate-factor-weights factor-smoke-local audit-valuation-factor-fields hxz-data-audit hxz-rqdata-probe probe-research-report-data-availability probe-p0-rqdata-availability financial-pit-field-pack-smoke backfill-financial-pit-field-pack check-financial-pit-field-pack audit-financial-pit-field-pack hxz-p0-dry-run hxz-p0-smoke hxz-p0b-dry-run hxz-p0b-backfill hxz-p1-monthly-panel hxz-p2-factors hxz-p3-validation create-demo-weights-package submit-demo-weights-package template-smoke check-data audit-data-lake backfill-core-smoke backfill-core-dry-run backfill-core-full check-data-2016-present server-sync-manifest daily-update-dry-run daily-update daily-update-status daily-update-report reconcile-daily-update intraday-snapshot-smoke backfill-intraday-snapshots check-intraday-snapshots audit-intraday-snapshots update-index-2025 check-index-data update-tradability-2025 check-tradability-data update-valuation-2025 check-valuation-data update-industry-2025 check-industry-data update-index-membership-2025 check-index-membership-data vix-q5-exposure-audit vix-q5-build-lagged-package vix-q5-compare-lagged daily-data-update deploy-check query-sample demo-backtest view-demo-backtest demo-daily-backtest view-demo-daily-backtest status clean
 
 install:
 	python -m pip install -e .
@@ -77,6 +77,22 @@ probe-research-report-data-availability:
 
 probe-p0-rqdata-availability:
 	PYTHONPATH=src ENABLE_RQDATA_PROBE=$(ENABLE_RQDATA_PROBE) python scripts/47_probe_p0_rqdata_availability.py
+
+financial-pit-field-pack-smoke:
+	@test -n "$(START_DATE)" || (echo "START_DATE is required"; exit 2)
+	@test -n "$(END_DATE)" || (echo "END_DATE is required"; exit 2)
+	PYTHONPATH=src python scripts/54_backfill_financial_pit_field_pack.py --start-date $(START_DATE) --end-date $(END_DATE) --symbols 000001.XSHE,000002.XSHE,600000.XSHG,600519.XSHG,300750.XSHE,688981.XSHG --batch-size 6 --overwrite --confirm-financial-pit-field-pack-backfill
+
+backfill-financial-pit-field-pack:
+	@test -n "$(START_DATE)" || (echo "START_DATE is required"; exit 2)
+	@test -n "$(END_DATE)" || (echo "END_DATE is required"; exit 2)
+	PYTHONPATH=src python scripts/54_backfill_financial_pit_field_pack.py --start-date $(START_DATE) --end-date $(END_DATE) --batch-size $(or $(BATCH_SIZE),200) $(if $(SYMBOLS),--symbols $(SYMBOLS),) $(if $(FIELDS),--fields $(FIELDS),) $(if $(OVERWRITE),--overwrite,) $(if $(CONFIRM),--confirm-financial-pit-field-pack-backfill,--dry-run)
+
+check-financial-pit-field-pack:
+	PYTHONPATH=src python scripts/55_check_financial_pit_field_pack_quality.py
+
+audit-financial-pit-field-pack:
+	PYTHONPATH=src python scripts/56_audit_financial_pit_field_pack_coverage.py
 
 hxz-p0-dry-run:
 	PYTHONPATH=src python scripts/48_hxz_p0_backfill.py --dataset all --dry-run

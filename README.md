@@ -44,6 +44,7 @@ Data API -> local research template -> weights package -> platform backtest -> D
 20. API 使用手册与研究员交付文档
 21. Intraday Snapshot Data workflow：固定 6 个日内快照点，不做全量分钟线
 22. Research report data availability probe：研报字段可得性审计与回填优先级矩阵
+23. Financial PIT Field Pack workflow：基于已验证字段扩展财务 PIT 原始字段包
 
 ## Current Stage
 
@@ -86,6 +87,7 @@ docs/API_USAGE_MANUAL.md
 docs/PAPER_TRADING_MVP.md
 docs/FACTOR_LIBRARY_MVP.md
 docs/RESEARCH_REPORT_DATA_AVAILABILITY_PROBE.md
+docs/FINANCIAL_PIT_FIELD_PACK.md
 ```
 
 ## MVP Usage Flow
