@@ -83,6 +83,21 @@ PowerShell 里的 `curl` 可能是 alias，建议写 `curl.exe`。
 - `industry_classification`
 - `index_components`
 - `index_weights`
+- `risk_free_rate`
+- `financial_pit_field_pack`
+- `financial_pit_quarterly`
+- `intraday_snapshots`
+- `cn_hxz_4_factors_monthly`
+- `cn_ff3_factors_monthly`
+- `hxz_monthly_research_panel`
+
+注意：
+
+- `prices_1d_pre`、`prices_1d_none` 和 `index_prices_1d` 当前完整价格覆盖到
+  `2026-07-21`。
+- 部分非价格类快照和财务 PIT 数据可覆盖到 `2026-07-22`。
+- `intraday_snapshots` 是选定日期的快照数据，不是实时或分钟线服务。
+- HXZ/FF3 数据集是实验研究数据。
 
 ## Endpoints
 

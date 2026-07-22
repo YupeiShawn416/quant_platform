@@ -14,6 +14,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Check daily update status and report.")
     parser.add_argument("--status-path", default=str(STATUS_PATH))
     parser.add_argument("--report-json", default="reports/generated/daily_update_report.json")
+    parser.add_argument("--expected-end-date", default=None)
     args = parser.parse_args()
 
     status_path = Path(args.status_path)
@@ -41,7 +42,10 @@ def main() -> int:
     else:
         print(f"report_json={report_path}")
         print("report_file_status=missing")
-    reconcile = reconcile_daily_update_coverage(status_path=status_path)
+    reconcile = reconcile_daily_update_coverage(
+        status_path=status_path,
+        expected_end_date=args.expected_end_date,
+    )
     live_mismatches = reconcile.get("mismatch_datasets") or []
     live_zero_rows = reconcile.get("zero_row_suspect_rows") or []
     effective_status = "failed" if live_mismatches or live_zero_rows else "success"

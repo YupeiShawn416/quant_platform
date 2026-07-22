@@ -140,7 +140,7 @@ backfill-core-full:
 	PYTHONPATH=src python scripts/26_backfill_2016_present_core_data.py --start-date 2016-01-01 --end-date $(BACKFILL_END_DATE) --datasets prices,index_prices,calendar,instruments,tradability,valuation,industry,index_members --confirm-full-backfill
 
 check-data-2016-present:
-	PYTHONPATH=src python scripts/27_check_2016_present_data_quality.py
+	PYTHONPATH=src python scripts/27_check_2016_present_data_quality.py $(if $(EXPECTED_END_DATE),--expected-end-date $(EXPECTED_END_DATE),)
 
 server-sync-manifest:
 	PYTHONPATH=src python scripts/28_generate_server_sync_manifest.py
@@ -154,10 +154,10 @@ daily-update:
 	PYTHONPATH=src python scripts/31_daily_data_update.py --end-date $(END_DATE) --confirm-daily-update
 
 daily-update-status:
-	PYTHONPATH=src python scripts/32_check_daily_update_status.py
+	PYTHONPATH=src python scripts/32_check_daily_update_status.py $(if $(EXPECTED_END_DATE),--expected-end-date $(EXPECTED_END_DATE),)
 
 daily-update-report:
-	PYTHONPATH=src python scripts/32_check_daily_update_status.py
+	PYTHONPATH=src python scripts/32_check_daily_update_status.py $(if $(EXPECTED_END_DATE),--expected-end-date $(EXPECTED_END_DATE),)
 
 reconcile-daily-update:
 	PYTHONPATH=src python scripts/37_reconcile_daily_update_coverage.py

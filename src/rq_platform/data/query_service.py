@@ -115,6 +115,36 @@ DATASET_SPECS: dict[str, DatasetSpec] = {
         date_column="trade_date",
         primary_keys=("trade_date", "index_id", "order_book_id"),
     ),
+    "risk_free_rate": DatasetSpec(
+        dataset="risk_free_rate",
+        description="Daily risk-free rate curve snapshots.",
+        storage_name="risk_free_rate",
+        date_column="trade_date",
+        primary_keys=("trade_date",),
+    ),
+    "financial_pit_field_pack": DatasetSpec(
+        dataset="financial_pit_field_pack",
+        description="Expanded point-in-time financial statement fields.",
+        storage_name="financial_pit_field_pack",
+        date_column="info_date",
+        primary_keys=("order_book_id", "report_period", "info_date"),
+        filename="financial_pit_field_pack.parquet",
+    ),
+    "financial_pit_quarterly": DatasetSpec(
+        dataset="financial_pit_quarterly",
+        description="Quarterly point-in-time financial statement fields for HXZ research.",
+        storage_name="financial_pit_quarterly",
+        date_column="info_date",
+        primary_keys=("order_book_id", "quarter", "info_date"),
+    ),
+    "intraday_snapshots": DatasetSpec(
+        dataset="intraday_snapshots",
+        description="Intraday stock snapshots for selected 2025 dates.",
+        storage_name="intraday_snapshots",
+        date_column="trade_date",
+        primary_keys=("trade_date", "order_book_id"),
+        filename="*.parquet",
+    ),
     "cn_hxz_4_factors_monthly": DatasetSpec(
         dataset="cn_hxz_4_factors_monthly",
         description="Experimental CN-HXZ four factors, monthly.",
@@ -132,6 +162,15 @@ DATASET_SPECS: dict[str, DatasetSpec] = {
         primary_keys=("month",),
         partitioned=False,
         filename="cn_ff3_factors_monthly.parquet",
+    ),
+    "hxz_monthly_research_panel": DatasetSpec(
+        dataset="hxz_monthly_research_panel",
+        description="Monthly HXZ research panel with assignments and derived inputs.",
+        storage_name="derived/hxz_monthly_panel",
+        date_column=None,
+        primary_keys=("month", "order_book_id"),
+        partitioned=False,
+        filename="hxz_monthly_research_panel.parquet",
     ),
 }
 
@@ -223,7 +262,8 @@ class DataQueryService:
         if offset < 0:
             raise DataQueryError("offset must be >= 0")
         spec = get_dataset_spec(dataset)
-        supported_start, supported_end = self.supported_date_range()
+        dataset_coverage = self.dataset_coverage(spec.dataset)
+        supported_start, supported_end = _query_supported_range(dataset_coverage, self.supported_date_range())
         _validate_supported_date_range(start_date, end_date, supported_start, supported_end)
         files = self._files_for_query(spec, start_date, end_date)
         if not files:
@@ -243,9 +283,13 @@ class DataQueryService:
     def _dataset_files(self, spec: DatasetSpec) -> list[Path]:
         root = spec.root(self.data_root)
         if spec.partitioned:
+            if spec.filename:
+                return sorted(root.glob(f"year=*/{spec.filename}"))
             return sorted(root.glob("year=*.parquet"))
         if spec.filename and (root / spec.filename).exists():
             return [root / spec.filename]
+        if spec.filename:
+            return sorted(root.rglob(spec.filename))
         return sorted(root.glob("*.parquet"))
 
     def _files_for_query(
@@ -351,7 +395,7 @@ def _project_fields(frame: pd.DataFrame, fields: list[str] | None) -> pd.DataFra
 def _sort_frame(frame: pd.DataFrame) -> pd.DataFrame:
     sort_cols = [
         column
-        for column in ["trade_date", "listed_date", "index_id", "order_book_id"]
+        for column in ["trade_date", "info_date", "listed_date", "month", "index_id", "order_book_id", "report_period", "quarter"]
         if column in frame.columns
     ]
     if sort_cols:
@@ -378,11 +422,22 @@ def _supported_range_from_coverage(datasets: list[dict[str, Any]]) -> tuple[str,
     return min(starts), min(ends)
 
 
+def _query_supported_range(dataset_coverage: dict[str, Any], fallback: tuple[str, str]) -> tuple[str, str]:
+    min_date = dataset_coverage.get("min_date")
+    max_date = dataset_coverage.get("max_date")
+    if min_date and max_date:
+        return str(min_date), str(max_date)
+    return fallback
+
+
 def _parse_year(path: Path) -> int | None:
-    try:
-        return int(path.stem.split("=", 1)[1])
-    except Exception:
-        return None
+    for part in reversed(path.parts):
+        if part.startswith("year="):
+            try:
+                return int(Path(part).stem.split("=", 1)[1])
+            except Exception:
+                return None
+    return None
 
 
 def _date_range(frame: pd.DataFrame, date_column: str | None) -> tuple[str | None, str | None]:

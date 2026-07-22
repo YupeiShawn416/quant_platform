@@ -8,10 +8,11 @@ from rq_platform.etl.data_quality_checks import run_data_quality_checks, write_q
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run 2016-present data quality checks.")
     parser.add_argument("--data-root", default=None)
+    parser.add_argument("--expected-end-date", default=None)
     parser.add_argument("--output-dir", default="reports/generated")
     args = parser.parse_args()
 
-    issues = run_data_quality_checks(args.data_root)
+    issues = run_data_quality_checks(args.data_root, expected_end_date=args.expected_end_date)
     md_path, json_path = write_quality_report(issues, args.output_dir)
     print(f"issues={len(issues)}")
     print(f"markdown={md_path}")

@@ -3,7 +3,7 @@ set -euo pipefail
 
 SERVER_IP="${SERVER_IP:-}"
 SERVER_USER="${SERVER_USER:-quant}"
-LOCAL_DATA_DIR="${LOCAL_DATA_DIR:-$HOME/Desktop/quant_platform/data/research_data/rqdata/}"
+LOCAL_DATA_DIR="${LOCAL_DATA_DIR:-$HOME/Documents/Strategy/quant_platform/data/research_data/rqdata/}"
 REMOTE_DATA_DIR="${REMOTE_DATA_DIR:-/opt/quant_platform/data/research_data/rqdata/}"
 
 if [[ -z "$SERVER_IP" ]]; then

@@ -13,7 +13,7 @@ import yaml
 from rq_platform.data.data_loader import ResearchDataLoader
 
 
-DEFAULT_PILOT_ROOT = Path("/Users/yupeishen/Desktop/vix_beta_q5_long_only_pilot")
+DEFAULT_PILOT_ROOT = Path("/Users/yupeishen/Documents/Strategy/vix_beta_q5_long_only_pilot")
 DEFAULT_SAME_DAY_PACKAGE = Path("/tmp/vix_beta_q5_long_only_package.zip")
 DEFAULT_LAGGED_PACKAGE = Path("/tmp/vix_beta_q5_long_only_lagged_package.zip")
 

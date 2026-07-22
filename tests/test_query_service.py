@@ -88,6 +88,92 @@ def test_query_service_supported_end_date_uses_complete_core_coverage(tmp_path, 
     assert len(frame) == 1
 
 
+def test_query_service_exposes_financial_pit_field_pack(tmp_path, monkeypatch):
+    _patch_data_root(tmp_path, monkeypatch)
+    root = tmp_path / "rqdata"
+    path = root / "financial_pit_field_pack" / "year=2026"
+    path.mkdir(parents=True)
+    pd.DataFrame(
+        {
+            "order_book_id": ["000001.XSHE", "600519.XSHG"],
+            "report_period": ["2025q4", "2025q4"],
+            "info_date": ["2026-04-30", "2026-04-30"],
+            "revenue": [100.0, 200.0],
+            "net_profit": [10.0, 20.0],
+        }
+    ).to_parquet(path / "financial_pit_field_pack.parquet", index=False)
+
+    service = DataQueryService()
+    coverage = service.dataset_coverage("financial_pit_field_pack")
+    frame, has_more = service.query(
+        "financial_pit_field_pack",
+        start_date="2026-04-30",
+        end_date="2026-04-30",
+        order_book_ids=["600519.XSHG"],
+        fields=["order_book_id", "report_period", "info_date", "revenue"],
+    )
+
+    assert coverage["years"] == [2026]
+    assert coverage["rows"] == 2
+    assert has_more is False
+    assert frame.to_dict(orient="records") == [
+        {
+            "order_book_id": "600519.XSHG",
+            "report_period": "2025q4",
+            "info_date": "2026-04-30",
+            "revenue": 200.0,
+        }
+    ]
+
+
+def test_query_service_exposes_nested_intraday_snapshots(tmp_path, monkeypatch):
+    _patch_data_root(tmp_path, monkeypatch)
+    root = tmp_path / "rqdata"
+    path = root / "intraday_snapshots" / "year=2025"
+    path.mkdir(parents=True)
+    pd.DataFrame(
+        {
+            "trade_date": ["2025-08-29", "2025-08-29"],
+            "order_book_id": ["000001.XSHE", "600519.XSHG"],
+            "last": [12.3, 1500.0],
+        }
+    ).to_parquet(path / "month=08.parquet", index=False)
+
+    coverage = DataQueryService().dataset_coverage("intraday_snapshots")
+    frame, _ = DataQueryService().query(
+        "intraday_snapshots",
+        start_date="2025-08-29",
+        end_date="2025-08-29",
+        order_book_ids=["000001.XSHE"],
+    )
+
+    assert coverage["years"] == [2025]
+    assert coverage["rows"] == 2
+    assert frame["order_book_id"].tolist() == ["000001.XSHE"]
+
+
+def test_query_service_uses_dataset_specific_supported_range(tmp_path, monkeypatch):
+    _patch_data_root(tmp_path, monkeypatch)
+    root = tmp_path / "rqdata"
+    for dataset, max_date in [
+        ("prices_1d_pre", "2026-07-21"),
+        ("prices_1d_none", "2026-07-21"),
+        ("index_prices_1d", "2026-07-21"),
+        ("tradability_1d", "2026-07-22"),
+        ("valuation_1d", "2026-07-22"),
+    ]:
+        (root / dataset).mkdir(parents=True, exist_ok=True)
+        pd.DataFrame(
+            [{"trade_date": max_date, "order_book_id": "000001.XSHE", "close": 10.0}]
+        ).to_parquet(root / dataset / "year=2026.parquet", index=False)
+
+    valuation, _ = DataQueryService().query("valuation_1d", start_date="2026-07-22", end_date="2026-07-22")
+    with pytest.raises(DataQueryError, match="end_date must be <= 2026-07-21"):
+        DataQueryService().query("prices_1d_pre", start_date="2026-07-22", end_date="2026-07-22")
+
+    assert len(valuation) == 1
+
+
 def _patch_data_root(tmp_path, monkeypatch):
     monkeypatch.setattr(settings, "data_root", str(tmp_path / "rqdata"))
 
