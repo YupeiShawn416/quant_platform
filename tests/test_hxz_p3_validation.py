@@ -7,6 +7,7 @@ from rq_platform.etl.hxz_p3_validation import (
     bh_fdr,
     build_cn_ff3,
     build_test_assets,
+    compute_rolling_statistics,
     grs_stat,
     newey_west_cov,
     ols,
@@ -104,6 +105,26 @@ def test_subperiod_results_include_three_periods():
     out = run_subperiod_results(factors)
 
     assert out["period"].nunique() == 3
+
+
+def test_rolling_statistics_include_ff3_factors():
+    months = pd.period_range("2020-01", "2023-12", freq="M").astype(str)
+    factors = pd.DataFrame(
+        {
+            "month": months,
+            "MKT": 0.01,
+            "SMB": 0.002,
+            "HML": -0.001,
+            "R_ME": 0.003,
+            "R_IA": 0.004,
+            "R_ROE": 0.005,
+        }
+    )
+
+    out = compute_rolling_statistics(factors)
+
+    assert {"MKT", "SMB", "HML", "R_ME", "R_IA", "R_ROE"} == set(out["factor"])
+    assert out[out["factor"].eq("SMB")]["rolling_mean"].notna().any()
 
 
 def test_data_api_lists_experimental_benchmark_specs():

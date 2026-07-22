@@ -1,6 +1,6 @@
 {
   "status": "success",
-  "created_at": "2026-07-21T12:05:14",
+  "created_at": "2026-07-22T10:50:54",
   "conclusion": {
     "hxz_vs_ff3": "HXZ has stronger explanatory power if lower alpha and higher adjusted R2; see model_comparison.",
     "can_be_platform_strict_benchmark": true,
@@ -35,8 +35,8 @@
     "CAPM": {
       "asset_group": "ALL",
       "portfolio_count": 105,
-      "mean_abs_alpha": 0.0029382051807445354,
-      "median_abs_alpha": 0.0021515173846171813,
+      "mean_abs_alpha": 0.002938205180744534,
+      "median_abs_alpha": 0.0021515173846171826,
       "significant_alpha_count": 12,
       "significant_alpha_ratio": 0.11428571428571428,
       "avg_adj_r2": 0.7436858334217814,
@@ -45,8 +45,8 @@
     "FF3": {
       "asset_group": "ALL",
       "portfolio_count": 105,
-      "mean_abs_alpha": 0.002929226472870216,
-      "median_abs_alpha": 0.0023964027657534664,
+      "mean_abs_alpha": 0.002929226472870214,
+      "median_abs_alpha": 0.0023964027657534617,
       "significant_alpha_count": 34,
       "significant_alpha_ratio": 0.3238095238095238,
       "avg_adj_r2": 0.8874663189594053,
@@ -55,8 +55,8 @@
     "HXZ": {
       "asset_group": "ALL",
       "portfolio_count": 105,
-      "mean_abs_alpha": 0.0025045041768769994,
-      "median_abs_alpha": 0.0020020504587197094,
+      "mean_abs_alpha": 0.002504504176876998,
+      "median_abs_alpha": 0.00200205045871972,
       "significant_alpha_count": 21,
       "significant_alpha_ratio": 0.2,
       "avg_adj_r2": 0.8650131895655193,
@@ -68,9 +68,9 @@
       "test": "HML_on_HXZ",
       "lhs": "HML",
       "rhs": "MKT,R_ME,R_IA,R_ROE",
-      "alpha": 0.0052121045262324165,
-      "alpha_nw_t": 1.8746535989591204,
-      "adj_r2": 0.6018835523874577
+      "alpha": 0.005212104526232418,
+      "alpha_nw_t": 1.87465359895912,
+      "adj_r2": 0.6018835523874579
     }
   },
   "integration": {
@@ -84,9 +84,9 @@
       "robustness_equal_weight_ex_small30_float_weight"
     ],
     "status": "experimental",
-    "capm_mean_abs_alpha": 0.0029382051807445354,
-    "ff3_mean_abs_alpha": 0.002929226472870216,
-    "hxz_mean_abs_alpha": 0.0025045041768769994
+    "capm_mean_abs_alpha": 0.002938205180744534,
+    "ff3_mean_abs_alpha": 0.002929226472870214,
+    "hxz_mean_abs_alpha": 0.002504504176876998
   },
   "outputs": {
     "ff3_factors": "/Users/yupeishen/Desktop/quant_platform/data/research_data/rqdata/derived/cn_ff3/cn_ff3_factors_monthly.parquet",
@@ -109,6 +109,7 @@
     "mean_abs_alpha": "reports/03_hxz_integrated_validation/mean_abs_alpha.png",
     "significant_alpha_ratio": "reports/03_hxz_integrated_validation/significant_alpha_ratio.png",
     "rolling_factor_mean_plot": "reports/03_hxz_integrated_validation/rolling_factor_mean.png",
+    "ff3_rolling_factor_mean_plot": "reports/03_hxz_integrated_validation/ff3_36m_rolling_factor_mean.png",
     "factor_corr_heatmap": "reports/03_hxz_integrated_validation/factor_correlation_heatmap.png"
   }
 }

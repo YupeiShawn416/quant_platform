@@ -431,7 +431,7 @@ def run_segment_results(panel: pd.DataFrame, factors: pd.DataFrame) -> pd.DataFr
 
 def compute_rolling_statistics(factors: pd.DataFrame, window: int = 36) -> pd.DataFrame:
     rows = []
-    cols = ["MKT", "R_ME", "R_IA", "R_ROE"]
+    cols = ["MKT", "SMB", "HML", "R_ME", "R_IA", "R_ROE"]
     for col in cols:
         s = factors[["month", col]].copy()
         s["rolling_mean"] = s[col].rolling(window).mean()
@@ -639,13 +639,29 @@ def write_plots(report_dir: Path, factors: pd.DataFrame, model_comparison: pd.Da
 
     fig, ax = plt.subplots(figsize=(10, 5))
     for factor, group in rolling.groupby("factor"):
-        ax.plot(group["month"], group["rolling_mean"], label=factor)
+        x = pd.to_datetime(group["month"].astype(str) + "-01")
+        ax.plot(x, group["rolling_mean"], label=factor)
     ax.set_title("36M Rolling Factor Mean")
-    ax.tick_params(axis="x", labelrotation=90)
+    _format_month_axis(ax)
     ax.legend()
     outputs["rolling_factor_mean_plot"] = report_dir / "rolling_factor_mean.png"
     fig.tight_layout()
     fig.savefig(outputs["rolling_factor_mean_plot"], dpi=160)
+    plt.close(fig)
+
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ff3_rolling = rolling[rolling["factor"].isin(["MKT", "SMB", "HML"])].copy()
+    for factor, group in ff3_rolling.groupby("factor"):
+        x = pd.to_datetime(group["month"].astype(str) + "-01")
+        ax.plot(x, group["rolling_mean"], label=factor)
+    ax.axhline(0, color="#444444", linewidth=0.8)
+    ax.set_title("CN-FF3 36M Rolling Factor Mean")
+    ax.set_ylabel("Monthly mean return")
+    _format_month_axis(ax)
+    ax.legend()
+    outputs["ff3_rolling_factor_mean_plot"] = report_dir / "ff3_36m_rolling_factor_mean.png"
+    fig.tight_layout()
+    fig.savefig(outputs["ff3_rolling_factor_mean_plot"], dpi=160)
     plt.close(fig)
 
     corr = factors[factor_cols].corr()
@@ -660,6 +676,15 @@ def write_plots(report_dir: Path, factors: pd.DataFrame, model_comparison: pd.Da
     fig.savefig(outputs["factor_corr_heatmap"], dpi=160)
     plt.close(fig)
     return outputs
+
+
+def _format_month_axis(ax) -> None:
+    import matplotlib.dates as mdates
+
+    ax.xaxis.set_major_locator(mdates.YearLocator())
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
+    ax.xaxis.set_minor_locator(mdates.MonthLocator(bymonth=[7]))
+    ax.grid(axis="y", color="#d8d8d8", linewidth=0.6)
 
 
 def render_benchmark_integration(report: dict[str, Any]) -> str:
