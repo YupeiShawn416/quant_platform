@@ -131,7 +131,25 @@ GET /backtests/current
 GET /backtests/current/summary
 GET /backtests/current/nav
 GET /backtests/current/trades
+GET /backtests/current/positions
+GET /backtests/current/orders
+GET /backtests/current/logs
 GET /backtests/current/download
+```
+
+上传响应会返回 `run_id`。后续复查应优先使用固定 `run_id`，避免新的回测覆盖
+`current`：
+
+```text
+GET /backtests/runs
+GET /backtests/runs/{run_id}
+GET /backtests/runs/{run_id}/summary
+GET /backtests/runs/{run_id}/nav
+GET /backtests/runs/{run_id}/trades
+GET /backtests/runs/{run_id}/positions
+GET /backtests/runs/{run_id}/orders
+GET /backtests/runs/{run_id}/logs
+GET /backtests/runs/{run_id}/download
 ```
 
 Dashboard：
@@ -140,7 +158,8 @@ Dashboard：
 /ui/backtests/current
 ```
 
-当前平台只保留一个 current。需要长期保存完整结果时，下载 result zip。
+当前平台只保留一个 current。需要长期保存完整结果时，记录 `run_id` 并下载 result
+zip。
 
 ## Data Usage
 

@@ -38,18 +38,23 @@ The default package is written to `/tmp/demo_weights_template_package.zip`.
 To upload after the quant_platform API is running:
 
 ```bash
+export QUANT_PLATFORM_API_URL="http://39.106.218.30"
+export QUANT_PLATFORM_API_TOKEN="<token_sent_securely>"
 python scripts/07_submit_package.py
 ```
+
+For local development, use `http://127.0.0.1:8000` instead. If the local API
+uses `API_TOKEN=change_me`, the token can be omitted.
 
 Then open the dashboard:
 
 ```text
-http://127.0.0.1:8000/ui/backtests/current
+http://39.106.218.30/ui/backtests/current
 ```
 
-Download the result zip from the dashboard if the result must be preserved.
-The platform currently has a single current result, so a later upload can
-overwrite what you see.
+The submit script prints the returned `run_id`, downloads the result zip, and
+uses `/backtests/runs/{run_id}/...` for follow-up reads. The dashboard's
+`current` view can still be overwritten by later uploads.
 
 Common failures:
 

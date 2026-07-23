@@ -56,16 +56,19 @@ def main():
         )
         with urllib.request.urlopen(upload, timeout=180) as response:
             result = json.loads(response.read().decode("utf-8"))
-        current = request_json("GET", "/backtests/current")
-        summary = request_json("GET", "/backtests/current/summary")
-        download = urllib.request.Request(f"{API_URL}/backtests/current/download", headers=headers(), method="GET")
+        run_id = result.get("run_id")
+        result_prefix = f"/backtests/runs/{run_id}" if run_id else "/backtests/current"
+        result_detail = request_json("GET", result_prefix)
+        summary = request_json("GET", f"{result_prefix}/summary")
+        download = urllib.request.Request(f"{API_URL}{result_prefix}/download", headers=headers(), method="GET")
         with urllib.request.urlopen(download, timeout=120) as response:
             RESULT_ZIP.write_bytes(response.read())
     except urllib.error.URLError:
         print("请先在 quant_platform 中运行 make api")
         return 1
     print(f"run status: {result.get('status')}")
-    print(f"current exists: {current.get('exists')}")
+    print(f"run_id: {result.get('run_id')}")
+    print(f"result available: {result_detail.get('result_available', result_detail.get('exists'))}")
     print(f"total_return: {summary.get('total_return')}")
     print(f"result zip: {RESULT_ZIP}")
     return 0 if result.get("status") == "success" else 1

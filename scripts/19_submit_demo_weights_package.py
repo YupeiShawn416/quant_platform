@@ -19,14 +19,17 @@ def main() -> int:
         return 1
     try:
         result = _upload_package()
-        summary = _json_request("GET", "/backtests/current/summary")
-        nav = _json_request("GET", "/backtests/current/nav")
-        trades = _json_request("GET", "/backtests/current/trades")
-        _download("/backtests/current/download", RESULT_ZIP)
+        run_id = result.get("run_id")
+        result_prefix = f"/backtests/runs/{run_id}" if run_id else "/backtests/current"
+        summary = _json_request("GET", f"{result_prefix}/summary")
+        nav = _json_request("GET", f"{result_prefix}/nav")
+        trades = _json_request("GET", f"{result_prefix}/trades")
+        _download(f"{result_prefix}/download", RESULT_ZIP)
     except urllib.error.URLError:
         print("API 未启动，请先运行：make api")
         return 1
     print(f"run status: {result.get('status')}")
+    print(f"run_id: {result.get('run_id')}")
     print(f"total_return: {summary.get('total_return')}")
     print(f"sharpe: {summary.get('sharpe')}")
     print(f"max_drawdown: {summary.get('max_drawdown')}")
