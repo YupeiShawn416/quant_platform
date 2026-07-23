@@ -85,6 +85,7 @@ PowerShell 里的 `curl` 可能是 alias，建议写 `curl.exe`。
 - `index_weights`
 - `risk_free_rate`
 - `financial_pit_field_pack`
+- `financial_cashflow_field_pack`
 - `financial_pit_quarterly`
 - `intraday_snapshots`
 - `cn_hxz_4_factors_monthly`

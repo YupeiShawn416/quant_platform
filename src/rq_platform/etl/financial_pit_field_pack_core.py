@@ -26,9 +26,12 @@ def run_financial_pit_field_pack_backfill(
     task: FinancialPitFieldPackTask,
     *,
     confirm: bool = False,
+    dataset_name: str = DATASET_NAME,
+    output_filename: str = "financial_pit_field_pack.parquet",
+    status_path: Path = STATUS_PATH,
 ) -> dict[str, Any]:
-    run_id = f"financial_pit_field_pack_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:6]}"
-    plan = _task_plan(run_id, task)
+    run_id = f"{dataset_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:6]}"
+    plan = _task_plan(run_id, task, dataset_name)
     if task.dry_run:
         return {**plan, "status": "dry_run", "results": []}
     if not confirm:
@@ -43,19 +46,34 @@ def run_financial_pit_field_pack_backfill(
         try:
             frame = fetch_financial_pit_field_pack(rqdatac, symbols, task.fields, task.start_quarter, task.end_quarter)
             if frame.empty:
-                result = _status_row(run_id, task, batch_id, symbols, 0, "empty", "", "")
+                result = _status_row(run_id, task, batch_id, symbols, 0, "empty", "", "", dataset_name)
             else:
-                paths = write_financial_pit_field_pack(frame, overwrite=task.overwrite and batch_id == 1)
+                paths = write_financial_pit_field_pack(
+                    frame,
+                    overwrite=task.overwrite and batch_id == 1,
+                    dataset_name=dataset_name,
+                    filename=output_filename,
+                )
                 total_rows += len(frame)
-                result = _status_row(run_id, task, batch_id, symbols, len(frame), "success", ";".join(str(path) for path in paths), "")
+                result = _status_row(
+                    run_id,
+                    task,
+                    batch_id,
+                    symbols,
+                    len(frame),
+                    "success",
+                    ";".join(str(path) for path in paths),
+                    "",
+                    dataset_name,
+                )
             result["started_at"] = started
-            append_status(result)
+            append_status(result, status_path)
             results.append(result)
         except Exception as exc:
             failures += 1
-            result = _status_row(run_id, task, batch_id, symbols, 0, "failed", "", _sanitize_error(exc))
+            result = _status_row(run_id, task, batch_id, symbols, 0, "failed", "", _sanitize_error(exc), dataset_name)
             result["started_at"] = started
-            append_status(result)
+            append_status(result, status_path)
             results.append(result)
             if _is_auth_or_quota_error(exc) or failures >= 5:
                 break
@@ -125,15 +143,23 @@ def normalize_financial_pit_field_pack(raw: pd.DataFrame, fields: list[Financial
     for column in required:
         if column not in frame.columns:
             frame[column] = pd.NA
-    field_columns = [field.rqdata_field for field in fields if field.rqdata_field in frame.columns]
+    field_rename = {field.rqdata_field: field.canonical_field for field in fields if field.rqdata_field in frame.columns}
+    field_columns = list(field_rename)
     out = frame[required + field_columns + ["field_mapping_json", "source", "fetched_at"]].copy()
+    out = out.rename(columns=field_rename)
     out["order_book_id"] = out["order_book_id"].astype(str)
     out["report_period"] = out["report_period"].astype(str)
     return out.sort_values(["order_book_id", "report_period", "info_date"]).reset_index(drop=True)
 
 
-def write_financial_pit_field_pack(frame: pd.DataFrame, *, overwrite: bool = False) -> list[Path]:
-    root = settings.data_root_path / DATASET_NAME
+def write_financial_pit_field_pack(
+    frame: pd.DataFrame,
+    *,
+    overwrite: bool = False,
+    dataset_name: str = DATASET_NAME,
+    filename: str = "financial_pit_field_pack.parquet",
+) -> list[Path]:
+    root = settings.data_root_path / dataset_name
     root.mkdir(parents=True, exist_ok=True)
     work = frame.copy()
     work["_year"] = pd.to_datetime(work["info_date"], errors="coerce").dt.year
@@ -141,7 +167,7 @@ def write_financial_pit_field_pack(frame: pd.DataFrame, *, overwrite: bool = Fal
     for year, group in work.dropna(subset=["_year"]).groupby("_year"):
         year_dir = root / f"year={int(year)}"
         year_dir.mkdir(parents=True, exist_ok=True)
-        path = year_dir / "financial_pit_field_pack.parquet"
+        path = year_dir / filename
         output = group.drop(columns=["_year"]).copy()
         if path.exists() and not overwrite:
             existing = pd.read_parquet(path)
@@ -178,10 +204,10 @@ def _init_rqdatac() -> Any:
     return rqdatac
 
 
-def _task_plan(run_id: str, task: FinancialPitFieldPackTask) -> dict[str, Any]:
+def _task_plan(run_id: str, task: FinancialPitFieldPackTask, dataset_name: str = DATASET_NAME) -> dict[str, Any]:
     return {
         "run_id": run_id,
-        "dataset": DATASET_NAME,
+        "dataset": dataset_name,
         "start_date": task.start_date,
         "end_date": task.end_date,
         "start_quarter": task.start_quarter,
@@ -204,10 +230,11 @@ def _status_row(
     status: str,
     output_file: str,
     error: str,
+    dataset_name: str = DATASET_NAME,
 ) -> dict[str, Any]:
     return {
         "run_id": run_id,
-        "dataset": DATASET_NAME,
+        "dataset": dataset_name,
         "start_date": task.start_date,
         "end_date": task.end_date,
         "year": f"{task.start_quarter}-{task.end_quarter}",

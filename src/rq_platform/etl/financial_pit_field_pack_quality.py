@@ -21,9 +21,9 @@ class FinancialPitFieldPackIssue:
         return self.__dict__.copy()
 
 
-def load_financial_pit_field_pack(data_root: str | Path | None = None) -> pd.DataFrame:
+def load_financial_pit_field_pack(data_root: str | Path | None = None, dataset_name: str = DATASET_NAME) -> pd.DataFrame:
     root = Path(data_root).resolve() if data_root is not None else settings.data_root_path
-    files = sorted((root / DATASET_NAME).rglob("*.parquet"))
+    files = sorted((root / dataset_name).rglob("*.parquet"))
     if not files:
         return pd.DataFrame()
     return pd.concat([pd.read_parquet(path) for path in files], ignore_index=True)

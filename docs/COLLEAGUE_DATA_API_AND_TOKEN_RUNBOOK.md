@@ -44,6 +44,7 @@ Additional research datasets:
 ```text
 risk_free_rate
 financial_pit_field_pack
+financial_cashflow_field_pack
 financial_pit_quarterly
 intraday_snapshots
 cn_hxz_4_factors_monthly
@@ -84,6 +85,13 @@ curl -H "X-API-Token: $QUANT_PLATFORM_API_TOKEN" \
   "$QUANT_PLATFORM_API_URL/data/schema/financial_pit_field_pack"
 ```
 
+Get cash-flow schema:
+
+```bash
+curl -H "X-API-Token: $QUANT_PLATFORM_API_TOKEN" \
+  "$QUANT_PLATFORM_API_URL/data/schema/financial_cashflow_field_pack"
+```
+
 ## Query Examples
 
 Set environment variables on macOS/Linux:
@@ -106,6 +114,29 @@ Fetch financial PIT fields:
 curl -H "X-API-Token: $QUANT_PLATFORM_API_TOKEN" \
   "$QUANT_PLATFORM_API_URL/data/query/financial_pit_field_pack?start_date=2026-04-01&end_date=2026-07-22&order_book_id=000001.XSHE&fields=order_book_id,report_period,info_date,revenue,net_profit,total_liabilities&limit=1000"
 ```
+
+Fetch cash-flow PIT fields:
+
+```bash
+curl -H "X-API-Token: $QUANT_PLATFORM_API_TOKEN" \
+  "$QUANT_PLATFORM_API_URL/data/query/financial_cashflow_field_pack?start_date=2026-04-01&end_date=2026-07-22&order_book_id=000001.XSHE&fields=order_book_id,report_period,info_date,net_operate_cashflow_ttm,cash_flow_from_operating_activities,cash_paid_for_asset,end_period_cash_equivalent&limit=1000"
+```
+
+Cash-flow field notes:
+
+- `net_operate_cashflow_ttm`, `net_invest_cashflow_ttm`,
+  `net_finance_cashflow_ttm`, and `net_cashflow_ttm` are RQData TTM cash-flow
+  metrics normalized to snake_case API names.
+- `cash_flow_from_operating_activities`,
+  `cash_flow_from_investing_activities`, and
+  `cash_flow_from_financing_activities` are point-in-time statement fields by
+  report period and announcement date.
+- `cash_paid_for_asset` is an asset-acquisition cash outflow and should be
+  treated as a CapEx proxy candidate, not a fully audited canonical CapEx
+  definition.
+- `begin_period_cash_equivalent`, `end_period_cash_equivalent`, and
+  `cash_equivalent` are available cash-equivalent fields; validate the exact
+  definition before using them in EV or net-cash factors.
 
 Fetch many month-end valuation snapshots in one request:
 
@@ -193,10 +224,9 @@ examples/researcher_api_usage/data_api_quickstart.py
 
 ## Known Data Limitations
 
-- `financial_pit_field_pack` currently does not include cash-flow statement
-  fields such as operating cash flow or CapEx. FCF-style factors should be
-  marked as proxy calculations until a cash-flow field pack is backfilled and
-  verified.
+- `financial_cashflow_field_pack` includes operating/investing/financing cash
+  flow fields and selected TTM metrics. FCF-style factors should still document
+  whether they use `cash_paid_for_asset` as a CapEx proxy.
 - `financial_pit_quarterly` is a legacy HXZ support table with limited fields;
   use `financial_pit_field_pack` for general financial statement research.
 - The current core research range starts at `2016-01-04`. A 2010-2015 extension

@@ -61,6 +61,26 @@ def test_fetch_and_normalize_canonical_mapping():
     assert frame["revenue"].iloc[0] == 100.0
 
 
+def test_normalize_renames_rqdata_field_to_canonical_field():
+    fields = [FinancialPitField("net_operate_cashflow_ttm", "get_pit_financials_ex", "net_operate_cashflowTTM")]
+
+    frame = normalize_financial_pit_field_pack(
+        pd.DataFrame(
+            {
+                "order_book_id": ["000001.XSHE"],
+                "quarter": ["2024q4"],
+                "info_date": ["2025-03-20"],
+                "net_operate_cashflowTTM": [123.0],
+            }
+        ),
+        fields,
+    )
+
+    assert "net_operate_cashflow_ttm" in frame.columns
+    assert "net_operate_cashflowTTM" not in frame.columns
+    assert frame["net_operate_cashflow_ttm"].iloc[0] == 123.0
+
+
 def test_append_and_deduplicate(tmp_path, monkeypatch):
     import rq_platform.etl.financial_pit_field_pack_core as core
 
@@ -84,3 +104,28 @@ def test_append_and_deduplicate(tmp_path, monkeypatch):
 
     assert len(written) == 1
     assert written["revenue"].iloc[0] == 101.0
+
+
+def test_write_supports_alternate_dataset_name_and_filename(tmp_path, monkeypatch):
+    import rq_platform.etl.financial_pit_field_pack_core as core
+
+    monkeypatch.setattr(core.settings, "data_root", str(tmp_path))
+    frame = normalize_financial_pit_field_pack(
+        pd.DataFrame(
+            {
+                "order_book_id": ["000001.XSHE"],
+                "quarter": ["2024q4"],
+                "info_date": ["2025-03-20"],
+                "cash_flow_from_operating_activities": [100.0],
+            }
+        ),
+        [FinancialPitField("cash_flow_from_operating_activities", "get_pit_financials_ex", "cash_flow_from_operating_activities")],
+    )
+
+    paths = write_financial_pit_field_pack(
+        frame,
+        dataset_name="financial_cashflow_field_pack",
+        filename="financial_cashflow_field_pack.parquet",
+    )
+
+    assert paths[0].parts[-3:] == ("financial_cashflow_field_pack", "year=2025", "financial_cashflow_field_pack.parquet")

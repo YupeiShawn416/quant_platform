@@ -126,6 +126,44 @@ def test_query_service_exposes_financial_pit_field_pack(tmp_path, monkeypatch):
     ]
 
 
+def test_query_service_exposes_financial_cashflow_field_pack(tmp_path, monkeypatch):
+    _patch_data_root(tmp_path, monkeypatch)
+    root = tmp_path / "rqdata"
+    path = root / "financial_cashflow_field_pack" / "year=2026"
+    path.mkdir(parents=True)
+    pd.DataFrame(
+        {
+            "order_book_id": ["000001.XSHE", "600519.XSHG"],
+            "report_period": ["2025q4", "2025q4"],
+            "info_date": ["2026-04-30", "2026-04-30"],
+            "net_operate_cashflow_ttm": [100.0, 200.0],
+            "cash_paid_for_asset": [10.0, 20.0],
+        }
+    ).to_parquet(path / "financial_cashflow_field_pack.parquet", index=False)
+
+    service = DataQueryService()
+    coverage = service.dataset_coverage("financial_cashflow_field_pack")
+    frame, has_more = service.query(
+        "financial_cashflow_field_pack",
+        start_date="2026-04-30",
+        end_date="2026-04-30",
+        order_book_ids=["600519.XSHG"],
+        fields=["order_book_id", "report_period", "info_date", "net_operate_cashflow_ttm"],
+    )
+
+    assert coverage["years"] == [2026]
+    assert coverage["rows"] == 2
+    assert has_more is False
+    assert frame.to_dict(orient="records") == [
+        {
+            "order_book_id": "600519.XSHG",
+            "report_period": "2025q4",
+            "info_date": "2026-04-30",
+            "net_operate_cashflow_ttm": 200.0,
+        }
+    ]
+
+
 def test_query_service_exposes_nested_intraday_snapshots(tmp_path, monkeypatch):
     _patch_data_root(tmp_path, monkeypatch)
     root = tmp_path / "rqdata"

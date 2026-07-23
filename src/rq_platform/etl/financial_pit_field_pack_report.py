@@ -17,6 +17,8 @@ from rq_platform.etl.financial_pit_field_pack_quality import (
 def write_financial_pit_field_pack_quality_report(
     frame: pd.DataFrame,
     output_dir: str | Path = "reports/generated",
+    dataset_name: str = "financial_pit_field_pack",
+    title: str = "Financial PIT Field Pack",
 ) -> dict[str, Path]:
     output = Path(output_dir)
     output.mkdir(parents=True, exist_ok=True)
@@ -28,44 +30,48 @@ def write_financial_pit_field_pack_quality_report(
         "issues": [issue.to_dict() for issue in issues],
         "summary": summary,
     }
-    json_path = output / "financial_pit_field_pack_quality.json"
-    md_path = output / "financial_pit_field_pack_quality.md"
+    json_path = output / f"{dataset_name}_quality.json"
+    md_path = output / f"{dataset_name}_quality.md"
     json_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-    md_path.write_text(render_quality_markdown(payload), encoding="utf-8")
+    md_path.write_text(render_quality_markdown(payload, title), encoding="utf-8")
     return {"quality_json": json_path, "quality_md": md_path}
 
 
 def write_financial_pit_field_pack_coverage_report(
     frame: pd.DataFrame,
     output_dir: str | Path = "reports/generated",
+    dataset_name: str = "financial_pit_field_pack",
+    title: str = "Financial PIT Field Pack",
 ) -> dict[str, Path]:
     output = Path(output_dir)
     output.mkdir(parents=True, exist_ok=True)
     summary = summarize_financial_pit_field_pack(frame)
-    json_path = output / "financial_pit_field_pack_coverage.json"
-    md_path = output / "financial_pit_field_pack_coverage.md"
+    json_path = output / f"{dataset_name}_coverage.json"
+    md_path = output / f"{dataset_name}_coverage.md"
     json_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
-    md_path.write_text(render_coverage_markdown(summary), encoding="utf-8")
+    md_path.write_text(render_coverage_markdown(summary, title), encoding="utf-8")
     return {"coverage_json": json_path, "coverage_md": md_path}
 
 
 def write_financial_pit_field_pack_reconcile_report(
     frame: pd.DataFrame,
     output_dir: str | Path = "reports/generated",
+    dataset_name: str = "financial_pit_field_pack",
+    title: str = "Financial PIT Field Pack",
 ) -> dict[str, Path]:
     output = Path(output_dir)
     output.mkdir(parents=True, exist_ok=True)
     result = reconcile_with_financial_pit_quarterly(frame)
-    json_path = output / "financial_pit_field_pack_reconcile.json"
-    md_path = output / "financial_pit_field_pack_reconcile.md"
+    json_path = output / f"{dataset_name}_reconcile.json"
+    md_path = output / f"{dataset_name}_reconcile.md"
     json_path.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
-    md_path.write_text(render_reconcile_markdown(result), encoding="utf-8")
+    md_path.write_text(render_reconcile_markdown(result, title), encoding="utf-8")
     return {"reconcile_json": json_path, "reconcile_md": md_path}
 
 
-def render_quality_markdown(payload: dict[str, Any]) -> str:
+def render_quality_markdown(payload: dict[str, Any], title: str = "Financial PIT Field Pack") -> str:
     lines = [
-        "# Financial PIT Field Pack Quality",
+        f"# {title} Quality",
         "",
         f"Status: `{payload['status']}`",
         f"Issue count: `{payload['issue_count']}`",
@@ -83,9 +89,9 @@ def render_quality_markdown(payload: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def render_coverage_markdown(summary: dict[str, Any]) -> str:
+def render_coverage_markdown(summary: dict[str, Any], title: str = "Financial PIT Field Pack") -> str:
     lines = [
-        "# Financial PIT Field Pack Coverage",
+        f"# {title} Coverage",
         "",
         f"Rows: `{summary.get('row_count', 0)}`",
         f"Symbols: `{summary.get('symbol_count', 0)}`",
@@ -105,9 +111,9 @@ def render_coverage_markdown(summary: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def render_reconcile_markdown(result: dict[str, Any]) -> str:
+def render_reconcile_markdown(result: dict[str, Any], title: str = "Financial PIT Field Pack") -> str:
     lines = [
-        "# Financial PIT Field Pack Reconcile",
+        f"# {title} Reconcile",
         "",
         f"Status: `{result.get('status')}`",
         f"Overlap fields: `{', '.join(result.get('overlap_fields', []))}`",

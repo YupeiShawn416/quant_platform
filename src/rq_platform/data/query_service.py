@@ -130,6 +130,14 @@ DATASET_SPECS: dict[str, DatasetSpec] = {
         primary_keys=("order_book_id", "report_period", "info_date"),
         filename="financial_pit_field_pack.parquet",
     ),
+    "financial_cashflow_field_pack": DatasetSpec(
+        dataset="financial_cashflow_field_pack",
+        description="Point-in-time cash-flow statement fields and cash-flow TTM metrics.",
+        storage_name="financial_cashflow_field_pack",
+        date_column="info_date",
+        primary_keys=("order_book_id", "report_period", "info_date"),
+        filename="financial_cashflow_field_pack.parquet",
+    ),
     "financial_pit_quarterly": DatasetSpec(
         dataset="financial_pit_quarterly",
         description="Quarterly point-in-time financial statement fields for HXZ research.",
