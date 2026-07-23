@@ -174,6 +174,30 @@ def test_query_service_uses_dataset_specific_supported_range(tmp_path, monkeypat
     assert len(valuation) == 1
 
 
+def test_query_service_filters_explicit_date_values(tmp_path, monkeypatch):
+    _patch_data_root(tmp_path, monkeypatch)
+    root = tmp_path / "rqdata"
+    (root / "valuation_1d").mkdir(parents=True)
+    pd.DataFrame(
+        {
+            "trade_date": ["2026-01-30", "2026-02-27", "2026-02-28", "2026-03-31"],
+            "order_book_id": ["000001.XSHE"] * 4,
+            "market_cap": [1.0, 2.0, 3.0, 4.0],
+        }
+    ).to_parquet(root / "valuation_1d" / "year=2026.parquet", index=False)
+
+    frame, has_more = DataQueryService().query(
+        "valuation_1d",
+        date_values=["2026-01-30", "2026-03-31"],
+        order_book_ids=["000001.XSHE"],
+        fields=["trade_date", "order_book_id", "market_cap"],
+    )
+
+    assert has_more is False
+    assert frame["trade_date"].tolist() == ["2026-01-30", "2026-03-31"]
+    assert frame["market_cap"].tolist() == [1.0, 4.0]
+
+
 def _patch_data_root(tmp_path, monkeypatch):
     monkeypatch.setattr(settings, "data_root", str(tmp_path / "rqdata"))
 

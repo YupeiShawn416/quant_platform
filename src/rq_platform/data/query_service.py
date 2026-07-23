@@ -250,6 +250,7 @@ class DataQueryService:
         *,
         start_date: str | None = None,
         end_date: str | None = None,
+        date_values: list[str] | None = None,
         order_book_ids: list[str] | None = None,
         fields: list[str] | None = None,
         limit: int = DEFAULT_QUERY_LIMIT,
@@ -265,13 +266,14 @@ class DataQueryService:
         dataset_coverage = self.dataset_coverage(spec.dataset)
         supported_start, supported_end = _query_supported_range(dataset_coverage, self.supported_date_range())
         _validate_supported_date_range(start_date, end_date, supported_start, supported_end)
-        files = self._files_for_query(spec, start_date, end_date)
+        _validate_date_values(date_values, supported_start, supported_end)
+        files = self._files_for_query(spec, start_date, end_date, date_values)
         if not files:
             raise DatasetNotFoundError(f"dataset not found: {dataset}")
 
         frames = [pd.read_parquet(path) for path in files]
         frame = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
-        frame = _filter_dates(frame, spec.date_column, start_date, end_date)
+        frame = _filter_dates(frame, spec.date_column, start_date, end_date, date_values)
         frame = _filter_ids(frame, order_book_ids)
         frame = _project_fields(frame, fields)
         frame = _sort_frame(frame)
@@ -297,11 +299,12 @@ class DataQueryService:
         spec: DatasetSpec,
         start_date: str | None,
         end_date: str | None,
+        date_values: list[str] | None = None,
     ) -> list[Path]:
         files = self._dataset_files(spec)
         if not spec.partitioned or not spec.date_column:
             return files
-        years = _query_years(start_date, end_date)
+        years = _query_years(start_date, end_date, date_values)
         if not years:
             return files
         return [path for path in files if _parse_year(path) in years]
@@ -353,11 +356,26 @@ def _validate_supported_date_range(
         raise DataQueryError("start_date must be <= end_date")
 
 
+def _validate_date_values(date_values: list[str] | None, supported_start: str, supported_end: str) -> None:
+    if not date_values:
+        return
+    for value in date_values:
+        try:
+            date.fromisoformat(value)
+        except ValueError as exc:
+            raise DataQueryError("dates must be comma-separated YYYY-MM-DD values") from exc
+        if value < supported_start:
+            raise DataQueryError(f"dates must be >= {supported_start}")
+        if value > supported_end:
+            raise DataQueryError(f"dates must be <= {supported_end}")
+
+
 def _filter_dates(
     frame: pd.DataFrame,
     date_column: str | None,
     start_date: str | None,
     end_date: str | None,
+    date_values: list[str] | None = None,
 ) -> pd.DataFrame:
     if frame.empty or not date_column or date_column not in frame.columns:
         return frame
@@ -368,6 +386,8 @@ def _filter_dates(
         output = output[output[date_column] >= start_date]
     if end_date:
         output = output[output[date_column] <= end_date]
+    if date_values:
+        output = output[output[date_column].isin(set(date_values))]
     return output
 
 
@@ -403,7 +423,9 @@ def _sort_frame(frame: pd.DataFrame) -> pd.DataFrame:
     return frame.reset_index(drop=True)
 
 
-def _query_years(start_date: str | None, end_date: str | None) -> set[int]:
+def _query_years(start_date: str | None, end_date: str | None, date_values: list[str] | None = None) -> set[int]:
+    if date_values:
+        return {int(value[:4]) for value in date_values}
     if not start_date and not end_date:
         return set()
     start_year = int((start_date or SUPPORTED_START_DATE)[:4])

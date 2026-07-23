@@ -113,6 +113,8 @@ Query 参数：
 ```text
 start_date=2026-07-13
 end_date=2026-07-13
+dates=2026-01-30,2026-02-27,2026-03-31
+trade_date=2026-01-30,2026-02-27,2026-03-31
 order_book_id=000001.XSHE,600519.XSHG
 fields=trade_date,order_book_id,close
 limit=5000
@@ -122,11 +124,25 @@ format=json
 
 `limit` 默认 `5000`，最大 `50000`。大结果用 `offset` 分页，不要一次拉整个数据湖。
 
+`dates` 和 `trade_date` 都表示显式日期列表，会过滤数据集的默认日期列：
+
+- 日频市场数据过滤 `trade_date`
+- 财务 PIT 数据过滤 `info_date`
+
+示例：一次获取多个估值月末快照：
+
+```text
+GET /data/query/valuation_1d?trade_date=2026-01-30,2026-02-27,2026-03-31&fields=trade_date,order_book_id,market_cap,pcf_ratio&limit=50000
+```
+
 CSV 输出：
 
 ```text
 GET /data/query/prices_1d_pre?...&format=csv
 ```
+
+JSON 输出会把 `NaN`、`inf`、`-inf` 等非标准 JSON 数值转换成 `null`。大批量下载仍建议使用
+`format=csv`。
 
 ## Python Client
 

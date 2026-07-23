@@ -107,6 +107,17 @@ curl -H "X-API-Token: $QUANT_PLATFORM_API_TOKEN" \
   "$QUANT_PLATFORM_API_URL/data/query/financial_pit_field_pack?start_date=2026-04-01&end_date=2026-07-22&order_book_id=000001.XSHE&fields=order_book_id,report_period,info_date,revenue,net_profit,total_liabilities&limit=1000"
 ```
 
+Fetch many month-end valuation snapshots in one request:
+
+```bash
+curl -H "X-API-Token: $QUANT_PLATFORM_API_TOKEN" \
+  "$QUANT_PLATFORM_API_URL/data/query/valuation_1d?trade_date=2026-01-30,2026-02-27,2026-03-31&order_book_id=000001.XSHE,600519.XSHG&fields=trade_date,order_book_id,market_cap,pcf_ratio&limit=50000"
+```
+
+`dates=` is a dataset-neutral alias for the same filter. It filters the
+dataset's default date column, such as `trade_date` for daily market data and
+`info_date` for financial PIT data.
+
 Fetch risk-free rate:
 
 ```bash
@@ -128,6 +139,11 @@ curl -H "X-API-Token: $QUANT_PLATFORM_API_TOKEN" \
   "$QUANT_PLATFORM_API_URL/data/query/prices_1d_pre?start_date=2026-07-13&end_date=2026-07-13&fields=trade_date,order_book_id,close&format=csv" \
   -o prices_sample.csv
 ```
+
+JSON output is supported for normal paged queries. The API converts missing and
+non-finite numeric values such as `NaN`, `inf`, and `-inf` to JSON `null`.
+CSV remains the recommended format for large extracts because it is smaller and
+faster to parse into pandas.
 
 ## Python Example
 
@@ -169,11 +185,22 @@ examples/researcher_api_usage/data_api_quickstart.py
 
 - `limit` defaults to `5000` and cannot exceed `50000`.
 - Use `offset` for pagination.
-- Always filter by dates and `order_book_id` when possible.
+- Always filter by dates, `trade_date`/`dates`, and `order_book_id` when possible.
 - Do not run aggressive parallel pulls or scrape the full data lake through the
   API.
 - For full-universe, long-window jobs, ask an administrator for an offline
   Parquet package or a dedicated batch export.
+
+## Known Data Limitations
+
+- `financial_pit_field_pack` currently does not include cash-flow statement
+  fields such as operating cash flow or CapEx. FCF-style factors should be
+  marked as proxy calculations until a cash-flow field pack is backfilled and
+  verified.
+- `financial_pit_quarterly` is a legacy HXZ support table with limited fields;
+  use `financial_pit_field_pack` for general financial statement research.
+- The current core research range starts at `2016-01-04`. A 2010-2015 extension
+  requires a separate backfill, QA, and data sync cycle.
 
 ## Create A Researcher Token
 

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import math
+from numbers import Real
 from typing import Any
 
 import pandas as pd
@@ -66,6 +68,8 @@ def query_dataset(
     request: Request,
     start_date: str | None = None,
     end_date: str | None = None,
+    dates: str | None = None,
+    trade_date: str | None = None,
     order_book_id: str | None = None,
     fields: str | None = None,
     limit: int = Query(default=DEFAULT_QUERY_LIMIT, ge=1),
@@ -77,11 +81,13 @@ def query_dataset(
         raise HTTPException(status_code=400, detail=f"limit must be <= {MAX_QUERY_LIMIT}")
     field_list = parse_csv_list(fields)
     order_book_ids = parse_csv_list(order_book_id)
+    date_values = parse_csv_list(dates or trade_date)
     try:
         frame, has_more = DataQueryService().query(
             dataset,
             start_date=start_date,
             end_date=end_date,
+            date_values=date_values,
             order_book_ids=order_book_ids,
             fields=field_list,
             limit=limit,
@@ -92,7 +98,7 @@ def query_dataset(
     except DataQueryError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    _log_query(request, auth, dataset, start_date, end_date, order_book_ids, field_list, limit, offset, len(frame))
+    _log_query(request, auth, dataset, start_date, end_date, date_values, order_book_ids, field_list, limit, offset, len(frame))
 
     if format == "csv":
         csv_text = frame.to_csv(index=False)
@@ -119,6 +125,7 @@ def _log_query(
     dataset: str,
     start_date: str | None,
     end_date: str | None,
+    date_values: list[str] | None,
     order_book_ids: list[str] | None,
     fields: list[str] | None,
     limit: int,
@@ -132,6 +139,7 @@ def _log_query(
             "dataset": dataset,
             "start_date": start_date,
             "end_date": end_date,
+            "dates": date_values or [],
             "order_book_id_count": len(order_book_ids or []),
             "fields": fields or [],
             "limit": limit,
@@ -144,5 +152,15 @@ def _log_query(
 
 
 def _records(frame: pd.DataFrame) -> list[dict[str, Any]]:
-    clean = frame.where(pd.notna(frame), None)
-    return clean.to_dict(orient="records")
+    clean = frame.astype(object).where(pd.notna(frame), None)
+    return [{key: _json_safe_value(value) for key, value in row.items()} for row in clean.to_dict(orient="records")]
+
+
+def _json_safe_value(value: Any) -> Any:
+    if value is None:
+        return None
+    if isinstance(value, Real) and not math.isfinite(float(value)):
+        return None
+    if isinstance(value, pd.Timestamp):
+        return value.isoformat()
+    return value

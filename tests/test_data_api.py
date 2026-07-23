@@ -1,4 +1,5 @@
 import json
+import math
 
 import pandas as pd
 from fastapi.testclient import TestClient
@@ -60,6 +61,63 @@ def test_data_api_errors_and_csv(tmp_path, monkeypatch):
     assert csv_response.status_code == 200
     assert csv_response.headers["content-type"].startswith("text/csv")
     assert "trade_date" in csv_response.text
+
+
+def test_data_api_json_replaces_non_finite_values(tmp_path, monkeypatch):
+    _patch_paths(tmp_path, monkeypatch)
+    root = tmp_path / "rqdata"
+    (root / "financial_pit_field_pack" / "year=2026").mkdir(parents=True)
+    pd.DataFrame(
+        {
+            "order_book_id": ["000001.XSHE"] * 25,
+            "report_period": ["2025q4"] * 25,
+            "info_date": ["2026-04-30"] * 25,
+            "revenue": [math.inf] + [float("nan")] + [100.0] * 23,
+        }
+    ).to_parquet(root / "financial_pit_field_pack" / "year=2026" / "financial_pit_field_pack.parquet", index=False)
+
+    response = client.get(
+        "/data/query/financial_pit_field_pack",
+        params={
+            "dates": "2026-04-30",
+            "fields": "order_book_id,info_date,revenue",
+            "limit": 25,
+        },
+    )
+
+    assert response.status_code == 200
+    records = response.json()["records"]
+    assert len(records) == 25
+    assert records[0]["revenue"] is None
+    assert records[1]["revenue"] is None
+    assert records[2]["revenue"] == 100.0
+
+
+def test_data_api_filters_explicit_trade_dates(tmp_path, monkeypatch):
+    _patch_paths(tmp_path, monkeypatch)
+    root = tmp_path / "rqdata"
+    (root / "valuation_1d").mkdir(parents=True)
+    pd.DataFrame(
+        {
+            "trade_date": ["2026-01-30", "2026-02-27", "2026-03-31"],
+            "order_book_id": ["000001.XSHE"] * 3,
+            "market_cap": [1.0, 2.0, 3.0],
+        }
+    ).to_parquet(root / "valuation_1d" / "year=2026.parquet", index=False)
+
+    response = client.get(
+        "/data/query/valuation_1d",
+        params={
+            "trade_date": "2026-01-30,2026-03-31",
+            "order_book_id": "000001.XSHE",
+            "fields": "trade_date,order_book_id,market_cap",
+            "limit": 10,
+        },
+    )
+
+    assert response.status_code == 200
+    records = response.json()["records"]
+    assert [item["trade_date"] for item in records] == ["2026-01-30", "2026-03-31"]
 
 
 def test_data_api_researcher_token_and_invalid_token(tmp_path, monkeypatch):
