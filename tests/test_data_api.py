@@ -39,6 +39,7 @@ def test_data_api_lists_coverage_schema_and_queries(tmp_path, monkeypatch):
     assert {item["name"] for item in schema.json()["fields"]} >= {"trade_date", "close"}
     assert query.status_code == 200
     payload = query.json()
+    assert payload["date_column"] == "trade_date"
     assert payload["row_count"] == 1
     assert payload["has_more"] is True
     assert payload["records"] == [
@@ -51,11 +52,18 @@ def test_data_api_errors_and_csv(tmp_path, monkeypatch):
     _write_fixture(tmp_path)
 
     too_large = client.get("/data/query/prices_1d_pre?limit=50001")
+    zero_limit = client.get("/data/query/prices_1d_pre?limit=0")
+    non_int_limit = client.get("/data/query/prices_1d_pre?limit=abc")
+    bad_format = client.get("/data/query/prices_1d_pre?format=xlsx&limit=1")
     missing_dataset = client.get("/data/query/not_a_dataset")
     bad_field = client.get("/data/query/prices_1d_pre?fields=missing")
     csv_response = client.get("/data/query/prices_1d_pre?format=csv&limit=1")
 
     assert too_large.status_code == 400
+    assert zero_limit.status_code == 400
+    assert non_int_limit.status_code == 400
+    assert bad_format.status_code == 400
+    assert non_int_limit.json()["detail"]["error_code"] == "invalid_parameter"
     assert missing_dataset.status_code == 404
     assert bad_field.status_code == 400
     assert csv_response.status_code == 200

@@ -88,6 +88,42 @@ def test_query_service_supported_end_date_uses_complete_core_coverage(tmp_path, 
     assert len(frame) == 1
 
 
+def test_query_service_query_does_not_scan_global_supported_range(tmp_path, monkeypatch):
+    _patch_data_root(tmp_path, monkeypatch)
+    _write_fixture(tmp_path)
+
+    def fail_supported_range(self):
+        raise AssertionError("query should not scan global supported range")
+
+    monkeypatch.setattr(DataQueryService, "supported_date_range", fail_supported_range)
+
+    frame, has_more = DataQueryService().query(
+        "prices_1d_pre",
+        start_date="2025-01-02",
+        end_date="2025-01-02",
+        order_book_ids=["000001.XSHE"],
+        fields=["trade_date", "order_book_id", "close"],
+        limit=10,
+    )
+
+    assert has_more is False
+    assert len(frame) == 1
+
+
+def test_query_service_rejects_date_filters_for_undated_dataset(tmp_path, monkeypatch):
+    _patch_data_root(tmp_path, monkeypatch)
+    root = tmp_path / "rqdata"
+    path = root / "derived" / "hxz_monthly_panel"
+    path.mkdir(parents=True)
+    pd.DataFrame({"month": ["2026-01"], "order_book_id": ["000001.XSHE"]}).to_parquet(
+        path / "hxz_monthly_research_panel.parquet",
+        index=False,
+    )
+
+    with pytest.raises(DataQueryError, match="does not support date filters"):
+        DataQueryService().query("hxz_monthly_research_panel", start_date="2026-01-01")
+
+
 def test_query_service_exposes_financial_pit_field_pack(tmp_path, monkeypatch):
     _patch_data_root(tmp_path, monkeypatch)
     root = tmp_path / "rqdata"

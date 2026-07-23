@@ -130,6 +130,10 @@ format=json
 - 日频市场数据过滤 `trade_date`
 - 财务 PIT 数据过滤 `info_date`
 
+JSON 查询响应会返回 `date_column`，用于确认本次请求实际按哪一列过滤。
+没有默认日期列的数据集会拒绝 `start_date`、`end_date`、`dates` 和
+`trade_date` 过滤，避免静默返回未过滤结果。
+
 示例：一次获取多个估值月末快照：
 
 ```text
@@ -144,6 +148,9 @@ GET /data/query/prices_1d_pre?...&format=csv
 
 JSON 输出会把 `NaN`、`inf`、`-inf` 等非标准 JSON 数值转换成 `null`。大批量下载仍建议使用
 `format=csv`。
+
+参数错误统一返回 HTTP `400`，响应体包含 `detail.error_code` 和
+`detail.message`。未知数据集返回 HTTP `404`。
 
 ## Python Client
 

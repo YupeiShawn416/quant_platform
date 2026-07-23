@@ -228,8 +228,7 @@ class DataQueryService:
             if year is not None:
                 years.append(year)
             row_count += _parquet_rows(file_path)
-            frame = self._safe_read_dates(file_path, spec.date_column)
-            date_min, date_max = _date_range(frame, spec.date_column)
+            date_min, date_max = _parquet_date_range(file_path, spec.date_column)
             min_date = _min_date(min_date, date_min)
             max_date = _max_date(max_date, date_max)
         return {
@@ -271,20 +270,30 @@ class DataQueryService:
         if offset < 0:
             raise DataQueryError("offset must be >= 0")
         spec = get_dataset_spec(dataset)
+        _validate_date_format_and_order(start_date, end_date)
+        _validate_date_values_format(date_values)
+        if (start_date or end_date or date_values) and not spec.date_column:
+            raise DataQueryError(f"{dataset} does not support date filters")
+        all_files = self._dataset_files(spec)
+        if not all_files:
+            raise DatasetNotFoundError(f"dataset not found: {dataset}")
+        available_columns = _schema_columns(all_files[0])
+        _validate_fields(available_columns, fields)
         dataset_coverage = self.dataset_coverage(spec.dataset)
-        supported_start, supported_end = _query_supported_range(dataset_coverage, self.supported_date_range())
+        supported_start, supported_end = _query_supported_range(dataset_coverage, (SUPPORTED_START_DATE, SUPPORTED_END_DATE))
         _validate_supported_date_range(start_date, end_date, supported_start, supported_end)
         _validate_date_values(date_values, supported_start, supported_end)
         files = self._files_for_query(spec, start_date, end_date, date_values)
         if not files:
             raise DatasetNotFoundError(f"dataset not found: {dataset}")
 
-        frames = [pd.read_parquet(path) for path in files]
+        read_columns = _query_read_columns(available_columns, spec, fields, bool(start_date or end_date or date_values), bool(order_book_ids))
+        frames = [_read_parquet_columns(path, read_columns) for path in files]
         frame = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
         frame = _filter_dates(frame, spec.date_column, start_date, end_date, date_values)
         frame = _filter_ids(frame, order_book_ids)
-        frame = _project_fields(frame, fields)
         frame = _sort_frame(frame)
+        frame = _project_fields(frame, fields)
 
         window = frame.iloc[offset : offset + limit + 1].copy()
         has_more = len(window) > limit
@@ -317,14 +326,6 @@ class DataQueryService:
             return files
         return [path for path in files if _parse_year(path) in years]
 
-    def _safe_read_dates(self, path: Path, date_column: str | None) -> pd.DataFrame:
-        if not date_column:
-            return pd.DataFrame()
-        try:
-            return pd.read_parquet(path, columns=[date_column])
-        except Exception:
-            return pd.DataFrame()
-
     def supported_date_range(self) -> tuple[str, str]:
         datasets = [self.dataset_coverage(spec.dataset) for spec in DATASET_SPECS.values()]
         return _supported_range_from_coverage(datasets)
@@ -342,6 +343,27 @@ def parse_csv_list(value: str | None) -> list[str] | None:
         return None
     items = [item.strip() for item in value.split(",") if item.strip()]
     return items or None
+
+
+def _validate_date_format_and_order(start_date: str | None, end_date: str | None) -> None:
+    for field_name, value in [("start_date", start_date), ("end_date", end_date)]:
+        if value:
+            try:
+                date.fromisoformat(value)
+            except ValueError as exc:
+                raise DataQueryError(f"{field_name} must be YYYY-MM-DD") from exc
+    if start_date and end_date and start_date > end_date:
+        raise DataQueryError("start_date must be <= end_date")
+
+
+def _validate_date_values_format(date_values: list[str] | None) -> None:
+    if not date_values:
+        return
+    for value in date_values:
+        try:
+            date.fromisoformat(value)
+        except ValueError as exc:
+            raise DataQueryError("dates must be comma-separated YYYY-MM-DD values") from exc
 
 
 def _validate_supported_date_range(
@@ -376,6 +398,15 @@ def _validate_date_values(date_values: list[str] | None, supported_start: str, s
             raise DataQueryError(f"dates must be >= {supported_start}")
         if value > supported_end:
             raise DataQueryError(f"dates must be <= {supported_end}")
+
+
+def _validate_fields(available_columns: list[str], fields: list[str] | None) -> None:
+    if not fields:
+        return
+    available = set(available_columns)
+    missing = [field for field in fields if field not in available]
+    if missing:
+        raise DataQueryError(f"unknown fields: {', '.join(missing)}")
 
 
 def _filter_dates(
@@ -420,15 +451,45 @@ def _project_fields(frame: pd.DataFrame, fields: list[str] | None) -> pd.DataFra
     return frame[fields]
 
 
+def _query_read_columns(
+    available_columns: list[str],
+    spec: DatasetSpec,
+    fields: list[str] | None,
+    needs_date_filter: bool,
+    needs_id_filter: bool,
+) -> list[str] | None:
+    if not fields:
+        return None
+    columns = set(fields)
+    if needs_date_filter and spec.date_column:
+        columns.add(spec.date_column)
+    if needs_id_filter:
+        columns.update(column for column in ["order_book_id", "index_id"] if column in available_columns)
+    columns.update(column for column in _sort_columns(available_columns) if column in available_columns)
+    return [column for column in available_columns if column in columns]
+
+
+def _read_parquet_columns(path: Path, columns: list[str] | None) -> pd.DataFrame:
+    try:
+        return pd.read_parquet(path, columns=columns)
+    except Exception:
+        return pd.read_parquet(path)
+
+
 def _sort_frame(frame: pd.DataFrame) -> pd.DataFrame:
-    sort_cols = [
-        column
-        for column in ["trade_date", "info_date", "listed_date", "month", "index_id", "order_book_id", "report_period", "quarter"]
-        if column in frame.columns
-    ]
+    sort_cols = _sort_columns(list(frame.columns))
     if sort_cols:
         return frame.sort_values(sort_cols).reset_index(drop=True)
     return frame.reset_index(drop=True)
+
+
+def _sort_columns(columns: list[str]) -> list[str]:
+    available = set(columns)
+    return [
+        column
+        for column in ["trade_date", "info_date", "listed_date", "month", "index_id", "order_book_id", "report_period", "quarter"]
+        if column in available
+    ]
 
 
 def _query_years(start_date: str | None, end_date: str | None, date_values: list[str] | None = None) -> set[int]:
@@ -468,6 +529,47 @@ def _parse_year(path: Path) -> int | None:
             except Exception:
                 return None
     return None
+
+
+def _schema_columns(path: Path) -> list[str]:
+    try:
+        return pq.ParquetFile(path).schema_arrow.names
+    except Exception:
+        return list(pd.read_parquet(path).head(0).columns)
+
+
+def _parquet_date_range(path: Path, date_column: str | None) -> tuple[str | None, str | None]:
+    if not date_column:
+        return None, None
+    try:
+        parquet = pq.ParquetFile(path)
+        names = parquet.schema_arrow.names
+        if date_column not in names:
+            return None, None
+        column_idx = names.index(date_column)
+        min_date: str | None = None
+        max_date: str | None = None
+        for row_group_idx in range(parquet.metadata.num_row_groups):
+            stats = parquet.metadata.row_group(row_group_idx).column(column_idx).statistics
+            if not stats or stats.min is None or stats.max is None:
+                return _date_range(pd.read_parquet(path, columns=[date_column]), date_column)
+            min_date = _min_date(min_date, _format_date_value(stats.min))
+            max_date = _max_date(max_date, _format_date_value(stats.max))
+        return min_date, max_date
+    except Exception:
+        try:
+            return _date_range(pd.read_parquet(path, columns=[date_column]), date_column)
+        except Exception:
+            return None, None
+
+
+def _format_date_value(value: Any) -> str | None:
+    if value is None:
+        return None
+    parsed = pd.to_datetime(value, errors="coerce")
+    if pd.isna(parsed):
+        return None
+    return parsed.strftime("%Y-%m-%d")
 
 
 def _date_range(frame: pd.DataFrame, date_column: str | None) -> tuple[str | None, str | None]:

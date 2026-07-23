@@ -148,6 +148,9 @@ curl -H "X-API-Token: $QUANT_PLATFORM_API_TOKEN" \
 `dates=` is a dataset-neutral alias for the same filter. It filters the
 dataset's default date column, such as `trade_date` for daily market data and
 `info_date` for financial PIT data.
+JSON query responses include `date_column` so clients can confirm the resolved
+filter column. Datasets without a default date column reject date filters rather
+than silently returning unfiltered rows.
 
 Fetch risk-free rate:
 
@@ -175,6 +178,8 @@ JSON output is supported for normal paged queries. The API converts missing and
 non-finite numeric values such as `NaN`, `inf`, and `-inf` to JSON `null`.
 CSV remains the recommended format for large extracts because it is smaller and
 faster to parse into pandas.
+Parameter errors return HTTP `400` with `detail.error_code` and
+`detail.message`; unknown datasets return HTTP `404`.
 
 ## Python Example
 

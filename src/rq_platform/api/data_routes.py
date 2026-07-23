@@ -16,6 +16,7 @@ from rq_platform.data.query_service import (
     DataQueryError,
     DataQueryService,
     DatasetNotFoundError,
+    get_dataset_spec,
     parse_csv_list,
 )
 from rq_platform.settings import settings
@@ -72,16 +73,22 @@ def query_dataset(
     trade_date: str | None = None,
     order_book_id: str | None = None,
     fields: str | None = None,
-    limit: int = Query(default=DEFAULT_QUERY_LIMIT, ge=1),
-    offset: int = Query(default=0, ge=0),
-    format: str = Query(default="json", pattern="^(json|csv)$"),
+    limit: str = Query(default=str(DEFAULT_QUERY_LIMIT)),
+    offset: str = Query(default="0"),
+    format: str = Query(default="json"),
     auth: AuthContext = Depends(require_data_api_token),
 ):
-    if limit > MAX_QUERY_LIMIT:
-        raise HTTPException(status_code=400, detail=f"limit must be <= {MAX_QUERY_LIMIT}")
+    limit_value = _parse_query_int("limit", limit, minimum=1, maximum=MAX_QUERY_LIMIT)
+    offset_value = _parse_query_int("offset", offset, minimum=0)
+    if format not in {"json", "csv"}:
+        raise _data_api_error(400, "invalid_parameter", "format must be json or csv")
     field_list = parse_csv_list(fields)
     order_book_ids = parse_csv_list(order_book_id)
     date_values = parse_csv_list(dates or trade_date)
+    try:
+        spec = get_dataset_spec(dataset)
+    except DatasetNotFoundError as exc:
+        raise _data_api_error(404, "dataset_not_found", str(exc)) from exc
     try:
         frame, has_more = DataQueryService().query(
             dataset,
@@ -90,15 +97,15 @@ def query_dataset(
             date_values=date_values,
             order_book_ids=order_book_ids,
             fields=field_list,
-            limit=limit,
-            offset=offset,
+            limit=limit_value,
+            offset=offset_value,
         )
     except DatasetNotFoundError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise _data_api_error(404, "dataset_not_found", str(exc)) from exc
     except DataQueryError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+        raise _data_api_error(400, "invalid_query", str(exc)) from exc
 
-    _log_query(request, auth, dataset, start_date, end_date, date_values, order_book_ids, field_list, limit, offset, len(frame))
+    _log_query(request, auth, dataset, start_date, end_date, date_values, order_book_ids, field_list, limit_value, offset_value, len(frame))
 
     if format == "csv":
         csv_text = frame.to_csv(index=False)
@@ -111,12 +118,29 @@ def query_dataset(
         "dataset": dataset,
         "start_date": start_date,
         "end_date": end_date,
-        "limit": limit,
-        "offset": offset,
+        "date_column": spec.date_column,
+        "limit": limit_value,
+        "offset": offset_value,
         "row_count": int(len(frame)),
         "has_more": bool(has_more),
         "records": _records(frame),
     }
+
+
+def _parse_query_int(field_name: str, value: str, *, minimum: int, maximum: int | None = None) -> int:
+    try:
+        parsed = int(value)
+    except ValueError as exc:
+        raise _data_api_error(400, "invalid_parameter", f"{field_name} must be an integer") from exc
+    if parsed < minimum:
+        raise _data_api_error(400, "invalid_parameter", f"{field_name} must be >= {minimum}")
+    if maximum is not None and parsed > maximum:
+        raise _data_api_error(400, "invalid_parameter", f"{field_name} must be <= {maximum}")
+    return parsed
+
+
+def _data_api_error(status_code: int, error_code: str, message: str) -> HTTPException:
+    return HTTPException(status_code=status_code, detail={"error_code": error_code, "message": message})
 
 
 def _log_query(
