@@ -1,0 +1,312 @@
+# Quant Platform Server Usage Report For Colleague Agents
+
+Last updated: 2026-07-23
+
+This report is intended for a colleague's coding or data agent. It explains how
+to use the internal quant platform Data API safely. Do not publish this report,
+API tokens, downloaded data, or copied Parquet files outside the authorized
+internal research group.
+
+## Current Server
+
+```text
+Base URL: http://39.106.218.30
+Health check: GET /health
+Data API auth: X-API-Token: <researcher_token>
+Latest deployed commit: 637194c optimize data api edge queries
+Core supported research range: 2016-01-04 to 2026-07-21
+```
+
+The colleague agent should use only the HTTP API. It should not SSH into the
+server, request server passwords, access `.env`, or read raw server files.
+
+## Required Environment Variables
+
+```bash
+export QUANT_PLATFORM_API_URL="http://39.106.218.30"
+export QUANT_PLATFORM_API_TOKEN="<token_sent_securely>"
+```
+
+Windows PowerShell:
+
+```powershell
+$env:QUANT_PLATFORM_API_URL = "http://39.106.218.30"
+$env:QUANT_PLATFORM_API_TOKEN = "<token_sent_securely>"
+```
+
+Never paste a real token into Git, notebooks committed to Git, public tickets,
+or group chats. Prefer passing it through environment variables.
+
+## Quick Connectivity Test
+
+Health check does not require a token:
+
+```bash
+curl "$QUANT_PLATFORM_API_URL/health"
+```
+
+Data endpoints require `X-API-Token`:
+
+```bash
+curl -H "X-API-Token: $QUANT_PLATFORM_API_TOKEN" \
+  "$QUANT_PLATFORM_API_URL/data/datasets"
+```
+
+Expected health response:
+
+```json
+{"status":"ok","service":"quant_platform_data_api"}
+```
+
+## Open Data Endpoints
+
+```text
+GET /data/datasets
+GET /data/coverage
+GET /data/schema/{dataset}
+GET /data/query/{dataset}
+```
+
+`/data/query/{dataset}` parameters:
+
+```text
+start_date=YYYY-MM-DD
+end_date=YYYY-MM-DD
+dates=YYYY-MM-DD,YYYY-MM-DD
+trade_date=YYYY-MM-DD,YYYY-MM-DD
+order_book_id=000001.XSHE,600519.XSHG
+fields=trade_date,order_book_id,close
+limit=5000
+offset=0
+format=json
+```
+
+Rules:
+
+- `limit` defaults to `5000` and cannot exceed `50000`.
+- Use `offset` for pagination.
+- `format=json` and `format=csv` are supported.
+- `dates` and `trade_date` are aliases for explicit date lists.
+- The actual filter column depends on the dataset. JSON responses include
+  `date_column`.
+- Daily market data filters `trade_date`; financial PIT data filters
+  `info_date`.
+- Datasets without a default date column reject date filters.
+- Parameter errors return HTTP `400` with `detail.error_code` and
+  `detail.message`; unknown datasets return HTTP `404`.
+- JSON output converts `NaN`, `inf`, and `-inf` to `null`.
+
+## Current Dataset Coverage
+
+| dataset | date column | rows | min date | max date | exists |
+| --- | --- | ---: | --- | --- | --- |
+| `trading_calendar` | `trade_date` | 2,562 | `2016-01-04` | `2026-07-22` | `yes` |
+| `instruments` | `listed_date` | 5,554 | `1990-12-01` | `2026-07-02` | `yes` |
+| `prices_1d_pre` | `trade_date` | 10,791,638 | `2016-01-04` | `2026-07-21` | `yes` |
+| `prices_1d_none` | `trade_date` | 10,791,638 | `2016-01-04` | `2026-07-21` | `yes` |
+| `index_prices_1d` | `trade_date` | 15,366 | `2016-01-04` | `2026-07-21` | `yes` |
+| `tradability_1d` | `trade_date` | 10,847,393 | `2016-01-04` | `2026-07-22` | `yes` |
+| `valuation_1d` | `trade_date` | 10,796,835 | `2016-01-04` | `2026-07-22` | `yes` |
+| `industry_classification` | `trade_date` | 10,785,075 | `2016-01-04` | `2026-07-22` | `yes` |
+| `index_components` | `trade_date` | 4,611,600 | `2016-01-04` | `2026-07-22` | `yes` |
+| `index_weights` | `trade_date` | 4,611,600 | `2016-01-04` | `2026-07-22` | `yes` |
+| `risk_free_rate` | `trade_date` | 2,632 | `2016-01-04` | `2026-07-14` | `yes` |
+| `financial_pit_field_pack` | `info_date` | 580,390 | `2016-04-08` | `2026-07-22` | `yes` |
+| `financial_cashflow_field_pack` | `info_date` | 580,404 | `2016-04-08` | `2026-07-23` | `yes` |
+| `financial_pit_quarterly` | `info_date` | 641,428 | `2015-01-15` | `2026-07-14` | `yes` |
+| `intraday_snapshots` | `trade_date` | 4,416,972 | `2025-01-02` | `2025-08-29` | `yes` |
+| `cn_hxz_4_factors_monthly` | none | 121 | none | none | `yes` |
+| `cn_ff3_factors_monthly` | none | 121 | none | none | `yes` |
+| `hxz_monthly_research_panel` | none | 534,343 | none | none | `yes` |
+
+## Recommended Dataset Use
+
+| use case | recommended dataset |
+| --- | --- |
+| Daily adjusted OHLCV | `prices_1d_pre` |
+| Daily raw/unadjusted OHLCV | `prices_1d_none` |
+| Index daily prices | `index_prices_1d` |
+| Suspensions, ST, buy/sell eligibility | `tradability_1d` |
+| Market cap, PE, PB, PS, PCF, turnover | `valuation_1d` |
+| Industry labels | `industry_classification` |
+| Index membership | `index_components` |
+| Index weights | `index_weights` |
+| Risk-free curve snapshots | `risk_free_rate` |
+| PIT income/balance-sheet core fields | `financial_pit_field_pack` |
+| PIT cash-flow fields and TTM cash metrics | `financial_cashflow_field_pack` |
+| Legacy HXZ quarterly PIT support fields | `financial_pit_quarterly` |
+| Selected 2025 intraday snapshots | `intraday_snapshots` |
+| Monthly HXZ factors | `cn_hxz_4_factors_monthly` |
+| Monthly FF3 factors | `cn_ff3_factors_monthly` |
+| Monthly HXZ research panel | `hxz_monthly_research_panel` |
+
+## Query Examples
+
+Daily prices:
+
+```bash
+curl -H "X-API-Token: $QUANT_PLATFORM_API_TOKEN" \
+  "$QUANT_PLATFORM_API_URL/data/query/prices_1d_pre?start_date=2026-07-13&end_date=2026-07-13&order_book_id=000001.XSHE,600519.XSHG&fields=trade_date,order_book_id,open,close,volume&limit=100"
+```
+
+Month-end valuation snapshots:
+
+```bash
+curl -H "X-API-Token: $QUANT_PLATFORM_API_TOKEN" \
+  "$QUANT_PLATFORM_API_URL/data/query/valuation_1d?trade_date=2026-01-30,2026-02-27,2026-03-31&order_book_id=000001.XSHE,600519.XSHG&fields=trade_date,order_book_id,market_cap,pe_ratio,pb_ratio,pcf_ratio&limit=50000"
+```
+
+Financial PIT core fields:
+
+```bash
+curl -H "X-API-Token: $QUANT_PLATFORM_API_TOKEN" \
+  "$QUANT_PLATFORM_API_URL/data/query/financial_pit_field_pack?start_date=2026-04-01&end_date=2026-07-22&order_book_id=000001.XSHE&fields=order_book_id,report_period,info_date,revenue,net_profit,total_liabilities&limit=1000"
+```
+
+Cash-flow PIT fields:
+
+```bash
+curl -H "X-API-Token: $QUANT_PLATFORM_API_TOKEN" \
+  "$QUANT_PLATFORM_API_URL/data/query/financial_cashflow_field_pack?start_date=2026-04-01&end_date=2026-07-23&order_book_id=000001.XSHE&fields=order_book_id,report_period,info_date,net_operate_cashflow_ttm,cash_flow_from_operating_activities,cash_paid_for_asset,end_period_cash_equivalent&limit=1000"
+```
+
+CSV output:
+
+```bash
+curl -H "X-API-Token: $QUANT_PLATFORM_API_TOKEN" \
+  "$QUANT_PLATFORM_API_URL/data/query/prices_1d_pre?start_date=2026-07-13&end_date=2026-07-13&fields=trade_date,order_book_id,close&format=csv&limit=50000" \
+  -o prices_sample.csv
+```
+
+Schema discovery:
+
+```bash
+curl -H "X-API-Token: $QUANT_PLATFORM_API_TOKEN" \
+  "$QUANT_PLATFORM_API_URL/data/schema/financial_cashflow_field_pack"
+```
+
+## Python Agent Pattern
+
+```python
+import os
+
+import pandas as pd
+import requests
+
+BASE_URL = os.environ["QUANT_PLATFORM_API_URL"]
+TOKEN = os.environ["QUANT_PLATFORM_API_TOKEN"]
+HEADERS = {"X-API-Token": TOKEN}
+
+
+def query_dataset(dataset: str, **params) -> pd.DataFrame:
+    response = requests.get(
+        f"{BASE_URL}/data/query/{dataset}",
+        params=params,
+        headers=HEADERS,
+        timeout=30,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    return pd.DataFrame(payload["records"])
+
+
+df = query_dataset(
+    "prices_1d_pre",
+    start_date="2026-07-13",
+    end_date="2026-07-13",
+    order_book_id="000001.XSHE",
+    fields="trade_date,order_book_id,close,volume",
+    limit=100,
+)
+print(df.head())
+```
+
+For large downloads, prefer `format=csv` and paginated requests.
+
+## Performance Notes
+
+The Data API was optimized in commit `637194c`.
+
+Recent server smoke results after optimization:
+
+```text
+/data/coverage: about 0.31s
+financial_cashflow_field_pack small query: about 0.10s
+prices_1d_pre one-day one-stock query: about 0.54s
+```
+
+Even with these optimizations, agents should avoid unbounded pulls. Always use
+date filters, field projection, and `order_book_id` filters when practical.
+
+## Known Limitations
+
+- `intraday_snapshots` is a selected 2025 snapshot dataset, not full realtime,
+  tick, or minute-bar coverage.
+- HXZ and FF3 datasets are experimental research outputs.
+- `financial_cashflow_field_pack.cash_paid_for_asset` is an asset-acquisition
+  cash outflow and should be treated as a CapEx proxy candidate, not a fully
+  audited canonical CapEx definition.
+- `financial_pit_quarterly` is a legacy HXZ support table; use
+  `financial_pit_field_pack` and `financial_cashflow_field_pack` for general
+  financial statement research.
+- Current data starts at 2016 for core daily research data. Any 2010-2015
+  extension requires a separate backfill and QA cycle.
+- The next planned data additions are:
+  `financial_factor_daily_pit`, share capital / corporate actions, and
+  `financial_pit_expansion_field_pack`.
+
+## Safety Rules For Agents
+
+- Do not ask for or use server passwords.
+- Do not ask for RQData credentials.
+- Do not print API tokens.
+- Do not put tokens in URLs unless explicitly authorized; prefer
+  `X-API-Token`.
+- Do not scrape the full data lake through the API.
+- Do not run aggressive parallel requests.
+- Do not upload downloaded data to public repositories, public cloud drives, or
+  external AI tools.
+- When a request is large, ask for a narrower date range, fewer fields, fewer
+  symbols, or an offline Parquet export from an administrator.
+
+## Agent Handoff Prompt
+
+Use this block when handing the API to another agent:
+
+```text
+You can use the internal quant platform Data API.
+
+Base URL:
+http://39.106.218.30
+
+Authentication:
+Use header X-API-Token with the researcher token provided separately through a
+secure channel. Do not print or store the token in code.
+
+Start with:
+GET /health
+GET /data/datasets
+GET /data/coverage
+GET /data/schema/{dataset}
+
+Main query endpoint:
+GET /data/query/{dataset}
+
+Use date filters, field projection, and symbol filters. limit defaults to 5000
+and maxes at 50000. Use offset for pagination. Use format=csv for larger
+extracts.
+
+Important datasets:
+prices_1d_pre, prices_1d_none, tradability_1d, valuation_1d,
+industry_classification, index_components, index_weights,
+financial_pit_field_pack, financial_cashflow_field_pack,
+financial_pit_quarterly, intraday_snapshots, cn_hxz_4_factors_monthly,
+cn_ff3_factors_monthly, hxz_monthly_research_panel.
+
+Daily data usually filters by trade_date. Financial PIT data filters by
+info_date. JSON responses include date_column.
+
+Do not SSH into the server, request server passwords, request RQData
+credentials, run unbounded full-lake pulls, or upload data outside the
+authorized internal research group.
+```
