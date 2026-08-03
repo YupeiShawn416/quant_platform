@@ -40,7 +40,7 @@ def test_intraday_snapshot_plan_skips_existing_complete_partition(tmp_path):
     path.mkdir(parents=True)
     rows = []
     for day in ["2025-01-01", "2025-01-02"]:
-        for time in ["09:45", "09:55", "10:00", "14:30", "14:45", "14:55"]:
+        for time in ["09:45", "09:50", "09:55", "10:00", "14:30", "14:45", "14:55"]:
             rows.append({"trade_date": day, "snapshot_time": time, "order_book_id": "000001.XSHE"})
     pd.DataFrame(rows).to_parquet(path / "month=01.parquet", index=False)
 
@@ -57,6 +57,7 @@ def test_intraday_snapshot_plan_skips_existing_complete_partition(tmp_path):
 
 def test_snapshot_time_validation_and_core_points():
     assert normalize_snapshot_times("10:00,09:55") == ["09:55", "10:00"]
+    assert normalize_snapshot_times("09:50,09:45") == ["09:45", "09:50"]
     assert CORE_SNAPSHOT_TIMES == ["09:55", "10:00"]
     with pytest.raises(ValueError, match="unsupported snapshot_time"):
         normalize_snapshot_times("09:31")

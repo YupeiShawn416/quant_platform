@@ -153,3 +153,16 @@ def test_server_sync_manifest_contains_rsync_paths(tmp_path):
     assert "rsync -avz" in manifest
     assert "prices_1d_pre" in manifest
     assert "/opt/quant_platform/data/research_data/rqdata/" in manifest
+
+
+def test_index_weights_duplicate_check_uses_index_id():
+    frame = pd.DataFrame(
+        {
+            "trade_date": ["2020-01-02", "2020-01-02"],
+            "index_id": ["000300.XSHG", "000905.XSHG"],
+            "order_book_id": ["AAA.X", "AAA.X"],
+            "weight": [0.1, 0.2],
+        }
+    )
+
+    assert check_duplicate_keys("index_weights", frame) == []

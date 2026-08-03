@@ -18,14 +18,14 @@ def build_equal_weight_portfolio(signal: pd.DataFrame, top_n: int) -> pd.DataFra
         selected = daily.sort_values("signal_score", ascending=False).head(top_n)
         if selected.empty:
             continue
-        weight = 1.0 / len(selected)
+        target_weight = 1.0 / len(selected)
         for order_book_id in selected["order_book_id"]:
             rows.append(
                 {
                     "trade_date": trade_date.date().isoformat(),
                     "order_book_id": order_book_id,
-                    "weight": weight,
+                    "target_weight": target_weight,
                 }
             )
 
-    return pd.DataFrame(rows, columns=["trade_date", "order_book_id", "weight"])
+    return pd.DataFrame(rows, columns=["trade_date", "order_book_id", "target_weight"])

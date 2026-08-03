@@ -25,7 +25,7 @@ class FakeSource:
     def get_intraday_snapshots(self, order_book_ids, start_date, end_date, snapshot_times):
         rows = []
         for symbol in order_book_ids:
-            for ts in ["09:45", "09:55", "10:00", "10:01", "14:30", "14:45", "14:55"]:
+            for ts in ["09:45", "09:50", "09:55", "10:00", "10:01", "14:30", "14:45", "14:55"]:
                 rows.append(
                     {
                         "datetime": f"{start_date} {ts}:00",
@@ -57,7 +57,7 @@ def test_intraday_snapshot_requires_confirm_for_real_update():
         require_intraday_snapshot_confirmation(dry_run=False, confirm=False)
 
 
-def test_intraday_snapshot_backfill_filters_six_snapshot_times(tmp_path, monkeypatch):
+def test_intraday_snapshot_backfill_filters_morning_snapshot_times_by_default(tmp_path, monkeypatch):
     root = tmp_path / "rqdata"
     _write_instruments(root)
     monkeypatch.setattr(settings, "data_root", str(root))
@@ -79,7 +79,7 @@ def test_intraday_snapshot_backfill_filters_six_snapshot_times(tmp_path, monkeyp
     )
 
     output = pd.read_parquet(root / "intraday_snapshots" / "year=2025" / "month=01.parquet")
-    assert sorted(output["snapshot_time"].unique().tolist()) == ["09:45", "09:55", "10:00", "14:30", "14:45", "14:55"]
+    assert sorted(output["snapshot_time"].unique().tolist()) == ["09:45", "09:50", "09:55", "10:00"]
     assert "10:01" not in set(output["snapshot_time"])
     assert {item.status for item in result["results"]} == {"success"}
 

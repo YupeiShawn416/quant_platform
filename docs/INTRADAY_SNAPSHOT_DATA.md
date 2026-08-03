@@ -9,12 +9,25 @@ Fixed snapshot points:
 
 ```text
 09:45
+09:50
 09:55
 10:00
 14:30
 14:45
 14:55
 ```
+
+Default backfills now target only the morning points:
+
+```text
+09:45
+09:50
+09:55
+10:00
+```
+
+`09:30` is not stored as a separate minute snapshot. Use the daily `open`
+price as the opening snapshot.
 
 The first smoke range is:
 

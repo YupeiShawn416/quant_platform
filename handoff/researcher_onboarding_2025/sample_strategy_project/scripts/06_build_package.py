@@ -4,6 +4,7 @@ import json
 import sys
 import tempfile
 import zipfile
+from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
@@ -21,16 +22,18 @@ def main() -> int:
     package_path = project_path(config["output"]["package_path"])
     package_path.parent.mkdir(parents=True, exist_ok=True)
 
-    weights = pd.read_csv(weights_path)
     run_config = dict(config["run"])
-    run_config["weight_file"] = "weights.csv"
+    run_config["mode"] = "weights"
+    run_config["weight_file"] = "weights.parquet"
+    weights = pd.read_csv(weights_path)
     manifest = {
-        "package_type": "strategy_weights",
         "package_version": config["package_version"],
         "strategy_id": config["strategy_id"],
         "strategy_name": config["strategy_name"],
+        "author": config.get("author", "researcher_name"),
         "mode": "weights",
-        "entrypoint": "weights.csv",
+        "created_at": datetime.now().isoformat(timespec="seconds"),
+        "description": config.get("description", ""),
     }
     readme = (
         f"# {config['strategy_name']}\n\n"
@@ -48,10 +51,7 @@ def main() -> int:
         )
         (tmp / "README.md").write_text(readme, encoding="utf-8")
         weights.to_csv(tmp / "weights.csv", index=False)
-        try:
-            weights.to_parquet(tmp / "weights.parquet", index=False)
-        except Exception:
-            pass
+        weights.to_parquet(tmp / "weights.parquet", index=False)
 
         with zipfile.ZipFile(package_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
             for file_path in sorted(tmp.iterdir()):

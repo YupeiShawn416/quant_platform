@@ -3,14 +3,14 @@ from __future__ import annotations
 import argparse
 
 from rq_platform.etl.intraday_snapshot_core import run_intraday_snapshot_backfill
-from rq_platform.etl.intraday_snapshot_plan import render_intraday_snapshot_plan
+from rq_platform.etl.intraday_snapshot_plan import MORNING_SNAPSHOT_TIMES, render_intraday_snapshot_plan
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Backfill A-share intraday snapshot points.")
     parser.add_argument("--start-date", required=True)
     parser.add_argument("--end-date", required=True)
-    parser.add_argument("--snapshot-times", default="09:45,09:55,10:00,14:30,14:45,14:55")
+    parser.add_argument("--snapshot-times", default=",".join(MORNING_SNAPSHOT_TIMES))
     parser.add_argument("--batch-size", type=int, default=300)
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--overwrite", action="store_true")

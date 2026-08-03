@@ -9,7 +9,7 @@ from common import load_config, project_path
 
 def validate_weights(weights: pd.DataFrame) -> list[str]:
     errors: list[str] = []
-    required = {"trade_date", "order_book_id", "weight"}
+    required = {"trade_date", "order_book_id", "target_weight"}
     missing = required - set(weights.columns)
     if missing:
         errors.append(f"missing columns: {sorted(missing)}")
@@ -26,19 +26,19 @@ def validate_weights(weights: pd.DataFrame) -> list[str]:
     if weights["trade_date"].isna().any():
         errors.append("trade_date contains invalid dates")
 
-    weights["weight"] = pd.to_numeric(weights["weight"], errors="coerce")
-    if weights["weight"].isna().any():
-        errors.append("weight contains non-numeric values")
-    if (weights["weight"] < 0).any():
-        errors.append("weight contains negative values")
+    weights["target_weight"] = pd.to_numeric(weights["target_weight"], errors="coerce")
+    if weights["target_weight"].isna().any():
+        errors.append("target_weight contains non-numeric values")
+    if (weights["target_weight"] < 0).any():
+        errors.append("target_weight contains negative values")
 
     duplicates = weights.duplicated(["trade_date", "order_book_id"]).sum()
     if duplicates:
         errors.append(f"duplicate trade_date/order_book_id rows: {duplicates}")
 
-    daily_sum = weights.groupby("trade_date")["weight"].sum()
+    daily_sum = weights.groupby("trade_date")["target_weight"].sum()
     if (daily_sum > 1.000001).any():
-        errors.append("daily weight sum exceeds 1.0")
+        errors.append("daily target_weight sum exceeds 1.0")
 
     return errors
 

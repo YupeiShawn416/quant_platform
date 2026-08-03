@@ -10,6 +10,7 @@ import pandas as pd
 
 from rq_platform.data.parquet_lake import read_single_file
 from rq_platform.etl.intraday_snapshot_plan import (
+    ALLOWED_SNAPSHOT_TIMES,
     DEFAULT_SNAPSHOT_TIMES,
     STATUS_COLUMNS,
     STATUS_PATH,
@@ -115,7 +116,17 @@ def run_intraday_snapshot_backfill(
                 results.append(result)
                 _append_status(result)
             continue
-        for batch_id, batch in enumerate(_batches(symbols, batch_size), start=1):
+        batches = _batches(symbols, batch_size)
+        for batch_id, batch in enumerate(batches, start=1):
+            print(
+                "intraday_snapshot_fetch "
+                f"run_id={effective_run_id} "
+                f"range={task.start_date}:{task.end_date} "
+                f"batch={batch_id}/{len(batches)} "
+                f"symbols={len(batch)} "
+                f"times={','.join(plan.snapshot_times)}",
+                flush=True,
+            )
             try:
                 frame = _fetch_intraday_snapshots(
                     data_source,
@@ -175,7 +186,7 @@ def run_intraday_snapshot_backfill(
 
 def merge_intraday_snapshot_partition(frame: pd.DataFrame, path: Path, *, overwrite: bool = False) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
-    output = _normalize_intraday_snapshot_frame(frame, DEFAULT_SNAPSHOT_TIMES)
+    output = _normalize_intraday_snapshot_frame(frame, ALLOWED_SNAPSHOT_TIMES)
     if path.exists() and not overwrite:
         existing = pd.read_parquet(path)
         output = pd.concat([existing, output], ignore_index=True)
@@ -183,7 +194,7 @@ def merge_intraday_snapshot_partition(frame: pd.DataFrame, path: Path, *, overwr
         if not path.exists():
             output.to_parquet(path, index=False)
         return path
-    output = _normalize_intraday_snapshot_frame(output, DEFAULT_SNAPSHOT_TIMES)
+    output = _normalize_intraday_snapshot_frame(output, ALLOWED_SNAPSHOT_TIMES)
     output = output.drop_duplicates(["trade_date", "snapshot_time", "order_book_id"], keep="last")
     output = output.sort_values(["trade_date", "snapshot_time", "order_book_id"]).reset_index(drop=True)
     tmp_path = path.with_name(f".{path.name}.tmp")

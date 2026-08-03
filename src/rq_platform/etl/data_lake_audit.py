@@ -196,8 +196,8 @@ def _symbol_count(frame: pd.DataFrame) -> int | None:
 def _duplicate_count(frame: pd.DataFrame) -> int | None:
     for keys in [
         ["trade_date", "order_book_id", "adjust_type"],
-        ["trade_date", "order_book_id"],
         ["trade_date", "index_id", "order_book_id"],
+        ["trade_date", "order_book_id"],
     ]:
         if set(keys).issubset(frame.columns):
             return int(frame.duplicated(keys).sum())

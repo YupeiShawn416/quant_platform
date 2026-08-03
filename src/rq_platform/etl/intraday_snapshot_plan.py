@@ -9,7 +9,9 @@ import pandas as pd
 from rq_platform.settings import settings
 
 
-DEFAULT_SNAPSHOT_TIMES = ["09:45", "09:55", "10:00", "14:30", "14:45", "14:55"]
+ALLOWED_SNAPSHOT_TIMES = ["09:45", "09:50", "09:55", "10:00", "14:30", "14:45", "14:55"]
+DEFAULT_SNAPSHOT_TIMES = ["09:45", "09:50", "09:55", "10:00"]
+MORNING_SNAPSHOT_TIMES = DEFAULT_SNAPSHOT_TIMES
 CORE_SNAPSHOT_TIMES = ["09:55", "10:00"]
 STATUS_COLUMNS = [
     "run_id",
@@ -83,10 +85,10 @@ def normalize_snapshot_times(snapshot_times: str | list[str] | None = None) -> l
         values = [item.strip() for item in snapshot_times.split(",") if item.strip()]
     else:
         values = [item.strip() for item in snapshot_times if item.strip()]
-    unknown = sorted(set(values) - set(DEFAULT_SNAPSHOT_TIMES))
+    unknown = sorted(set(values) - set(ALLOWED_SNAPSHOT_TIMES))
     if unknown:
         raise ValueError(f"unsupported snapshot_time: {', '.join(unknown)}")
-    return sorted(dict.fromkeys(values), key=DEFAULT_SNAPSHOT_TIMES.index)
+    return sorted(dict.fromkeys(values), key=ALLOWED_SNAPSHOT_TIMES.index)
 
 
 def build_intraday_snapshot_plan(

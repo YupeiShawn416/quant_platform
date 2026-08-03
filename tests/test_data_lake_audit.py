@@ -45,3 +45,21 @@ def test_audit_detects_duplicate_keys(tmp_path):
     result = audit_data_lake(data_root=root, datasets=["prices_1d_pre"], expected_start_year=2020, expected_end_year=2020)
 
     assert result.iloc[0]["duplicate_keys"] == 1
+
+
+def test_audit_uses_index_id_for_index_weight_keys(tmp_path):
+    root = tmp_path / "rqdata"
+    dataset = root / "index_weights"
+    dataset.mkdir(parents=True)
+    pd.DataFrame(
+        {
+            "trade_date": ["2020-01-02", "2020-01-02"],
+            "index_id": ["000300.XSHG", "000905.XSHG"],
+            "order_book_id": ["AAA.X", "AAA.X"],
+            "weight": [0.1, 0.2],
+        }
+    ).to_parquet(dataset / "year=2020.parquet", index=False)
+
+    result = audit_data_lake(data_root=root, datasets=["index_weights"], expected_start_year=2020, expected_end_year=2020)
+
+    assert result.iloc[0]["duplicate_keys"] == 0

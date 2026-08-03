@@ -6,7 +6,7 @@ from typing import Iterable
 
 import pandas as pd
 
-from rq_platform.etl.intraday_snapshot_plan import CORE_SNAPSHOT_TIMES, DEFAULT_SNAPSHOT_TIMES, STATUS_PATH
+from rq_platform.etl.intraday_snapshot_plan import ALLOWED_SNAPSHOT_TIMES, CORE_SNAPSHOT_TIMES, STATUS_PATH
 from rq_platform.settings import settings
 
 
@@ -104,7 +104,7 @@ def _check_file(path: Path, *, min_symbols_per_snapshot: int) -> list[IntradaySn
 
     if "snapshot_time" in frame.columns:
         actual_times = set(frame["snapshot_time"].dropna().astype(str))
-        outside = sorted(actual_times - set(DEFAULT_SNAPSHOT_TIMES))
+        outside = sorted(actual_times - set(ALLOWED_SNAPSHOT_TIMES))
         if outside:
             issues.append(IntradaySnapshotIssue("intraday_snapshots", "error", f"outside snapshot_time values: {','.join(outside)}", str(path)))
         missing_core = sorted(set(CORE_SNAPSHOT_TIMES) - actual_times)

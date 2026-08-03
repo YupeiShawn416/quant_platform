@@ -28,7 +28,7 @@ WORK_PROJECT_DIR=<希望 Agent 输出标准化项目的路径>
 
 SERVER_URL=http://39.106.218.30
 API_TOKEN=<管理员单独提供>
-SUPPORTED_DATE_RANGE=2016-01-04 to 2026-07-10
+SUPPORTED_DATE_RANGE=2010-01-04 to 2026-07-31
 
 STRATEGY_NAME=<你的策略名称>
 RUN_ID=<本次回测 run_id，例如 my_strategy_2016_2026_v1>
@@ -253,7 +253,7 @@ WORK_PROJECT_DIR=<希望 Agent 输出标准化项目的路径>
 
 SERVER_URL=http://39.106.218.30
 API_TOKEN=<管理员单独提供>
-SUPPORTED_DATE_RANGE=2016-01-04 to 2026-07-10
+SUPPORTED_DATE_RANGE=2010-01-04 to 2026-07-31
 
 STRATEGY_NAME=<你的策略名称>
 RUN_ID=<本次回测 run_id，例如 my_strategy_2016_2026_v1>
@@ -278,15 +278,15 @@ BENCHMARK=000300.XSHG
 
 请优先迁移成日频目标权重格式：
 
-trade_date, order_book_id, weight
+trade_date, order_book_id, target_weight
 
 要求：
 
 1. trade_date 是 YYYY-MM-DD。
 2. order_book_id 是平台证券代码，例如 000001.XSHE、600519.XSHG。
-3. weight 是非负数字。
+3. target_weight 是非负数字。
 4. 同一天同一证券不能重复。
-5. 每天 weight 总和不能超过 1.0。
+5. 每天 target_weight 总和不能超过 1.0。
 
 【不要做】
 

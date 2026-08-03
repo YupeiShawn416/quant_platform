@@ -33,15 +33,17 @@ def main() -> int:
             )
         response.raise_for_status()
         run_payload = response.json()
+        run_id = run_payload.get("run_id")
+        result_prefix = f"/backtests/runs/{run_id}" if run_id else "/backtests/current"
 
         summary_response = requests.get(
-            f"{api_url}/backtests/current/summary", headers=headers, timeout=30
+            f"{api_url}{result_prefix}/summary", headers=headers, timeout=30
         )
         summary_response.raise_for_status()
         summary = summary_response.json()
 
         download_response = requests.get(
-            f"{api_url}/backtests/current/download", headers=headers, timeout=60
+            f"{api_url}{result_prefix}/download", headers=headers, timeout=60
         )
         download_response.raise_for_status()
     except requests.RequestException as exc:
@@ -54,7 +56,7 @@ def main() -> int:
     result_zip_path.write_bytes(download_response.content)
 
     print(f"run status: {run_payload.get('status')}")
-    print(f"run id: {summary.get('run_id')}")
+    print(f"run id: {summary.get('run_id') or run_payload.get('run_id')}")
     print(f"total_return: {summary.get('total_return')}")
     print(f"sharpe: {summary.get('sharpe')}")
     print(f"max_drawdown: {summary.get('max_drawdown')}")

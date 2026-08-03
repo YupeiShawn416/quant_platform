@@ -13,11 +13,11 @@ Check:
   `initial_cash`, `benchmark`, `adjust_type`, `frequency`, `commission_rate`,
   `tax_rate`, `slippage_rate`, `lot_size`, and `price_field`.
 - `weights.csv` or `weights.parquet` exists.
-- weights include `trade_date`, `order_book_id`, and `weight`.
+- weights include `trade_date`, `order_book_id`, and `target_weight`.
 - dates are parseable.
-- weights are numeric and non-negative.
+- `target_weight` values are numeric and non-negative.
 - there are no duplicate `trade_date/order_book_id` rows.
-- each daily weight sum is less than or equal to `1.0`.
+- each daily `target_weight` sum is less than or equal to `1.0`.
 - package does not contain raw market data, API token, `.env`, result zip, or
   private server credential.
 

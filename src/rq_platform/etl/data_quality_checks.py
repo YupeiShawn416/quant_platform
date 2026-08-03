@@ -210,8 +210,8 @@ def render_quality_markdown(issues: list[QualityIssue]) -> str:
 def _key_columns(frame: pd.DataFrame) -> list[str]:
     for keys in [
         ["trade_date", "order_book_id", "adjust_type"],
-        ["trade_date", "order_book_id"],
         ["trade_date", "index_id", "order_book_id"],
+        ["trade_date", "order_book_id"],
     ]:
         if set(keys).issubset(frame.columns):
             return keys
